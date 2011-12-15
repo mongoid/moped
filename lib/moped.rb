@@ -4,6 +4,15 @@ module Moped
   class Session
     extend Forwardable
 
+    # @return [Hash] this session's options
+    attr_reader :options
+
+    # @param [String] seeds a comma separated list of host:port pairs
+    # @param [Hash] options
+    def initialize(seeds, options = {})
+      @options = options
+    end
+
     # Switch the session's current database.
     #
     # @example
@@ -39,6 +48,11 @@ module Moped
     # @yieldparam [Moped::Session] session the new session
     # @return [Moped::Session] the new session
     def with(options = {})
+      session = dup
+      session.options.update options
+
+      yield session if block_given?
+      session
     end
 
     # Create a new session with +options+ and use new socket connections.
@@ -69,6 +83,14 @@ module Moped
     # @param (see Moped::Database#drop)
     # @return (see Moped::Database#drop)
     delegate :drop => :current_db
+
+    private
+
+    def dup
+      session = super
+      session.instance_variable_set :@options, options.dup
+      session
+    end
   end
 
   class Database
