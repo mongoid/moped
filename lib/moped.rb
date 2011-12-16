@@ -1,3 +1,4 @@
+require "monitor"
 require "forwardable"
 
 module Moped
@@ -258,23 +259,10 @@ module Moped
     def socket() end
   end
 
-  class Socket
-
-    # Thread-safe hash for adding, removing, and retrieving callbacks.
-    class Callbacks; end
-
-    # Thread-safe atomic integer.
-    class RequestId
-      def next() end
-    end
-
-    def execute(operation, &callback) end
-    def simple_query(operation) end
-
-  end
-
   class Cursor
     def next() end
   end
 
 end
+
+require "moped/socket"
