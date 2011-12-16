@@ -9,6 +9,7 @@ module Moped
 
     # @param [String] seeds a comma separated list of host:port pairs
     # @param [Hash] options
+    # @option options [Symbol, String] :database the database to use
     def initialize(seeds, options = {})
       @options = options
     end
@@ -68,21 +69,31 @@ module Moped
     #
     # @param (see Moped::Database#[])
     # @return (see Moped::Database#[])
-    delegate :"[]" => :current_db
+    delegate :"[]" => :current_database
 
     # @method command(command)
     # Run +command+ on the current database.
     #
     # @param (see Moped::Database#command)
     # @return (see Moped::Database#command)
-    delegate :command => :current_db
+    delegate :command => :current_database
 
     # @method drop
     # Drop the current database.
     #
     # @param (see Moped::Database#drop)
     # @return (see Moped::Database#drop)
-    delegate :drop => :current_db
+    delegate :drop => :current_database
+
+    def current_database
+      return @current_database if defined? @current_database
+
+      if database = options[:database]
+        @current_database = Database.new(options[:database])
+      else
+        raise "No database set for session. Call #use or #with before accessing the database"
+      end
+    end
 
     private
 

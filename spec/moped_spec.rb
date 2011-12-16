@@ -11,6 +11,30 @@ describe Moped::Session do
     end
   end
 
+  describe "#current_database" do
+    context "when no database option has been set" do
+      let(:session) { described_class.new seeds, {} }
+
+      it "raises an exception" do
+        lambda { session.current_database }.should raise_exception
+      end
+    end
+
+    it "returns the database from the options" do
+      database = stub
+      Moped::Database.should_receive(:new).
+        with(options[:database]).and_return(database)
+
+      session.current_database.should eq database
+    end
+
+    it "memoizes the database" do
+      database = session.current_database
+
+      session.current_database.should eql database
+    end
+  end
+
   describe "#with" do
     let(:new_options) { Hash[database: "test-2"] }
 
