@@ -7,20 +7,38 @@ describe Moped::Socket do
   end
 
   let(:socket) do
-    described_class.new nil, connection
+    described_class.new "127.0.0.1", server.addr[1]
   end
 
-  let!(:connection) {
-    TCPSocket.new "127.0.0.1", server.addr[1]
+  let(:connection) {
+    socket.connection
   }
+
+  before do
+    socket.connect
+  end
 
   after do
     connection.close unless connection.closed?
-    server.close
+    server.close unless server.closed?
   end
 
   before do
     described_class.any_instance.stub(:start_read_loop)
+  end
+
+  describe "#initialize" do
+    it "stores the host of the server" do
+      socket.host.should eq "127.0.0.1"
+    end
+
+    it "stores the port of the server" do
+      socket.port.should eq server.addr[1]
+    end
+
+    it "connects to the server" do
+      socket.connection.should_not be_closed
+    end
   end
 
   describe "#execute" do
@@ -209,6 +227,13 @@ describe Moped::Socket do
     end
   end
 
+  describe "#close" do
+    it "kills the socket" do
+      socket.should_receive(:kill)
+      socket.close
+    end
+  end
+
   describe "#kill" do
     let(:exception) { RuntimeError.new }
     let(:callback) { stub }
@@ -228,6 +253,38 @@ describe Moped::Socket do
     it "marks the socket as dead" do
       socket.kill exception
       socket.should be_dead
+    end
+  end
+
+  describe "#dead?" do
+    context "when socket has been killed" do
+      before do
+        socket.kill RuntimeError.new
+      end
+
+      it "should be dead" do
+        socket.should be_dead
+      end
+    end
+
+    context "when connection is closed" do
+      before do
+        socket.connection.close
+      end
+
+      it "should be dead" do
+        socket.should be_dead
+      end
+    end
+
+    context "when the server goes away" do
+      it "should be dead" do
+        socket
+        t = Thread.new { socket.read_loop }
+        server.close
+        sleep 0.5
+        socket.should be_dead
+      end
     end
   end
 

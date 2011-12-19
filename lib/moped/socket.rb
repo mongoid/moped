@@ -35,16 +35,27 @@ module Moped
     attr_reader :connection
     attr_reader :callbacks
 
-    def initialize(server, connection)
+    attr_reader :host
+    attr_reader :port
+
+    def initialize(host, port)
       @mutex = Mutex.new
 
-      @server = server
-      @connection = connection
+      @host = host
+      @port = port
 
       @request_id = RequestId.new
       @callbacks = Callbacks.new
+    end
 
-      start_read_loop
+    def connect
+      @mutex.synchronize do
+        return true if @connected
+
+        @connection = TCPSocket.new host, port
+        start_read_loop
+        @connected = true
+      end
     end
 
     # Execute the operation on the connection. Pass a callback if you're
@@ -78,9 +89,9 @@ module Moped
       doc
     end
 
-    # @return [Boolean] whether the socket is still alive
+    # @return [Boolean] whether the socket is dead
     def dead?
-      !!@dead
+      @mutex.synchronize { @dead || @connection.closed? }
     end
 
     # Shut down the run loop and send exception to all registered callbacks.
@@ -95,6 +106,11 @@ module Moped
           callback[exception]
         end
       end
+    end
+
+    # Manually closes the connection
+    def close
+      kill RuntimeError.new("connection closed")
     end
 
     def receive(connection)

@@ -251,14 +251,6 @@ module Moped
     def remove_all() end
   end
 
-  class Cluster
-    def sync() end
-  end
-
-  class Server
-    def socket() end
-  end
-
   class Cursor
     def next() end
   end
@@ -266,3 +258,4 @@ module Moped
 end
 
 require "moped/socket"
+require "moped/cluster"
