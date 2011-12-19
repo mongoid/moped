@@ -45,7 +45,7 @@ module Moped
     def sync_socket(socket)
       socket.connect
 
-      is_master = socket.simple_query Crutches::Protocol::Command.new(:$admin, ismaster: 1)
+      is_master = socket.simple_query Protocol::Command.new(:$admin, ismaster: 1)
 
       if is_master["ismaster"]
         servers << socket

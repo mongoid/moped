@@ -114,7 +114,7 @@ module Moped
     end
 
     def receive(connection)
-      reply = Crutches::Protocol::Reply.allocate
+      reply = Protocol::Reply.allocate
       reply.deserialize_length connection
       reply.deserialize_request_id connection
       reply.deserialize_response_to connection
@@ -138,7 +138,7 @@ module Moped
       else
         # Consume each document and send it to the callback.
         reply.count.times do |i|
-          document = Crutches::BSON::Document.deserialize(connection)
+          document = BSON::Document.deserialize(connection)
 
           if callback
             callback[nil, reply, i, document]

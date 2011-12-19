@@ -1,7 +1,12 @@
+require "crutches/bson"
+require "crutches/protocol"
 require "monitor"
 require "forwardable"
 
 module Moped
+  BSON = Crutches::BSON
+  Protocol = Crutches::Protocol
+
   class Session
     extend Forwardable
 
