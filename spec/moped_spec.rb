@@ -245,6 +245,17 @@ describe Moped::Collection do
     end
   end
 
+  describe "#query" do
+    let(:selector) { Hash[a: 1] }
+
+    it "returns a new Query" do
+      query = mock(Moped::Query)
+      Moped::Query.should_receive(:new).
+        with(collection, selector).and_return(query)
+      collection.find(selector).should eq query
+    end
+  end
+
   context "when session is not in safe mode" do
     before do
       session.stub safe?: false
@@ -290,4 +301,20 @@ describe Moped::Collection do
     end
   end
 
+end
+
+describe Moped::Query do
+  let(:collection) { mock Moped::Collection }
+  let(:selector) { Hash[a: 1] }
+  let(:query) { described_class.new collection, selector }
+
+  describe "#initialize" do
+    it "stores the collection" do
+      query.collection.should eq collection
+    end
+
+    it "stores the selector" do
+      query.selector.should eq selector
+    end
+  end
 end

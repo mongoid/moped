@@ -202,11 +202,13 @@ module Moped
       database.command drop: name
     end
 
-    # Build query for this collection.
+    # Build a query for this collection.
     #
-    # @param [Hash] query the query
+    # @param [Hash] selector the selector
     # @return [Moped::Query]
-    def find(query) end
+    def find(selector)
+      Query.new self, selector
+    end
     alias where find
 
     # Insert one or more documents into the collection.
@@ -259,6 +261,19 @@ module Moped
   #   people.find.count # => 1
   class Query
     include Enumerable
+
+    # @return [Collection] the query's collection
+    attr_reader :collection
+
+    # @return [Hash] the query's selector
+    attr_reader :selector
+
+    # @param [Collection] collection the query's collection
+    # @param [Hash] selector the query's selector
+    def initialize(collection, selector)
+      @collection = collection
+      @selector = selector
+    end
 
     # Set the query's limit.
     #
@@ -316,7 +331,7 @@ module Moped
     #   db[:people].find(name: "John").update_all(name: "Mary")
     #
     # @param [Hash] change the changes to make to the documents
-    def update_all(selector, change) end
+    def update_all(change) end
 
     # Update an existing document with +change+, otherwise create one.
     #
