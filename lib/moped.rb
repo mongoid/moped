@@ -160,10 +160,26 @@ module Moped
 
     # @param [Symbol, String] collection the collection name
     # @return [Moped::Collection] an instance of +collection+
-    def [](collection) end
+    def [](collection)
+      Collection.new(self, collection)
+    end
   end
 
   class Collection
+
+    # @return [Database] the database this collection belongs to
+    attr_reader :database
+
+    # @return [String, Symbol] the collection's name
+    attr_reader :name
+
+    # @param [Database] database the database this collection belongs to
+    # @param [String, Symbol] name the collection's name
+    def initialize(database, name)
+      @database = database
+      @name     = name
+    end
+
     # Drop the collection.
     def drop() end
 

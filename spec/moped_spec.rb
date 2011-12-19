@@ -167,4 +167,26 @@ describe Moped::Database do
       database.drop
     end
   end
+
+  describe "#[]" do
+    it "returns a collection with that name" do
+      Moped::Collection.should_receive(:new).with(database, :users)
+      database[:users]
+    end
+  end
+end
+
+describe Moped::Collection do
+  let(:database) { mock(Moped::Database) }
+  let(:collection) { described_class.new database, :users }
+
+  describe "#initialize" do
+    it "stores the database" do
+      collection.database.should eq database
+    end
+
+    it "stores the collection name" do
+      collection.name.should eq :users
+    end
+  end
 end
