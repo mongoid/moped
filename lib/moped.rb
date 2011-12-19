@@ -207,7 +207,15 @@ module Moped
     #   @example
     #     db[:people].insert([{name: "John"}, {name: "Joe"}])
     #   @param [Array<Hash>] documents the documents to insert
-    def insert(documents) end
+    def insert(documents)
+      documents = [documents] unless documents.is_a? Array
+
+      session = database.session
+      socket = session.socket_for(:write)
+
+      insert = Protocol::Insert.new(database.name, name, documents)
+      socket.execute insert
+    end
   end
 
   # The +Query+ class encapsulates all of the logic related to building

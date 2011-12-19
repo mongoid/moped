@@ -177,8 +177,14 @@ describe Moped::Database do
 end
 
 describe Moped::Collection do
-  let(:database) { mock(Moped::Database) }
+  let(:socket) { mock(Moped::Socket) }
+  let(:session) { mock(Moped::Session) }
+  let(:database) { mock(Moped::Database, session: session, name: "moped") }
   let(:collection) { described_class.new database, :users }
+
+  before do
+    session.stub(socket_for: socket)
+  end
 
   describe "#initialize" do
     it "stores the database" do
@@ -194,6 +200,26 @@ describe Moped::Collection do
     it "drops the collection" do
       database.should_receive(:command).with(drop: :users)
       collection.drop
+    end
+  end
+
+  describe "#insert" do
+    context "when passed a single document" do
+      it "inserts the document" do
+        socket.should_receive(:execute).with do |insert|
+          insert.documents.should eq [{a: 1}]
+        end
+        collection.insert(a: 1)
+      end
+    end
+
+    context "when passed multiple documents" do
+      it "inserts the documents" do
+        socket.should_receive(:execute).with do |insert|
+          insert.documents.should eq [{a: 1}, {b: 2}]
+        end
+        collection.insert([{a: 1}, {b: 2}])
+      end
     end
   end
 end
