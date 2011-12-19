@@ -304,7 +304,19 @@ describe Moped::Collection do
 end
 
 describe Moped::Query do
-  let(:collection) { mock Moped::Collection }
+  let(:database) do
+    mock(
+      Moped::Database,
+      name: "moped"
+    )
+  end
+  let(:collection) do
+    mock(
+      Moped::Collection,
+      database: database,
+      name: "users"
+    )
+  end
   let(:selector) { Hash[a: 1] }
   let(:query) { described_class.new collection, selector }
 
@@ -315,6 +327,66 @@ describe Moped::Query do
 
     it "stores the selector" do
       query.selector.should eq selector
+    end
+  end
+
+  describe "#limit" do
+    it "sets the query operation's limit field" do
+      query.limit(5)
+      query.operation.limit.should eq 5
+    end
+
+    it "returns the query" do
+      query.limit(5).should eql query
+    end
+  end
+
+  describe "#skip" do
+    it "sets the query operation's skip field" do
+      query.skip(5)
+      query.operation.skip.should eq 5
+    end
+
+    it "returns the query" do
+      query.skip(5).should eql query
+    end
+  end
+
+  describe "#select" do
+    it "sets the query operation's fields" do
+      query.select(a: 1)
+      query.operation.fields.should eq(a: 1)
+    end
+
+    it "returns the query" do
+      query.select(a: 1).should eql query
+    end
+  end
+
+  describe "#sort" do
+    context "when called for the first time" do
+      it "updates the selector to mongo's advanced selector" do
+        query.sort(a: 1)
+        query.operation.selector.should eq(
+          "$query" => selector,
+          "$orderby" => { a: 1 }
+        )
+      end
+    end
+
+    context "when called again" do
+      it "changes the $orderby" do
+        query.sort(a: 1)
+        query.sort(a: 2)
+        query.operation.selector.should eq(
+          "$query" => selector,
+          "$orderby" => { a: 2 }
+        )
+      end
+    end
+
+    it "returns the query" do
+      query.sort(a: 1).should eql query
     end
   end
 end

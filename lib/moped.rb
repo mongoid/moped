@@ -268,24 +268,39 @@ module Moped
     # @return [Hash] the query's selector
     attr_reader :selector
 
+    # @api private
+    attr_reader :operation
+
     # @param [Collection] collection the query's collection
     # @param [Hash] selector the query's selector
     def initialize(collection, selector)
       @collection = collection
       @selector = selector
+
+      @operation = Protocol::Query.new(
+        collection.database.name,
+        collection.name,
+        selector
+      )
     end
 
     # Set the query's limit.
     #
     # @param [Numeric] limit
     # @return [Query] self
-    def limit(limit) end
+    def limit(limit)
+      operation.limit = limit
+      self
+    end
 
     # Set the number of documents to skip.
     #
     # @param [Numeric] skip
     # @return [Query] self
-    def skip(skip) end
+    def skip(skip)
+      operation.skip = skip
+      self
+    end
 
     # Set the sort order for the query.
     #
@@ -294,7 +309,10 @@ module Moped
     #
     # @param [Hash] sort
     # @return [Query] self
-    def sort(sort) end
+    def sort(sort)
+      operation.selector = {"$query" => selector, "$orderby" => sort}
+      self
+    end
 
     # Set the fields to return from the query.
     #
@@ -303,7 +321,10 @@ module Moped
     #
     # @param [Hash] select
     # @return [Query] self
-    def select(select) end
+    def select(select)
+      operation.fields = select
+      self
+    end
 
     # @return [Hash] the first document that matches the selector.
     def one() end
