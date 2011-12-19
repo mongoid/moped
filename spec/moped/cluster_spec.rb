@@ -15,7 +15,7 @@ describe Moped::Cluster do
   end
 
   describe "initialize" do
-    let(:cluster) { Moped::Cluster.new([["127.0.0.1", 27017]], true) }
+    let(:cluster) { Moped::Cluster.new("127.0.0.1:27017", true) }
 
     it "stores the list of seeds" do
       cluster.seeds.should eq [["127.0.0.1", 27017]]
@@ -43,7 +43,7 @@ describe Moped::Cluster do
   end
 
   describe "#remove" do
-    let(:cluster) { Moped::Cluster.new([]) }
+    let(:cluster) { Moped::Cluster.new("") }
     let(:socket) { Moped::Socket.allocate }
 
     context "when removing a slave connection" do
@@ -80,7 +80,7 @@ describe Moped::Cluster do
   end
 
   describe "#sync" do
-    let(:cluster) { Moped::Cluster.new([["127.0.0.1", 27017]]) }
+    let(:cluster) { Moped::Cluster.new("127.0.0.1:27017") }
 
     it "syncs each seed node" do
       socket = stub
@@ -93,7 +93,7 @@ describe Moped::Cluster do
   end
 
   describe "#sync_socket" do
-    let(:cluster) { Moped::Cluster.new([]) }
+    let(:cluster) { Moped::Cluster.new("127.0.0.1:27017") }
     let(:socket) { Moped::Socket.new("127.0.0.1", 27017) }
 
     before do
@@ -152,7 +152,7 @@ describe Moped::Cluster do
 
   describe "#socket_for" do
     let(:cluster) do
-      Moped::Cluster.new []
+      Moped::Cluster.new ""
     end
 
     let(:socket) do
