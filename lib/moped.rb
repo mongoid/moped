@@ -327,7 +327,9 @@ module Moped
     end
 
     # @return [Hash] the first document that matches the selector.
-    def one() end
+    def one()
+      collection.database.session.socket_for(:read).simple_query(operation)
+    end
     alias first one
 
     # Iterate through documents matching the query's selector.

@@ -389,4 +389,14 @@ describe Moped::Query do
       query.sort(a: 1).should eql query
     end
   end
+
+  describe "#one" do
+    it "executes a simple query" do
+      socket = mock Moped::Socket
+      collection.stub_chain("database.session.socket_for" => socket)
+
+      socket.should_receive(:simple_query).with(query.operation)
+      query.one
+    end
+  end
 end
