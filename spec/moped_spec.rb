@@ -405,4 +405,21 @@ describe Moped::Query do
       query.one
     end
   end
+
+  describe "#count" do
+    it "executes a count command" do
+      database.should_receive(:command).with(
+        count: collection.name,
+        query: selector
+      ).and_return("n" => 4)
+
+      query.count
+    end
+
+    it "returns the count" do
+      database.stub(command: { "n" => 4 })
+
+      query.count.should eq 4
+    end
+  end
 end

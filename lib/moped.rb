@@ -344,7 +344,14 @@ module Moped
     def each() end
 
     # @return [Numeric] the number of documents that match the selector.
-    def count() end
+    def count
+      result = collection.database.command(
+        count: collection.name,
+        query: selector
+      )
+
+      result["n"]
+    end
 
     # Update a single document matching the query's selector.
     #
