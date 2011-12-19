@@ -76,23 +76,25 @@ describe Moped::Socket do
   end
 
   describe "#simple_query" do
+    let(:query) { Crutches::Protocol::Query.allocate }
+
     it "returns the document" do
-      socket.stub(:execute) do |query, callback|
-        callback.call(nil, nil, nil, a: 1)
+      socket.stub(:execute) do |query|
+        query.callback.call(nil, nil, nil, a: 1)
       end
 
-      socket.simple_query("a").should eq(a: 1)
+      socket.simple_query(query).should eq(a: 1)
     end
 
     context "when execute fails" do
       it "raises the exception" do
         exception = RuntimeError.new
 
-        socket.stub(:execute) do |query, callback|
-          callback.call(exception)
+        socket.stub(:execute) do |query|
+          query.callback.call(exception)
         end
 
-        lambda { socket.simple_query("a") }.
+        lambda { socket.simple_query(query) }.
           should raise_exception(exception)
       end
     end

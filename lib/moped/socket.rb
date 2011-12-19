@@ -60,12 +60,15 @@ module Moped
 
     # Execute the operation on the connection. Pass a callback if you're
     # interested in the results.
-    def execute(op, &callback)
-      request_id = @request_id.next
-      @callbacks[request_id] = callback if callback
+    def execute(*ops)
+      buf = ""
 
-      op.request_id = request_id
-      buf = op.serialize
+      ops.each do |op|
+        op.request_id = @request_id.next
+        op.serialize buf
+
+        @callbacks[op.request_id] = op.callback if op.callback
+      end
 
       @mutex.synchronize do
         connection.write buf
@@ -78,9 +81,12 @@ module Moped
     def simple_query(query)
       queue = Queue.new
 
-      execute(query) do |error, reply, num, doc|
+      query = query.dup
+      query.callback = lambda do |error, reply, num, doc|
         queue.push [error, doc]
       end
+
+      execute(query)
 
       err, doc = queue.pop
 

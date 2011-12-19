@@ -7,6 +7,10 @@ module Moped
   BSON = Crutches::BSON
   Protocol = Crutches::Protocol
 
+  class Protocol::Query
+    attr_accessor :callback
+  end
+
   class Session
     extend Forwardable
 
