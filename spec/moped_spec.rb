@@ -102,6 +102,28 @@ describe Moped::Session do
         session.options.should eql original_options
       end
     end
+
+    describe "#drop" do
+      it "delegates to the current database" do
+        database = mock(Moped::Database)
+        session.should_receive(:current_database).and_return(database)
+        database.should_receive(:drop)
+
+        session.drop
+      end
+    end
+
+    describe "#command" do
+      let(:command) { Hash[ismaster: 1] }
+
+      it "delegates to the current database" do
+        database = mock(Moped::Database)
+        session.should_receive(:current_database).and_return(database)
+        database.should_receive(:command).with(command)
+
+        session.command command
+      end
+    end
   end
 
 end
