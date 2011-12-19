@@ -9,6 +9,10 @@ describe Moped::Session do
     it "stores the options provided" do
       session.options.should eq options
     end
+
+    it "stores the cluster" do
+      session.cluster.should be_a Moped::Cluster
+    end
   end
 
   describe "#current_database" do

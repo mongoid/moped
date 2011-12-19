@@ -13,10 +13,14 @@ module Moped
     # @return [Hash] this session's options
     attr_reader :options
 
+    # @return [Cluster] this session's cluster
+    attr_reader :cluster
+
     # @param [String] seeds a comma separated list of host:port pairs
     # @param [Hash] options
     # @option options [Symbol, String] :database the database to use
     def initialize(seeds, options = {})
+      @cluster = Cluster.new(seeds)
       @options = options
     end
 
