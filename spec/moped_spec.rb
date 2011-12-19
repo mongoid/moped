@@ -23,7 +23,7 @@ describe Moped::Session do
     it "returns the database from the options" do
       database = stub
       Moped::Database.should_receive(:new).
-        with(options[:database]).and_return(database)
+        with(session, options[:database]).and_return(database)
 
       session.current_database.should eq database
     end
@@ -100,4 +100,24 @@ describe Moped::Session do
     end
   end
 
+end
+
+describe Moped::Database do
+  let(:session) do
+    Moped::Session.new ""
+  end
+
+  describe "#initialize" do
+    let(:database) do
+      Moped::Database.new(session, :admin)
+    end
+
+    it "stores the session" do
+      database.session.should eq session
+    end
+
+    it "stores the database name" do
+      database.name.should eq :admin
+    end
+  end
 end

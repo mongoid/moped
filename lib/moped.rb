@@ -102,7 +102,7 @@ module Moped
     private
 
     def set_current_database(database)
-      @current_database = Database.new(database)
+      @current_database = Database.new(self, database)
     end
 
     def dup
@@ -113,6 +113,20 @@ module Moped
   end
 
   class Database
+
+    # @return [Session] the database's session
+    attr_reader :session
+
+    # @return [String, Symbol] the database's name
+    attr_reader :name
+
+    # @param [Session] session the session
+    # @param [String, Symbol] name the database's name
+    def initialize(session, name)
+      @session = session
+      @name = name
+    end
+
     # Drop the database.
     def drop() end
 
