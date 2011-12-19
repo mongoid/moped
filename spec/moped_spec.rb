@@ -310,12 +310,18 @@ describe Moped::Collection do
 end
 
 describe Moped::Query do
+  let(:session) do
+    mock(Moped::Session)
+  end
+
   let(:database) do
     mock(
       Moped::Database,
-      name: "moped"
+      name: "moped",
+      session: session
     )
   end
+
   let(:collection) do
     mock(
       Moped::Collection,
@@ -323,7 +329,9 @@ describe Moped::Query do
       name: "users"
     )
   end
+
   let(:selector) { Hash[a: 1] }
+
   let(:query) { described_class.new collection, selector }
 
   describe "#initialize" do
@@ -483,6 +491,25 @@ describe Moped::Query do
       end
 
       query.remove_all
+    end
+  end
+
+  describe "#each" do
+    it "creates a new cursor" do
+      cursor = mock(Moped::Cursor, next: nil)
+      Moped::Cursor.should_receive(:new).
+        with(session, query.operation).and_return(cursor)
+
+      query.each
+    end
+
+    it "yields all documents in the cursor" do
+      cursor = mock(Moped::Cursor)
+      cursor.stub(:next).and_return(1, 2, nil)
+
+      Moped::Cursor.stub(new: cursor)
+
+      query.to_a.should eq [1, 2]
     end
   end
 

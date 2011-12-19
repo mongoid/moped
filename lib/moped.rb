@@ -341,7 +341,13 @@ module Moped
     # Iterate through documents matching the query's selector.
     #
     # @yieldparam [Hash] document each matching document
-    def each() end
+    def each
+      cursor = Cursor.new(session, operation)
+
+      while document = cursor.next
+        yield document
+      end
+    end
 
     # @return [Numeric] the number of documents that match the selector.
     def count
@@ -434,6 +440,9 @@ module Moped
   end
 
   class Cursor
+    def initialize(session, query_operation)
+    end
+
     def next() end
   end
 
