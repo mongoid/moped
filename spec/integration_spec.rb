@@ -53,5 +53,17 @@ describe Moped::Session do
       mary = session[:people].find(name: "Mary").one
       mary["name"].should eq "Mary"
     end
+
+    it "can delete a single document" do
+      session[:people].insert([{name: "John"}, {name: "John"}])
+      session[:people].find(name: "John").remove
+      session[:people].find.count.should eq 1
+    end
+
+    it "can delete a multiple documents" do
+      session[:people].insert([{name: "John"}, {name: "John"}])
+      session[:people].find(name: "John").remove_all
+      session[:people].find.count.should eq 0
+    end
   end
 end

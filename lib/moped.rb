@@ -401,13 +401,30 @@ module Moped
     #
     # @example
     #   db[:people].find(name: "John").remove
-    def remove() end
+    def remove
+      delete = Protocol::Delete.new(
+        operation.database,
+        operation.collection,
+        operation.selector,
+        flags: [:remove_first]
+      )
+
+      collection.database.session.socket_for(:write).execute delete
+    end
 
     # Remove multiple documents matching the query's selector.
     #
     # @example
     #   db[:people].find(name: "John").remove_all
-    def remove_all() end
+    def remove_all
+      delete = Protocol::Delete.new(
+        operation.database,
+        operation.collection,
+        operation.selector
+      )
+
+      collection.database.session.socket_for(:write).execute delete
+    end
   end
 
   class Cursor

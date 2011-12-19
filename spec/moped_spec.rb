@@ -457,4 +457,33 @@ describe Moped::Query do
       query.upsert change
     end
   end
+
+  describe "#remove" do
+    it "removes the first matching document" do
+      socket = mock Moped::Socket
+      collection.stub_chain("database.session.socket_for" => socket)
+
+      socket.should_receive(:execute).with do |delete|
+        delete.flags.should eq [:remove_first]
+        delete.selector.should eq query.operation.selector
+      end
+
+      query.remove
+    end
+  end
+
+  describe "#remove_all" do
+    it "removes all matching documents" do
+      socket = mock Moped::Socket
+      collection.stub_chain("database.session.socket_for" => socket)
+
+      socket.should_receive(:execute).with do |delete|
+        delete.flags.should eq []
+        delete.selector.should eq query.operation.selector
+      end
+
+      query.remove_all
+    end
+  end
+
 end
