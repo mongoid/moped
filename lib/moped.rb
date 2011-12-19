@@ -7,8 +7,14 @@ module Moped
   BSON = Crutches::BSON
   Protocol = Crutches::Protocol
 
-  class Protocol::Query
-    attr_accessor :callback
+  module Protocol::Message
+    def callback
+      @callback if defined? @callback
+    end
+
+    def callback=(callback)
+      @callback = callback
+    end
   end
 
   class Session
