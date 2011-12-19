@@ -212,7 +212,7 @@ module Moped
     #
     # @param [Hash] selector the selector
     # @return [Moped::Query]
-    def find(selector)
+    def find(selector = {})
       Query.new self, selector
     end
     alias where find

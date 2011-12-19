@@ -245,14 +245,20 @@ describe Moped::Collection do
     end
   end
 
-  describe "#query" do
+  describe "#find" do
     let(:selector) { Hash[a: 1] }
+    let(:query) { mock(Moped::Query) }
 
     it "returns a new Query" do
-      query = mock(Moped::Query)
       Moped::Query.should_receive(:new).
         with(collection, selector).and_return(query)
       collection.find(selector).should eq query
+    end
+
+    it "defaults to an empty selector" do
+      Moped::Query.should_receive(:new).
+        with(collection, {}).and_return(query)
+      collection.find.should eq query
     end
   end
 
