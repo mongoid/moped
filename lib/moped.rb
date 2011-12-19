@@ -22,7 +22,10 @@ module Moped
     #   session[:people].find.one # => { :name => "John" }
     #
     # @param [String] database the database to use
-    def use(database) end
+    def use(database)
+      options[:database] = database
+      set_current_database database
+    end
 
     # Create a new session with +options+ reusing existing connections.
     #
@@ -90,13 +93,17 @@ module Moped
       return @current_database if defined? @current_database
 
       if database = options[:database]
-        @current_database = Database.new(options[:database])
+        set_current_database(database)
       else
         raise "No database set for session. Call #use or #with before accessing the database"
       end
     end
 
     private
+
+    def set_current_database(database)
+      @current_database = Database.new(database)
+    end
 
     def dup
       session = super

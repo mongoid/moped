@@ -35,6 +35,20 @@ describe Moped::Session do
     end
   end
 
+  describe "#use" do
+    it "sets the :database option" do
+      session.use :admin
+      session.options[:database].should eq :admin
+    end
+
+    context "when there is not already a current database" do
+      it "sets the current database" do
+        session.should_receive(:set_current_database).with(:admin)
+        session.use :admin
+      end
+    end
+  end
+
   describe "#with" do
     let(:new_options) { Hash[database: "test-2"] }
 
