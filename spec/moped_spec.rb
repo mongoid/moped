@@ -111,17 +111,38 @@ describe Moped::Database do
     Moped::Session.new ""
   end
 
-  describe "#initialize" do
-    let(:database) do
-      Moped::Database.new(session, :admin)
-    end
+  let(:database) do
+    Moped::Database.new(session, :admin)
+  end
 
+  describe "#initialize" do
     it "stores the session" do
       database.session.should eq session
     end
 
     it "stores the database name" do
       database.name.should eq :admin
+    end
+  end
+
+  describe "#command" do
+    it "runs the given command against the master connection" do
+      socket = mock(Moped::Socket)
+      session.should_receive(:socket_for).with(:write).and_return(socket)
+      socket.should_receive(:simple_query) do |query|
+        query.full_collection_name.should eq "admin.$cmd"
+        query.selector.should eq(ismaster: 1)
+      end
+
+      database.command ismaster: 1
+    end
+  end
+
+  describe "#drop" do
+    it "drops the database" do
+      database.should_receive(:command).with(dropDatabase: 1)
+
+      database.drop
     end
   end
 end

@@ -98,6 +98,9 @@ module Moped
     # @return (see Moped::Database#drop)
     delegate :drop => :current_database
 
+    # @api private
+    delegate :socket_for => :cluster
+
     def current_database
       return @current_database if defined? @current_database
 
@@ -137,7 +140,9 @@ module Moped
     end
 
     # Drop the database.
-    def drop() end
+    def drop
+      command dropDatabase: 1
+    end
 
     # Run +command+ on the database.
     #
@@ -147,7 +152,11 @@ module Moped
     #
     # @param [Hash] command the command to run
     # @return [Hash] the result of the command
-    def command(command) end
+    def command(command)
+      socket = session.socket_for(:write)
+
+      socket.simple_query Protocol::Command.new(name, command)
+    end
 
     # @param [Symbol, String] collection the collection name
     # @return [Moped::Collection] an instance of +collection+
