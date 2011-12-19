@@ -22,10 +22,23 @@ module Moped
 
     # @param [String] seeds a comma separated list of host:port pairs
     # @param [Hash] options
+    # @option options [Boolean] :safe (false) ensure writes are persisted
+    # @option options [Hash] :safe ensure writes are persisted with the
+    #   specified safety level e.g., "fsync: true", or "w: 2, wtimeout: 5"
     # @option options [Symbol, String] :database the database to use
     def initialize(seeds, options = {})
       @cluster = Cluster.new(seeds)
       @options = options
+    end
+
+    # @return [Boolean] whether the current session requires safe operations.
+    def safe?
+      !!safety
+    end
+
+    # @return [Boolean, Hash] the safety level for this session
+    def safety
+      options[:safe]
     end
 
     # Switch the session's current database.
@@ -214,7 +227,17 @@ module Moped
       socket = session.socket_for(:write)
 
       insert = Protocol::Insert.new(database.name, name, documents)
-      socket.execute insert
+
+      if session.safe?
+        last_error = Protocol::Command.new(
+          database.name, getlasterror: 1, safe: session.safety
+        )
+
+        socket.execute insert
+        socket.simple_query last_error
+      else
+        socket.execute insert
+      end
     end
   end
 

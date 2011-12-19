@@ -39,6 +39,48 @@ describe Moped::Session do
     end
   end
 
+  describe "#safe?" do
+    context "when :safe is not present" do
+      before do
+        session.options.delete(:safe)
+      end
+
+      it "returns false" do
+        session.should_not be_safe
+      end
+    end
+
+    context "when :safe is present but false" do
+      before do
+        session.options[:safe] = false
+      end
+
+      it "returns false" do
+        session.should_not be_safe
+      end
+    end
+
+    context "when :safe is true" do
+      before do
+        session.options[:safe] = true
+      end
+
+      it "returns true" do
+        session.should be_safe
+      end
+    end
+
+    context "when :safe is a hash" do
+      before do
+        session.options[:safe] = { fsync: true }
+      end
+
+      it "returns true" do
+        session.should be_safe
+      end
+    end
+  end
+
   describe "#use" do
     it "sets the :database option" do
       session.use :admin
@@ -203,23 +245,49 @@ describe Moped::Collection do
     end
   end
 
-  describe "#insert" do
-    context "when passed a single document" do
-      it "inserts the document" do
-        socket.should_receive(:execute).with do |insert|
-          insert.documents.should eq [{a: 1}]
-        end
-        collection.insert(a: 1)
-      end
+  context "when session is not in safe mode" do
+    before do
+      session.stub safe?: false
     end
 
-    context "when passed multiple documents" do
-      it "inserts the documents" do
-        socket.should_receive(:execute).with do |insert|
+    describe "#insert" do
+      context "when passed a single document" do
+        it "inserts the document" do
+          socket.should_receive(:execute).with do |insert|
+            insert.documents.should eq [{a: 1}]
+          end
+          collection.insert(a: 1)
+        end
+      end
+
+      context "when passed multiple documents" do
+        it "inserts the documents" do
+          socket.should_receive(:execute).with do |insert|
+            insert.documents.should eq [{a: 1}, {b: 2}]
+          end
+          collection.insert([{a: 1}, {b: 2}])
+        end
+      end
+    end
+  end
+
+  context "when session is in safe mode" do
+    before do
+      session.stub safe?: true
+      session.stub safety: true
+    end
+
+    describe "#insert" do
+      it "inserts the documents and checks for errors" do
+        socket.should_receive(:execute).with do |insert, query|
           insert.documents.should eq [{a: 1}, {b: 2}]
+        end
+        socket.should_receive(:simple_query).with do |query|
+          query.selector.should eq(getlasterror: 1, safe: true)
         end
         collection.insert([{a: 1}, {b: 2}])
       end
     end
   end
+
 end
