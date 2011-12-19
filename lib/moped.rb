@@ -185,7 +185,9 @@ module Moped
     end
 
     # Drop the collection.
-    def drop() end
+    def drop
+      database.command drop: name
+    end
 
     # Build query for this collection.
     #

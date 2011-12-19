@@ -189,4 +189,11 @@ describe Moped::Collection do
       collection.name.should eq :users
     end
   end
+
+  describe "#drop" do
+    it "drops the collection" do
+      database.should_receive(:command).with(drop: :users)
+      collection.drop
+    end
+  end
 end
