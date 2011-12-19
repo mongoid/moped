@@ -82,7 +82,7 @@ module Moped
       queue = Queue.new
 
       query = query.dup
-      query.callback = lambda do |error, reply, num, doc|
+      query.callback = proc do |error, reply, num, doc|
         queue.push [error, doc]
       end
 
