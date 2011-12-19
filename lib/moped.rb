@@ -359,7 +359,19 @@ module Moped
     #   db[:people].find(_id: 1).update(name: "John")
     #
     # @param [Hash] change the changes to make to the document
-    def update(change) end
+    # @param [Array] flags an array of operation flags. Valid values are:
+    #   +:multi+ and +:upsert+
+    def update(change, flags = nil)
+      update = Protocol::Update.new(
+        operation.database,
+        operation.collection,
+        operation.selector,
+        change,
+        flags: flags
+      )
+
+      collection.database.session.socket_for(:write).execute update
+    end
 
     # Update multiple documents matching the query's selector.
     #
@@ -367,7 +379,9 @@ module Moped
     #   db[:people].find(name: "John").update_all(name: "Mary")
     #
     # @param [Hash] change the changes to make to the documents
-    def update_all(change) end
+    def update_all(change)
+      update change, [:multi]
+    end
 
     # Update an existing document with +change+, otherwise create one.
     #
@@ -379,7 +393,9 @@ module Moped
     #   db[:people].find.entries # => [{ name: "James" }, { name: "Mary" }]
     #
     # @param [Hash] change the changes to make to the the document
-    def upsert(change) end
+    def upsert(change)
+      update change, [:upsert]
+    end
 
     # Remove a single document matching the query's selector.
     #

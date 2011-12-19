@@ -422,4 +422,39 @@ describe Moped::Query do
       query.count.should eq 4
     end
   end
+
+  describe "#update" do
+    let(:change) { Hash[a: 1] }
+
+    it "updates the record matching selector with change" do
+      socket = mock Moped::Socket
+      collection.stub_chain("database.session.socket_for" => socket)
+
+      socket.should_receive(:execute).with do |update|
+        update.flags.should eq []
+        update.selector.should eq query.operation.selector
+        update.update.should eq change
+      end
+
+      query.update change
+    end
+  end
+
+  describe "#update_all" do
+    let(:change) { Hash[a: 1] }
+
+    it "updates all records matching selector with change" do
+      query.should_receive(:update).with(change, [:multi])
+      query.update_all change
+    end
+  end
+
+  describe "#upsert" do
+    let(:change) { Hash[a: 1] }
+
+    it "upserts the record matching selector with change" do
+      query.should_receive(:update).with(change, [:upsert])
+      query.upsert change
+    end
+  end
 end
