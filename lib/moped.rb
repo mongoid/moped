@@ -334,7 +334,7 @@ module Moped
 
     # @return [Hash] the first document that matches the selector.
     def one()
-      collection.database.session.socket_for(:read).simple_query(operation)
+      session.socket_for(:read).simple_query(operation)
     end
     alias first one
 
@@ -370,7 +370,7 @@ module Moped
         flags: flags
       )
 
-      collection.database.session.socket_for(:write).execute update
+      session.socket_for(:write).execute update
     end
 
     # Update multiple documents matching the query's selector.
@@ -409,7 +409,7 @@ module Moped
         flags: [:remove_first]
       )
 
-      collection.database.session.socket_for(:write).execute delete
+      session.socket_for(:write).execute delete
     end
 
     # Remove multiple documents matching the query's selector.
@@ -423,7 +423,13 @@ module Moped
         operation.selector
       )
 
-      collection.database.session.socket_for(:write).execute delete
+      session.socket_for(:write).execute delete
+    end
+
+    private
+
+    def session
+      @session ||= collection.database.session
     end
   end
 
