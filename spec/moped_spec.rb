@@ -496,20 +496,31 @@ describe Moped::Query do
 
   describe "#each" do
     it "creates a new cursor" do
+      socket = mock(Moped::Socket)
+      session.should_receive(:socket_for).with(:read).and_return(socket)
       cursor = mock(Moped::Cursor, next: nil)
       Moped::Cursor.should_receive(:new).
-        with(session, query.operation).and_return(cursor)
+        with(socket, query.operation).and_return(cursor)
 
       query.each
     end
 
     it "yields all documents in the cursor" do
-      cursor = mock(Moped::Cursor)
+      session.stub(socket_for: mock(Moped::Socket))
+      cursor = Moped::Cursor.allocate
       cursor.stub(:next).and_return(1, 2, nil)
 
       Moped::Cursor.stub(new: cursor)
 
       query.to_a.should eq [1, 2]
+    end
+
+    it "returns an enumerator" do
+      session.stub(socket_for: mock(Moped::Socket))
+      cursor = mock(Moped::Cursor)
+      Moped::Cursor.stub(new: cursor)
+
+      query.each.should be_a Enumerator
     end
   end
 

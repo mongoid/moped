@@ -342,10 +342,11 @@ module Moped
     #
     # @yieldparam [Hash] document each matching document
     def each
-      cursor = Cursor.new(session, operation)
-
-      while document = cursor.next
-        yield document
+      cursor = Cursor.new(session.socket_for(:read), operation)
+      cursor.to_enum.tap do |enum|
+        enum.each do |document|
+          yield document
+        end if block_given?
       end
     end
 
@@ -439,14 +440,8 @@ module Moped
     end
   end
 
-  class Cursor
-    def initialize(session, query_operation)
-    end
-
-    def next() end
-  end
-
 end
 
 require "moped/socket"
 require "moped/cluster"
+require "moped/cursor"
