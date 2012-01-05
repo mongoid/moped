@@ -3,8 +3,10 @@ module Moped
   # @api private
   class Cursor
     attr_reader :socket
+
     attr_reader :query_op
     attr_reader :get_more_op
+    attr_reader :kill_cursor_op
 
     def initialize(socket, query_operation)
       @socket = socket
@@ -17,64 +19,41 @@ module Moped
         @query_op.limit
       )
 
-      @query_op.callback = @get_more_op.callback = callback
-
-      @cache = Queue.new
+      @kill_cursor_op = Protocol::KillCursors.new([0])
     end
 
     def each
-      while document = self.next
-        yield document
+      documents = execute @query_op
+      documents.each { |doc| yield doc }
+
+      while more?
+        return kill if limited? && @get_more_op.limit <= 0
+
+        documents = execute @get_more_op
+        documents.each { |doc| yield doc }
       end
     end
 
-    def next
-      if @pending_docs == nil
-        @pending_docs = 1
-        socket.execute @query_op
-      end
+    def execute(operation)
+      reply = socket.execute operation
 
-      pending_docs = @pending_docs
+      @get_more_op.limit -= reply.count if limited?
+      @get_more_op.cursor_id = reply.cursor_id
+      @kill_cursor_op.cursor_ids = [reply.cursor_id]
 
-      if pending_docs > 0 || @cache.length > 0
-        @cache.pop
-      elsif @get_more_op.cursor_id != 0
-        if @query_op.limit > 0
-          if @get_more_op.limit > 0
-            @pending_docs += 1
+      reply.documents
+    end
 
-            socket.execute @get_more_op
-            self.next
-          else
-            kill
-            nil
-          end
-        else
-          @pending_docs += 1
-          socket.execute @get_more_op
-          self.next
-        end
-      end
+    def limited?
+      @query_op.limit > 0
+    end
+
+    def more?
+      @get_more_op.cursor_id != 0
     end
 
     def kill
-      socket.execute Protocol::KillCursors.new(
-        [@get_more_op.cursor_id]
-      )
-    end
-
-    def callback
-      @callback ||= proc do |err, reply, n, doc|
-        @pending_docs -= 1
-
-        if n == 0
-          @pending_docs += reply.count - 1
-          @get_more_op.limit -= reply.count if @query_op.limit > 0
-          @get_more_op.cursor_id = reply.cursor_id
-        end
-
-        @cache.push doc
-      end
+      socket.execute kill_cursor_op
     end
   end
 

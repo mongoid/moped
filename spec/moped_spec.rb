@@ -508,7 +508,7 @@ describe Moped::Query do
     it "yields all documents in the cursor" do
       session.stub(socket_for: mock(Moped::Socket))
       cursor = Moped::Cursor.allocate
-      cursor.stub(:next).and_return(1, 2, nil)
+      cursor.stub(:to_enum).and_return([1, 2].to_enum)
 
       Moped::Cursor.stub(new: cursor)
 

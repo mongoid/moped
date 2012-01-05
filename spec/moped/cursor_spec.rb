@@ -15,10 +15,6 @@ describe Moped::Cursor do
       cursor.query_op.should eq query_operation
     end
 
-    it "sets the query operation's callback" do
-      cursor.query_op.callback.should eq cursor.callback
-    end
-
     describe "the get_more operation" do
       it "inherits the query's database" do
         cursor.get_more_op.database.should eq query_operation.database
@@ -31,23 +27,210 @@ describe Moped::Cursor do
       it "inherits the query's limit" do
         cursor.get_more_op.limit.should eq query_operation.limit
       end
+    end
+  end
 
-      it "has the cursor's callback" do
-        cursor.get_more_op.callback.should eq cursor.callback
+  describe "#more?" do
+    context "when get more operation's cursor id is 0" do
+      it "returns false" do
+        cursor.get_more_op.cursor_id = 0
+        cursor.more?.should be_false
+      end
+    end
+    context "when get more operation's cursor id is not 0" do
+      it "returns true" do
+        cursor.get_more_op.cursor_id = 123
+        cursor.more?.should be_true
       end
     end
   end
 
-  describe "#each" do
-    let(:cursor) { Moped::Cursor.allocate }
-
-    it "yields all documents in the cursor" do
-      cursor.stub(:next).and_return(1, 2, nil)
-      docs = []
-      cursor.each do |doc|
-        docs << doc
+  describe "#limited?" do
+    context "when original query's limit is greater than 0" do
+      before do
+        query_operation.limit = 20
       end
-      docs.should eq [1, 2]
+
+      it "returns true" do
+        cursor.should be_limited
+      end
     end
+
+    context "when original query's limit is not greater than 0" do
+      before do
+        query_operation.limit = 0
+      end
+
+      it "returns true" do
+        cursor.should_not be_limited
+      end
+    end
+  end
+
+  describe "#execute" do
+    let(:reply) do
+      Moped::Protocol::Reply.allocate.tap do |reply|
+        reply.cursor_id = 123
+        reply.count = 1
+        reply.documents = [{"a" => 1}]
+      end
+    end
+
+    before do
+      socket.stub(execute: reply)
+    end
+
+    context "when query is limited" do
+      before do
+        query_operation.limit = 21
+        cursor.execute query_operation
+      end
+
+      it "updates the more operation's limit" do
+        cursor.get_more_op.limit.should eq 20
+      end
+
+      it "sets the kill cursor operation's cursor id" do
+        cursor.kill_cursor_op.cursor_ids.should eq [reply.cursor_id]
+      end
+
+      it "sets the more operation's cursor id" do
+        cursor.get_more_op.cursor_id.should eq reply.cursor_id
+      end
+    end
+
+    context "when query is limited" do
+      before do
+        query_operation.limit = 0
+        cursor.execute query_operation
+      end
+
+      it "does not update the more operation's limit" do
+        cursor.get_more_op.limit.should eq query_operation.limit
+      end
+
+      it "sets the kill cursor operation's cursor id" do
+        cursor.kill_cursor_op.cursor_ids.should eq [reply.cursor_id]
+      end
+
+      it "sets the more operation's cursor id" do
+        cursor.get_more_op.cursor_id.should eq reply.cursor_id
+      end
+    end
+
+    it "returns the documents" do
+      cursor.execute(query_operation).should eq reply.documents
+    end
+  end
+
+  describe "#each" do
+
+    context "when query returns all available documents" do
+      let(:reply) do
+        Moped::Protocol::Reply.allocate.tap do |reply|
+          reply.cursor_id = 0
+          reply.count = 21
+          reply.documents = [{"a" => 1}]
+        end
+      end
+
+      before do
+        socket.stub(execute: reply)
+      end
+
+      it "yields each document" do
+        results = []
+        cursor.each { |doc| results << doc }
+        results.should eq reply.documents
+      end
+
+      it "does not get more" do
+        socket.should_receive(:execute).once
+        cursor.each {}
+      end
+
+      it "does not kill the cursor" do
+        cursor.should_receive(:kill).never
+        cursor.each {}
+      end
+    end
+
+    context "when query is unlimited" do
+      let(:reply) do
+        Moped::Protocol::Reply.allocate.tap do |reply|
+          reply.cursor_id = 10
+          reply.count = 10
+          reply.documents = [{"a" => 1}]
+        end
+      end
+
+      let(:get_more_reply) do
+        Moped::Protocol::Reply.allocate.tap do |reply|
+          reply.cursor_id = 0
+          reply.count = 21
+          reply.documents = [{"a" => 1}]
+        end
+      end
+
+      before do
+        socket.stub(:execute).and_return(reply, get_more_reply)
+      end
+
+      it "yields each document" do
+        results = []
+        cursor.each { |doc| results << doc }
+        results.should eq reply.documents + get_more_reply.documents
+      end
+
+      it "gets more twice" do
+        socket.should_receive(:execute).twice
+        cursor.each {}
+      end
+
+      it "does not kill the cursor" do
+        cursor.should_receive(:kill).never
+        cursor.each {}
+      end
+    end
+
+    context "when query is limited" do
+      let(:reply) do
+        Moped::Protocol::Reply.allocate.tap do |reply|
+          reply.cursor_id = 10
+          reply.count = 10
+          reply.documents = [{"a" => 1}]
+        end
+      end
+
+      let(:get_more_reply) do
+        Moped::Protocol::Reply.allocate.tap do |reply|
+          reply.cursor_id = 10
+          reply.count = 10
+          reply.documents = [{"a" => 1}]
+        end
+      end
+
+      before do
+        query_operation.limit = 20
+        socket.stub(:execute).and_return(reply, get_more_reply)
+      end
+
+      it "yields each document" do
+        results = []
+        cursor.each { |doc| results << doc }
+        results.should eq reply.documents + get_more_reply.documents
+      end
+
+      it "gets more twice" do
+        socket.should_receive(:execute).at_least(2)
+        cursor.each {}
+      end
+
+      it "kills the cursor" do
+        cursor.should_receive(:kill).once
+        cursor.each {}
+      end
+    end
+
   end
 end
