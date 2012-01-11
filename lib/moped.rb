@@ -435,3 +435,4 @@ end
 require "moped/socket"
 require "moped/cluster"
 require "moped/cursor"
+require "moped/errors"
