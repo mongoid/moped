@@ -33,8 +33,7 @@ module Moped
       @connected = true
     end
 
-    # Execute the operation on the connection. Pass a callback if you're
-    # interested in the results.
+    # Execute the operation on the connection.
     def execute(op)
       buf = ""
 

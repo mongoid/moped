@@ -7,16 +7,6 @@ module Moped
   BSON = Crutches::BSON
   Protocol = Crutches::Protocol
 
-  module Protocol::Message
-    def callback
-      @callback if defined? @callback
-    end
-
-    def callback=(callback)
-      @callback = callback
-    end
-  end
-
   class Session
     extend Forwardable
 
