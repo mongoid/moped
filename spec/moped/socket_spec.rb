@@ -125,6 +125,16 @@ describe Moped::Socket do
       end
     end
 
+    it "limits the query" do
+      socket.should_receive(:execute) do |query|
+        query.limit.should eq -1
+
+        reply
+      end
+
+      socket.simple_query(query)
+    end
+
     it "returns the document" do
       socket.stub(execute: reply)
       socket.simple_query(query).should eq(a: 1)

@@ -82,8 +82,10 @@ module Moped
     #
     # @return [Hash] the first document in a result set.
     def simple_query(query)
-      reply = execute(query)
-      reply.documents.first
+      query = query.dup
+      query.limit = -1
+
+      execute(query).documents.first
     end
 
     # @return [Boolean] whether the socket is dead
