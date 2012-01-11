@@ -166,9 +166,14 @@ module Moped
     # @param [Hash] command the command to run
     # @return [Hash] the result of the command
     def command(command)
-      socket = session.socket_for(:write)
+      operation = Protocol::Command.new(name, command)
 
-      socket.simple_query Protocol::Command.new(name, command)
+      socket = session.socket_for(:write)
+      socket.simple_query(operation).tap do |result|
+        raise Errors::OperationFailure.new(
+          operation, result
+        ) unless result["ok"] == 1.0
+      end
     end
 
     # @param [Symbol, String] collection the collection name

@@ -5,7 +5,7 @@ describe Moped::Session do
     let(:session) { Moped::Session.new "127.0.0.1:27017", database: "moped_test" }
 
     after do
-      session[:people].drop
+      session[:people].drop if session[:people].find.count > 0
       session.cluster.servers.each &:close
     end
 
@@ -18,10 +18,11 @@ describe Moped::Session do
     end
 
     it "drops a collection" do
-      session[:people].drop
       session.command(count: :people)["n"].should eq 0
       session[:people].insert(name: "John")
       session.command(count: :people)["n"].should eq 1
+      session[:people].drop
+      session.command(count: :people)["n"].should eq 0
     end
 
     it "can be inserted into safely" do

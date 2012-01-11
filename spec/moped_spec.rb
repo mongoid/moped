@@ -190,15 +190,31 @@ describe Moped::Database do
   end
 
   describe "#command" do
+    let(:socket) { mock(Moped::Socket) }
+
+    before do
+      session.stub(socket_for: socket)
+    end
+
     it "runs the given command against the master connection" do
-      socket = mock(Moped::Socket)
       session.should_receive(:socket_for).with(:write).and_return(socket)
       socket.should_receive(:simple_query) do |query|
         query.full_collection_name.should eq "admin.$cmd"
         query.selector.should eq(ismaster: 1)
+
+        { "ok" => 1.0 }
       end
 
       database.command ismaster: 1
+    end
+
+    context "when the command fails" do
+      it "raises an exception" do
+        socket.stub(simple_query: { "ok" => 0.0 })
+
+        lambda { database.command ismaster: 1 }.should \
+          raise_exception(Moped::Errors::OperationFailure)
+      end
     end
   end
 
