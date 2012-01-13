@@ -1,13 +1,13 @@
 require "spec_helper"
 
 describe Moped::Cursor do
-  let(:socket) { mock Moped::Socket }
+  let(:session) { mock Moped::Session }
   let(:query_operation) { Moped::Protocol::Query.allocate }
-  let(:cursor) { Moped::Cursor.new(socket, query_operation) }
+  let(:cursor) { Moped::Cursor.new(session, query_operation) }
 
   describe "#initialize" do
-    it "stores the socket" do
-      cursor.socket.should eq socket
+    it "stores the session" do
+      cursor.session.should eq session
     end
 
     it "stores a copy of the query operation" do
@@ -77,7 +77,7 @@ describe Moped::Cursor do
     end
 
     before do
-      socket.stub(execute: reply)
+      session.stub(execute: reply)
     end
 
     context "when query is limited" do
@@ -135,7 +135,7 @@ describe Moped::Cursor do
       end
 
       before do
-        socket.stub(execute: reply)
+        session.stub(execute: reply)
       end
 
       it "yields each document" do
@@ -145,7 +145,7 @@ describe Moped::Cursor do
       end
 
       it "does not get more" do
-        socket.should_receive(:execute).once
+        session.should_receive(:execute).once
         cursor.each {}
       end
 
@@ -173,7 +173,7 @@ describe Moped::Cursor do
       end
 
       before do
-        socket.stub(:execute).and_return(reply, get_more_reply)
+        session.stub(:execute).and_return(reply, get_more_reply)
       end
 
       it "yields each document" do
@@ -183,7 +183,7 @@ describe Moped::Cursor do
       end
 
       it "gets more twice" do
-        socket.should_receive(:execute).twice
+        session.should_receive(:execute).twice
         cursor.each {}
       end
 
@@ -212,7 +212,7 @@ describe Moped::Cursor do
 
       before do
         query_operation.limit = 20
-        socket.stub(:execute).and_return(reply, get_more_reply)
+        session.stub(:execute).and_return(reply, get_more_reply)
       end
 
       it "yields each document" do
@@ -222,7 +222,7 @@ describe Moped::Cursor do
       end
 
       it "gets more twice" do
-        socket.should_receive(:execute).at_least(2)
+        session.should_receive(:execute).at_least(2)
         cursor.each {}
       end
 

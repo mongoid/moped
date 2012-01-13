@@ -137,6 +137,8 @@ module Moped
       socket_for(mode).execute(*args)
     end
 
+    private
+
     def socket_for(mode)
       if options[:retain_socket]
         @socket ||= cluster.socket_for(mode)
@@ -144,8 +146,6 @@ module Moped
         cluster.socket_for(mode)
       end
     end
-
-    private
 
     def set_current_database(database)
       @current_database = Database.new(self, database)
@@ -360,7 +360,7 @@ module Moped
     #
     # @yieldparam [Hash] document each matching document
     def each
-      cursor = Cursor.new(session.socket_for(:read), operation)
+      cursor = Cursor.new(session.with(retain_socket: true), operation)
       cursor.to_enum.tap do |enum|
         enum.each do |document|
           yield document

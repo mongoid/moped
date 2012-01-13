@@ -177,7 +177,7 @@ describe Moped::Session do
       session.cluster.should_receive(:socket_for).
         with(:read)
 
-      session.socket_for(:read)
+      session.send(:socket_for, :read)
     end
 
     context "when retain socket option is set" do
@@ -189,8 +189,8 @@ describe Moped::Session do
         session.cluster.should_receive(:socket_for).
           with(:read).once.and_return(mock(Moped::Socket))
 
-        session.socket_for(:read)
-        session.socket_for(:read)
+        session.send(:socket_for, :read)
+        session.send(:socket_for, :read)
       end
     end
   end
@@ -603,18 +603,20 @@ describe Moped::Query do
   end
 
   describe "#each" do
+    before do
+      session.should_receive(:with).
+        with(retain_socket: true).and_return(session)
+    end
+
     it "creates a new cursor" do
-      socket = mock(Moped::Socket)
-      session.should_receive(:socket_for).with(:read).and_return(socket)
       cursor = mock(Moped::Cursor, next: nil)
       Moped::Cursor.should_receive(:new).
-        with(socket, query.operation).and_return(cursor)
+        with(session, query.operation).and_return(cursor)
 
       query.each
     end
 
     it "yields all documents in the cursor" do
-      session.stub(socket_for: mock(Moped::Socket))
       cursor = Moped::Cursor.allocate
       cursor.stub(:to_enum).and_return([1, 2].to_enum)
 
@@ -624,7 +626,6 @@ describe Moped::Query do
     end
 
     it "returns an enumerator" do
-      session.stub(socket_for: mock(Moped::Socket))
       cursor = mock(Moped::Cursor)
       Moped::Cursor.stub(new: cursor)
 

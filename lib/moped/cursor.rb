@@ -2,14 +2,14 @@ module Moped
 
   # @api private
   class Cursor
-    attr_reader :socket
+    attr_reader :session
 
     attr_reader :query_op
     attr_reader :get_more_op
     attr_reader :kill_cursor_op
 
-    def initialize(socket, query_operation)
-      @socket = socket
+    def initialize(session, query_operation)
+      @session = session
       @query_op = query_operation.dup
 
       @get_more_op = Protocol::GetMore.new(
@@ -35,7 +35,7 @@ module Moped
     end
 
     def execute(operation)
-      reply = socket.execute operation
+      reply = session.execute operation
 
       @get_more_op.limit -= reply.count if limited?
       @get_more_op.cursor_id = reply.cursor_id
@@ -53,7 +53,7 @@ module Moped
     end
 
     def kill
-      socket.execute kill_cursor_op
+      session.execute kill_cursor_op
     end
   end
 
