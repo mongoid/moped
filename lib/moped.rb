@@ -117,9 +117,6 @@ module Moped
     # @return (see Moped::Database#drop)
     delegate :drop => :current_database
 
-    # @api private
-    delegate :socket_for => :cluster
-
     def current_database
       return @current_database if defined? @current_database
 
@@ -138,6 +135,14 @@ module Moped
     def execute(*args)
       mode = options[:consistency] == :eventual ? :read : :write
       socket_for(mode).execute(*args)
+    end
+
+    def socket_for(mode)
+      if options[:retain_socket]
+        @socket ||= cluster.socket_for(mode)
+      else
+        cluster.socket_for(mode)
+      end
     end
 
     private

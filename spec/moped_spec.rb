@@ -172,6 +172,29 @@ describe Moped::Session do
     end
   end
 
+  describe "#socket_for" do
+    it "delegates to the cluster" do
+      session.cluster.should_receive(:socket_for).
+        with(:read)
+
+      session.socket_for(:read)
+    end
+
+    context "when retain socket option is set" do
+      before do
+        session.options[:retain_socket] = true
+      end
+
+      it "only aquires the socket once" do
+        session.cluster.should_receive(:socket_for).
+          with(:read).once.and_return(mock(Moped::Socket))
+
+        session.socket_for(:read)
+        session.socket_for(:read)
+      end
+    end
+  end
+
   describe "#simple_query" do
     let(:query) { Moped::Protocol::Query.allocate }
     let(:socket) { mock(Moped::Socket) }
