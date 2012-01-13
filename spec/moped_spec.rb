@@ -267,6 +267,26 @@ describe Moped::Session do
           and_return(socket)
         session.query(query)
       end
+
+      context "and query accepts flags" do
+        it "sets slave_ok on the query flags" do
+          session.stub(socket_for: socket)
+          socket.should_receive(:execute) do |query|
+            query.flags.should include :slave_ok
+          end
+
+          session.query(query)
+        end
+      end
+
+      context "and query does not accept flags" do
+        let(:query) { Moped::Protocol::GetMore.allocate }
+
+        it "doesn't try to set flags" do
+          session.stub(socket_for: socket)
+          lambda { session.query(query) }.should_not raise_exception
+        end
+      end
     end
 
     context "when reply has :query_failure flag" do

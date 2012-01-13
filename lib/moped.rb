@@ -129,7 +129,6 @@ module Moped
 
     # @api private
     def simple_query(query)
-      query = query.dup
       query.limit = -1
 
       query(query).documents.first
@@ -137,7 +136,13 @@ module Moped
 
     # @api private
     def query(query)
-      mode = options[:consistency] == :eventual ? :read : :write
+      if options[:consistency] == :eventual
+        query.flags |= [:slave_ok] if query.respond_to? :flags
+        mode = :read
+      else
+        mode = :write
+      end
+
       reply = socket_for(mode).execute(query)
 
       reply.tap do |reply|
