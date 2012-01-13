@@ -34,16 +34,18 @@ module Moped
     end
 
     # Execute the operation on the connection.
-    def execute(op)
+    def execute(*ops)
       buf = ""
 
-      op.request_id = @request_id.next
-      op.serialize buf
+      last = ops.each do |op|
+        op.request_id = @request_id.next
+        op.serialize buf
+      end.last
 
       @mutex.lock
       connection.write buf
 
-      if Protocol::Query === op || Protocol::GetMore === op
+      if Protocol::Query === last || Protocol::GetMore === last
         length, = connection.read(4).unpack('l<')
         data = connection.read(length - 4)
         @mutex.unlock

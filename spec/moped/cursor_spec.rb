@@ -67,7 +67,7 @@ describe Moped::Cursor do
     end
   end
 
-  describe "#execute" do
+  describe "#query" do
     let(:reply) do
       Moped::Protocol::Reply.allocate.tap do |reply|
         reply.cursor_id = 123
@@ -77,13 +77,13 @@ describe Moped::Cursor do
     end
 
     before do
-      session.stub(execute: reply)
+      session.stub(query: reply)
     end
 
     context "when query is limited" do
       before do
         query_operation.limit = 21
-        cursor.execute query_operation
+        cursor.query query_operation
       end
 
       it "updates the more operation's limit" do
@@ -102,7 +102,7 @@ describe Moped::Cursor do
     context "when query is limited" do
       before do
         query_operation.limit = 0
-        cursor.execute query_operation
+        cursor.query query_operation
       end
 
       it "does not update the more operation's limit" do
@@ -119,7 +119,7 @@ describe Moped::Cursor do
     end
 
     it "returns the documents" do
-      cursor.execute(query_operation).should eq reply.documents
+      cursor.query(query_operation).should eq reply.documents
     end
   end
 
@@ -135,7 +135,7 @@ describe Moped::Cursor do
       end
 
       before do
-        session.stub(execute: reply)
+        session.stub(query: reply)
       end
 
       it "yields each document" do
@@ -145,7 +145,7 @@ describe Moped::Cursor do
       end
 
       it "does not get more" do
-        session.should_receive(:execute).once
+        session.should_receive(:query).once
         cursor.each {}
       end
 
@@ -173,7 +173,7 @@ describe Moped::Cursor do
       end
 
       before do
-        session.stub(:execute).and_return(reply, get_more_reply)
+        session.stub(:query).and_return(reply, get_more_reply)
       end
 
       it "yields each document" do
@@ -183,7 +183,7 @@ describe Moped::Cursor do
       end
 
       it "gets more twice" do
-        session.should_receive(:execute).twice
+        session.should_receive(:query).twice
         cursor.each {}
       end
 
@@ -212,7 +212,8 @@ describe Moped::Cursor do
 
       before do
         query_operation.limit = 20
-        session.stub(:execute).and_return(reply, get_more_reply)
+        session.stub(:query).and_return(reply, get_more_reply)
+        session.stub(:execute)
       end
 
       it "yields each document" do
@@ -222,7 +223,7 @@ describe Moped::Cursor do
       end
 
       it "gets more twice" do
-        session.should_receive(:execute).at_least(2)
+        session.should_receive(:query).at_least(2)
         cursor.each {}
       end
 

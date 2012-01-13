@@ -127,6 +127,13 @@ describe Moped::Session do
           session.options.should eql original_options
         end
       end
+
+      it "unmemoizes the current database" do
+        db = session.current_database
+        session.with(new_options) do |new_session|
+          new_session.current_database.should_not eql db
+        end
+      end
     end
 
     context "when called without a block" do
@@ -206,11 +213,11 @@ describe Moped::Session do
 
     before do
       session.stub(socket_for: socket)
-      socket.stub(:execute).and_return(reply)
+      session.stub(query: reply)
     end
 
     it "limits the query" do
-      socket.should_receive(:execute) do |query|
+      session.should_receive(:query) do |query|
         query.limit.should eq -1
 
         reply
@@ -220,8 +227,22 @@ describe Moped::Session do
     end
 
     it "returns the document" do
-      socket.stub(execute: reply)
       session.simple_query(query).should eq(a: 1)
+    end
+  end
+
+  describe "#query" do
+    let(:query) { Moped::Protocol::Query.allocate }
+    let(:socket) { mock(Moped::Socket) }
+    let(:reply) do
+      Moped::Protocol::Reply.allocate.tap do |reply|
+        reply.documents = [{a: 1}]
+      end
+    end
+
+    before do
+      session.stub(socket_for: socket)
+      socket.stub(:execute).and_return(reply)
     end
 
     context "when consistency is strong" do
@@ -232,7 +253,7 @@ describe Moped::Session do
       it "queries the master node" do
         session.should_receive(:socket_for).with(:write).
           and_return(socket)
-        session.simple_query(query)
+        session.query(query)
       end
     end
 
@@ -244,7 +265,7 @@ describe Moped::Session do
       it "queries a slave node" do
         session.should_receive(:socket_for).with(:read).
           and_return(socket)
-        session.simple_query(query)
+        session.query(query)
       end
     end
 
@@ -255,7 +276,7 @@ describe Moped::Session do
 
       it "raises a QueryFailure exception" do
         lambda do
-          session.simple_query(query)
+          session.query(query)
         end.should raise_exception(Moped::Errors::QueryFailure)
       end
     end
@@ -265,35 +286,42 @@ describe Moped::Session do
     let(:operation) { Moped::Protocol::Insert.allocate }
     let(:socket) { mock(Moped::Socket) }
 
-    context "when consistency is strong" do
+    context "when session is not in safe mode" do
       before do
-        session.options[:consistency] = :strong
+        session.options[:safe] = false
       end
 
-      it "executes the operation on the master node" do
-        session.should_receive(:socket_for).with(:write).
-          and_return(socket)
-        socket.should_receive(:execute).with(operation)
+      context "when consistency is strong" do
+        before do
+          session.options[:consistency] = :strong
+        end
 
-        session.execute(operation)
+        it "executes the operation on the master node" do
+          session.should_receive(:socket_for).with(:write).
+            and_return(socket)
+          socket.should_receive(:execute).with(operation)
+
+          session.execute(operation)
+        end
+      end
+
+      context "when consistency is eventual" do
+        before do
+          session.options[:consistency] = :eventual
+        end
+
+        it "executes the operation on a slave node" do
+          session.should_receive(:socket_for).with(:read).
+            and_return(socket)
+          socket.should_receive(:execute).with(operation)
+
+          session.execute(operation)
+        end
       end
     end
 
-    context "when consistency is eventual" do
-      before do
-        session.options[:consistency] = :eventual
-      end
+    context "when session is in safe mode" do
 
-      it "executes the operation on a slave node" do
-        session.should_receive(:socket_for).with(:read).
-          and_return(socket)
-        socket.should_receive(:execute).with(operation)
-
-        session.execute(operation)
-      end
-    end
-
-    context "when reply has :query_failure flag" do
       let(:reply) do
         Moped::Protocol::Reply.allocate.tap do |reply|
           reply.documents = [{a: 1}]
@@ -301,16 +329,45 @@ describe Moped::Session do
       end
 
       before do
-        reply.flags = [:query_failure]
-
-        session.stub(socket_for: socket)
-        socket.stub(execute: reply)
+        session.options[:safe] = { w: 2 }
       end
 
-      it "raises a QueryFailure exception" do
-        lambda do
+      context "when consistency is strong" do
+        before do
+          session.options[:consistency] = :strong
+        end
+
+        it "executes the operation on the master node" do
+          session.should_receive(:socket_for).with(:write).
+            and_return(socket)
+
+          socket.should_receive(:execute) do |op, query|
+            op.should eq operation
+            query.selector.should eq(getlasterror: 1, safe: { w: 2})
+            reply
+          end
+
           session.execute(operation)
-        end.should raise_exception(Moped::Errors::QueryFailure)
+        end
+      end
+
+      context "when consistency is eventual" do
+        before do
+          session.options[:consistency] = :eventual
+        end
+
+        it "executes the operation on a slave node" do
+          session.should_receive(:socket_for).with(:read).
+            and_return(socket)
+
+          socket.should_receive(:execute) do |op, query|
+            op.should eq operation
+            query.selector.should eq(getlasterror: 1, safe: { w: 2})
+            reply
+          end
+
+          session.execute(operation)
+        end
       end
     end
   end
@@ -424,46 +481,25 @@ describe Moped::Collection do
         and_yield(session)
     end
 
-    context "when session is not in safe mode" do
-      before do
-        session.stub safe?: false
-      end
+    before do
+      session.stub safe?: false
+    end
 
-      context "when passed a single document" do
-        it "inserts the document" do
-          session.should_receive(:execute).with do |insert|
-            insert.documents.should eq [{a: 1}]
-          end
-          collection.insert(a: 1)
+    context "when passed a single document" do
+      it "inserts the document" do
+        session.should_receive(:execute).with do |insert|
+          insert.documents.should eq [{a: 1}]
         end
-      end
-
-      context "when passed multiple documents" do
-        it "inserts the documents" do
-          session.should_receive(:execute).with do |insert|
-            insert.documents.should eq [{a: 1}, {b: 2}]
-          end
-          collection.insert([{a: 1}, {b: 2}])
-        end
+        collection.insert(a: 1)
       end
     end
 
-    context "when session is in safe mode" do
-      before do
-        session.stub safe?: true
-        session.stub safety: true
-      end
-
-      describe "#insert" do
-        it "inserts the documents and checks for errors" do
-          session.should_receive(:execute).with do |insert, query|
-            insert.documents.should eq [{a: 1}, {b: 2}]
-          end
-          session.should_receive(:simple_query).with do |query|
-            query.selector.should eq(getlasterror: 1, safe: true)
-          end
-          collection.insert([{a: 1}, {b: 2}])
+    context "when passed multiple documents" do
+      it "inserts the documents" do
+        session.should_receive(:execute).with do |insert|
+          insert.documents.should eq [{a: 1}, {b: 2}]
         end
+        collection.insert([{a: 1}, {b: 2}])
       end
     end
   end

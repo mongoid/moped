@@ -129,25 +129,37 @@ module Moped
 
     # @api private
     def simple_query(query)
-      mode = options[:consistency] == :eventual ? :read : :write
-
       query = query.dup
       query.limit = -1
 
-      execute(query).documents.first
+      query(query).documents.first
+    end
+
+    # @api private
+    def query(query)
+      mode = options[:consistency] == :eventual ? :read : :write
+      reply = socket_for(mode).execute(query)
+
+      reply.tap do |reply|
+        if reply.flags.include?(:query_failure)
+          raise Errors::QueryFailure.new(query, reply.documents.first)
+        end
+      end
     end
 
     # @api private
     def execute(operation)
       mode = options[:consistency] == :eventual ? :read : :write
 
-      reply = socket_for(mode).execute(operation)
+      if safe?
+        last_error = Protocol::Command.new(
+          "admin", getlasterror: 1, safe: safety
+        )
 
-      reply.tap do |reply|
-        if reply.flags.include?(:query_failure)
-          raise Errors::QueryFailure.new(operation, reply.documents.first)
-        end
-      end if reply
+        socket_for(mode).execute(operation, last_error).documents.first
+      else
+        socket_for(mode).execute(operation)
+      end
     end
 
     private
@@ -167,6 +179,11 @@ module Moped
     def dup
       session = super
       session.instance_variable_set :@options, options.dup
+
+      if defined? @current_database
+        session.send(:remove_instance_variable, :@current_database)
+      end
+
       session
     end
   end
@@ -265,16 +282,7 @@ module Moped
       insert = Protocol::Insert.new(database.name, name, documents)
 
       database.session.with(consistency: :strong) do |session|
-        if session.safe?
-          last_error = Protocol::Command.new(
-            database.name, getlasterror: 1, safe: session.safety
-          )
-
-          session.execute insert
-          session.simple_query last_error
-        else
-          session.execute insert
-        end
+        session.execute insert
       end
 
     end
@@ -473,7 +481,7 @@ module Moped
     private
 
     def session
-      @session ||= collection.database.session
+      collection.database.session
     end
   end
 

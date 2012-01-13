@@ -23,19 +23,19 @@ module Moped
     end
 
     def each
-      documents = execute @query_op
+      documents = query @query_op
       documents.each { |doc| yield doc }
 
       while more?
         return kill if limited? && @get_more_op.limit <= 0
 
-        documents = execute @get_more_op
+        documents = query @get_more_op
         documents.each { |doc| yield doc }
       end
     end
 
-    def execute(operation)
-      reply = session.execute operation
+    def query(operation)
+      reply = session.query operation
 
       @get_more_op.limit -= reply.count if limited?
       @get_more_op.cursor_id = reply.cursor_id

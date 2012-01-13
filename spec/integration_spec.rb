@@ -42,6 +42,16 @@ describe Moped::Session do
       mary["name"].should eq "Mary"
     end
 
+    it "can update documents safely" do
+      id = Moped::BSON::ObjectId.new
+      session[:people].insert(_id: id, name: "John")
+      mary = session[:people].find(_id: id).one
+      mary["name"].should eq "John"
+      session.with(safe: true) do |session|
+        session[:people].find(_id: id).update(name: "Mary")["ok"].should eq 1
+      end
+    end
+
     it "can update multiple documents" do
       session[:people].insert([{name: "John"}, {name: "Mary"}])
       session[:people].find.update_all("$set" => { "last_name" => "Unknown" })
@@ -59,6 +69,14 @@ describe Moped::Session do
     it "can delete a single document" do
       session[:people].insert([{name: "John"}, {name: "John"}])
       session[:people].find(name: "John").remove
+      session[:people].find.count.should eq 1
+    end
+
+    it "can delete a single document safely" do
+      session[:people].insert([{name: "John"}, {name: "John"}])
+      session.with(safe: true) do |session|
+        session[:people].find(name: "John").remove["ok"].should eq 1
+      end
       session[:people].find.count.should eq 1
     end
 
