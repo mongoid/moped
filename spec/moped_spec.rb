@@ -111,6 +111,10 @@ describe Moped::Session do
         end
       end
 
+      it "returns the result of the block" do
+        session.with(new_options) { false }.should eq false
+      end
+
       it "merges the old and new session's options" do
         session.with(new_options) do |new_session|
           new_session.options.should eq options.merge(new_options)

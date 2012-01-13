@@ -73,13 +73,17 @@ module Moped
     #   end
     #
     # @yieldparam [Moped::Session] session the new session
-    # @return [Moped::Session] the new session
+    # @return [Moped::Session, Object] the new session, or the value returned
+    #   by the block if provided.
     def with(options = {})
       session = dup
       session.options.update options
 
-      yield session if block_given?
-      session
+      if block_given?
+        yield session
+      else
+        session
+      end
     end
 
     # Create a new session with +options+ and use new socket connections.
