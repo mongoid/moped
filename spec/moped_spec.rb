@@ -326,14 +326,9 @@ describe Moped::Database do
 end
 
 describe Moped::Collection do
-  let(:socket) { mock(Moped::Socket) }
   let(:session) { mock(Moped::Session) }
   let(:database) { mock(Moped::Database, session: session, name: "moped") }
   let(:collection) { described_class.new database, :users }
-
-  before do
-    session.stub(socket_for: socket)
-  end
 
   describe "#initialize" do
     it "stores the database" do
