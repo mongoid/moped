@@ -52,7 +52,7 @@ module Moped
       else
         @mutex.unlock
 
-        true
+        nil
       end
     end
 

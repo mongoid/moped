@@ -128,15 +128,26 @@ module Moped
     end
 
     # @api private
-    def simple_query(operation)
+    def simple_query(query)
       mode = options[:consistency] == :eventual ? :read : :write
-      socket_for(mode).simple_query(operation)
+
+      query = query.dup
+      query.limit = -1
+
+      execute(query).documents.first
     end
 
     # @api private
     def execute(operation)
       mode = options[:consistency] == :eventual ? :read : :write
-      socket_for(mode).execute(operation)
+
+      reply = socket_for(mode).execute(operation)
+
+      reply.tap do |reply|
+        if reply.flags.include?(:query_failure)
+          raise Errors::QueryFailure.new(operation, reply.documents.first)
+        end
+      end if reply
     end
 
     private

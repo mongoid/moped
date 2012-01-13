@@ -198,6 +198,31 @@ describe Moped::Session do
   describe "#simple_query" do
     let(:query) { Moped::Protocol::Query.allocate }
     let(:socket) { mock(Moped::Socket) }
+    let(:reply) do
+      Moped::Protocol::Reply.allocate.tap do |reply|
+        reply.documents = [{a: 1}]
+      end
+    end
+
+    before do
+      session.stub(socket_for: socket)
+      socket.stub(:execute).and_return(reply)
+    end
+
+    it "limits the query" do
+      socket.should_receive(:execute) do |query|
+        query.limit.should eq -1
+
+        reply
+      end
+
+      session.simple_query(query)
+    end
+
+    it "returns the document" do
+      socket.stub(execute: reply)
+      session.simple_query(query).should eq(a: 1)
+    end
 
     context "when consistency is strong" do
       before do
@@ -207,8 +232,6 @@ describe Moped::Session do
       it "queries the master node" do
         session.should_receive(:socket_for).with(:write).
           and_return(socket)
-        socket.should_receive(:simple_query).with(query)
-
         session.simple_query(query)
       end
     end
@@ -221,9 +244,19 @@ describe Moped::Session do
       it "queries a slave node" do
         session.should_receive(:socket_for).with(:read).
           and_return(socket)
-        socket.should_receive(:simple_query).with(query)
-
         session.simple_query(query)
+      end
+    end
+
+    context "when reply has :query_failure flag" do
+      before do
+        reply.flags = [:query_failure]
+      end
+
+      it "raises a QueryFailure exception" do
+        lambda do
+          session.simple_query(query)
+        end.should raise_exception(Moped::Errors::QueryFailure)
       end
     end
   end
@@ -257,6 +290,27 @@ describe Moped::Session do
         socket.should_receive(:execute).with(operation)
 
         session.execute(operation)
+      end
+    end
+
+    context "when reply has :query_failure flag" do
+      let(:reply) do
+        Moped::Protocol::Reply.allocate.tap do |reply|
+          reply.documents = [{a: 1}]
+        end
+      end
+
+      before do
+        reply.flags = [:query_failure]
+
+        session.stub(socket_for: socket)
+        socket.stub(execute: reply)
+      end
+
+      it "raises a QueryFailure exception" do
+        lambda do
+          session.execute(operation)
+        end.should raise_exception(Moped::Errors::QueryFailure)
       end
     end
   end

@@ -117,43 +117,6 @@ describe Moped::Socket do
     end
   end
 
-  describe "#simple_query" do
-    let(:query) { Crutches::Protocol::Query.allocate }
-    let(:reply) do
-      Crutches::Protocol::Reply.allocate.tap do |reply|
-        reply.documents = [{a: 1}]
-      end
-    end
-
-    it "limits the query" do
-      socket.should_receive(:execute) do |query|
-        query.limit.should eq -1
-
-        reply
-      end
-
-      socket.simple_query(query)
-    end
-
-    it "returns the document" do
-      socket.stub(execute: reply)
-      socket.simple_query(query).should eq(a: 1)
-    end
-
-    context "when execute fails" do
-      it "raises the exception" do
-        exception = RuntimeError.new
-
-        socket.stub(:execute) do |query|
-          raise exception
-        end
-
-        lambda { socket.simple_query(query) }.
-          should raise_exception(exception)
-      end
-    end
-  end
-
   describe "#close" do
     let(:exception) { RuntimeError.new }
     let(:callback) { stub }
