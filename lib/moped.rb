@@ -22,9 +22,11 @@ module Moped
     # @option options [Hash] :safe ensure writes are persisted with the
     #   specified safety level e.g., "fsync: true", or "w: 2, wtimeout: 5"
     # @option options [Symbol, String] :database the database to use
+    # @option options [:strong, :eventual] :consistency (:eventual)
     def initialize(seeds, options = {})
       @cluster = Cluster.new(seeds)
       @options = options
+      @options[:consistency] ||= :eventual
     end
 
     # @return [Boolean] whether the current session requires safe operations.
@@ -128,6 +130,16 @@ module Moped
       end
     end
 
+    def simple_query(*args)
+      mode = options[:consistency] == :eventual ? :read : :write
+      socket_for(mode).simple_query(*args)
+    end
+
+    def execute(*args)
+      mode = options[:consistency] == :eventual ? :read : :write
+      socket_for(mode).execute(*args)
+    end
+
     private
 
     def set_current_database(database)
@@ -172,12 +184,15 @@ module Moped
     def command(command)
       operation = Protocol::Command.new(name, command)
 
-      socket = session.socket_for(:write)
-      socket.simple_query(operation).tap do |result|
-        raise Errors::OperationFailure.new(
-          operation, result
-        ) unless result["ok"] == 1.0
+      result = session.with(consistency: :strong) do |session|
+        session.simple_query(operation)
       end
+
+      raise Errors::OperationFailure.new(
+        operation, result
+      ) unless result["ok"] == 1.0
+
+      result
     end
 
     # @param [Symbol, String] collection the collection name
@@ -229,22 +244,21 @@ module Moped
     #   @param [Array<Hash>] documents the documents to insert
     def insert(documents)
       documents = [documents] unless documents.is_a? Array
-
-      session = database.session
-      socket = session.socket_for(:write)
-
       insert = Protocol::Insert.new(database.name, name, documents)
 
-      if session.safe?
-        last_error = Protocol::Command.new(
-          database.name, getlasterror: 1, safe: session.safety
-        )
+      database.session.with(consistency: :strong) do |session|
+        if session.safe?
+          last_error = Protocol::Command.new(
+            database.name, getlasterror: 1, safe: session.safety
+          )
 
-        socket.execute insert
-        socket.simple_query last_error
-      else
-        socket.execute insert
+          session.execute insert
+          session.simple_query last_error
+        else
+          session.execute insert
+        end
       end
+
     end
   end
 
@@ -333,7 +347,7 @@ module Moped
 
     # @return [Hash] the first document that matches the selector.
     def one()
-      session.socket_for(:read).simple_query(operation)
+      session.simple_query(operation)
     end
     alias first one
 
@@ -376,7 +390,9 @@ module Moped
         flags: flags
       )
 
-      session.socket_for(:write).execute update
+      session.with(consistency: :strong) do |session|
+        session.execute update
+      end
     end
 
     # Update multiple documents matching the query's selector.
@@ -415,7 +431,9 @@ module Moped
         flags: [:remove_first]
       )
 
-      session.socket_for(:write).execute delete
+      session.with(consistency: :strong) do |session|
+        session.execute delete
+      end
     end
 
     # Remove multiple documents matching the query's selector.
@@ -429,7 +447,9 @@ module Moped
         operation.selector
       )
 
-      session.socket_for(:write).execute delete
+      session.with(consistency: :strong) do |session|
+        session.execute delete
+      end
     end
 
     private

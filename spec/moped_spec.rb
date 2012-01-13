@@ -2,7 +2,7 @@ require "spec_helper"
 
 describe Moped::Session do
   let(:seeds) { "127.0.0.1:27017" }
-  let(:options) { Hash[database: "test", safe: true] }
+  let(:options) { Hash[database: "test", safe: true, consistency: :eventual] }
   let(:session) { described_class.new seeds, options }
 
   describe "#initialize" do
@@ -148,30 +148,95 @@ describe Moped::Session do
         session.options.should eql original_options
       end
     end
+  end
 
-    describe "#drop" do
-      it "delegates to the current database" do
-        database = mock(Moped::Database)
-        session.should_receive(:current_database).and_return(database)
-        database.should_receive(:drop)
+  describe "#drop" do
+    it "delegates to the current database" do
+      database = mock(Moped::Database)
+      session.should_receive(:current_database).and_return(database)
+      database.should_receive(:drop)
 
-        session.drop
+      session.drop
+    end
+  end
+
+  describe "#command" do
+    let(:command) { Hash[ismaster: 1] }
+
+    it "delegates to the current database" do
+      database = mock(Moped::Database)
+      session.should_receive(:current_database).and_return(database)
+      database.should_receive(:command).with(command)
+
+      session.command command
+    end
+  end
+
+  describe "#simple_query" do
+    let(:query) { Moped::Protocol::Query.allocate }
+    let(:socket) { mock(Moped::Socket) }
+
+    context "when consistency is strong" do
+      before do
+        session.options[:consistency] = :strong
+      end
+
+      it "queries the master node" do
+        session.should_receive(:socket_for).with(:write).
+          and_return(socket)
+        socket.should_receive(:simple_query).with(query)
+
+        session.simple_query(query)
       end
     end
 
-    describe "#command" do
-      let(:command) { Hash[ismaster: 1] }
+    context "when consistency is eventual" do
+      before do
+        session.options[:consistency] = :eventual
+      end
 
-      it "delegates to the current database" do
-        database = mock(Moped::Database)
-        session.should_receive(:current_database).and_return(database)
-        database.should_receive(:command).with(command)
+      it "queries a slave node" do
+        session.should_receive(:socket_for).with(:read).
+          and_return(socket)
+        socket.should_receive(:simple_query).with(query)
 
-        session.command command
+        session.simple_query(query)
       end
     end
   end
 
+  describe "#execute" do
+    let(:operation) { Moped::Protocol::Insert.allocate }
+    let(:socket) { mock(Moped::Socket) }
+
+    context "when consistency is strong" do
+      before do
+        session.options[:consistency] = :strong
+      end
+
+      it "executes the operation on the master node" do
+        session.should_receive(:socket_for).with(:write).
+          and_return(socket)
+        socket.should_receive(:execute).with(operation)
+
+        session.execute(operation)
+      end
+    end
+
+    context "when consistency is eventual" do
+      before do
+        session.options[:consistency] = :eventual
+      end
+
+      it "executes the operation on a slave node" do
+        session.should_receive(:socket_for).with(:read).
+          and_return(socket)
+        socket.should_receive(:execute).with(operation)
+
+        session.execute(operation)
+      end
+    end
+  end
 end
 
 describe Moped::Database do
@@ -194,15 +259,14 @@ describe Moped::Database do
   end
 
   describe "#command" do
-    let(:socket) { mock(Moped::Socket) }
-
     before do
-      session.stub(socket_for: socket)
+      session.stub(:with).and_yield(session)
     end
 
     it "runs the given command against the master connection" do
-      session.should_receive(:socket_for).with(:write).and_return(socket)
-      socket.should_receive(:simple_query) do |query|
+      session.should_receive(:with, :consistency => :strong).
+        and_yield(session)
+      session.should_receive(:simple_query) do |query|
         query.full_collection_name.should eq "admin.$cmd"
         query.selector.should eq(ismaster: 1)
 
@@ -214,7 +278,7 @@ describe Moped::Database do
 
     context "when the command fails" do
       it "raises an exception" do
-        socket.stub(simple_query: { "ok" => 0.0 })
+        session.stub(simple_query: { "ok" => 0.0 })
 
         lambda { database.command ismaster: 1 }.should \
           raise_exception(Moped::Errors::OperationFailure)
@@ -282,15 +346,20 @@ describe Moped::Collection do
     end
   end
 
-  context "when session is not in safe mode" do
+  describe "#insert" do
     before do
-      session.stub safe?: false
+      session.should_receive(:with, :consistency => :strong).
+        and_yield(session)
     end
 
-    describe "#insert" do
+    context "when session is not in safe mode" do
+      before do
+        session.stub safe?: false
+      end
+
       context "when passed a single document" do
         it "inserts the document" do
-          socket.should_receive(:execute).with do |insert|
+          session.should_receive(:execute).with do |insert|
             insert.documents.should eq [{a: 1}]
           end
           collection.insert(a: 1)
@@ -299,34 +368,33 @@ describe Moped::Collection do
 
       context "when passed multiple documents" do
         it "inserts the documents" do
-          socket.should_receive(:execute).with do |insert|
+          session.should_receive(:execute).with do |insert|
             insert.documents.should eq [{a: 1}, {b: 2}]
           end
           collection.insert([{a: 1}, {b: 2}])
         end
       end
     end
-  end
 
-  context "when session is in safe mode" do
-    before do
-      session.stub safe?: true
-      session.stub safety: true
-    end
+    context "when session is in safe mode" do
+      before do
+        session.stub safe?: true
+        session.stub safety: true
+      end
 
-    describe "#insert" do
-      it "inserts the documents and checks for errors" do
-        socket.should_receive(:execute).with do |insert, query|
-          insert.documents.should eq [{a: 1}, {b: 2}]
+      describe "#insert" do
+        it "inserts the documents and checks for errors" do
+          session.should_receive(:execute).with do |insert, query|
+            insert.documents.should eq [{a: 1}, {b: 2}]
+          end
+          session.should_receive(:simple_query).with do |query|
+            query.selector.should eq(getlasterror: 1, safe: true)
+          end
+          collection.insert([{a: 1}, {b: 2}])
         end
-        socket.should_receive(:simple_query).with do |query|
-          query.selector.should eq(getlasterror: 1, safe: true)
-        end
-        collection.insert([{a: 1}, {b: 2}])
       end
     end
   end
-
 end
 
 describe Moped::Query do
@@ -426,10 +494,7 @@ describe Moped::Query do
 
   describe "#one" do
     it "executes a simple query" do
-      socket = mock Moped::Socket
-      collection.stub_chain("database.session.socket_for" => socket)
-
-      socket.should_receive(:simple_query).with(query.operation)
+      session.should_receive(:simple_query).with(query.operation)
       query.one
     end
   end
@@ -455,10 +520,10 @@ describe Moped::Query do
     let(:change) { Hash[a: 1] }
 
     it "updates the record matching selector with change" do
-      socket = mock Moped::Socket
-      collection.stub_chain("database.session.socket_for" => socket)
+      session.should_receive(:with, :consistency => :strong).
+        and_yield(session)
 
-      socket.should_receive(:execute).with do |update|
+      session.should_receive(:execute).with do |update|
         update.flags.should eq []
         update.selector.should eq query.operation.selector
         update.update.should eq change
@@ -488,10 +553,10 @@ describe Moped::Query do
 
   describe "#remove" do
     it "removes the first matching document" do
-      socket = mock Moped::Socket
-      collection.stub_chain("database.session.socket_for" => socket)
+      session.should_receive(:with, :consistency => :strong).
+        and_yield(session)
 
-      socket.should_receive(:execute).with do |delete|
+      session.should_receive(:execute).with do |delete|
         delete.flags.should eq [:remove_first]
         delete.selector.should eq query.operation.selector
       end
@@ -502,10 +567,10 @@ describe Moped::Query do
 
   describe "#remove_all" do
     it "removes all matching documents" do
-      socket = mock Moped::Socket
-      collection.stub_chain("database.session.socket_for" => socket)
+      session.should_receive(:with, :consistency => :strong).
+        and_yield(session)
 
-      socket.should_receive(:execute).with do |delete|
+      session.should_receive(:execute).with do |delete|
         delete.flags.should eq []
         delete.selector.should eq query.operation.selector
       end
