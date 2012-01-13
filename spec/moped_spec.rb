@@ -332,6 +332,29 @@ describe Moped::Session do
         session.options[:safe] = { w: 2 }
       end
 
+      context "when the operation fails" do
+        let(:reply) do
+          Moped::Protocol::Reply.allocate.tap do |reply|
+            reply.documents = [{
+              "err"=>"document to insert can't have $ fields",
+             "code"=>13511,
+             "n"=>0,
+             "connectionId"=>894,
+             "ok"=>1.0
+            }]
+          end
+        end
+
+        it "raises an OperationFailure exception" do
+          session.stub(socket_for: socket)
+          socket.stub(execute: reply)
+
+          lambda do
+            session.execute(operation)
+          end.should raise_exception(Moped::Errors::OperationFailure)
+        end
+      end
+
       context "when consistency is strong" do
         before do
           session.options[:consistency] = :strong

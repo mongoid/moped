@@ -31,6 +31,14 @@ describe Moped::Session do
       end
     end
 
+    it "raises an error on a failed insert in safe mode" do
+      session.with(safe: true) do |session|
+        lambda do
+          session[:people].insert("$invalid" => nil)
+        end.should raise_exception(Moped::Errors::OperationFailure)
+      end
+    end
+
     it "can update documents" do
       id = Moped::BSON::ObjectId.new
       session[:people].insert(_id: id, name: "John")

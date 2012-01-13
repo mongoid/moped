@@ -148,17 +148,22 @@ module Moped
     end
 
     # @api private
-    def execute(operation)
+    def execute(op)
       mode = options[:consistency] == :eventual ? :read : :write
+      socket = socket_for(mode)
 
       if safe?
         last_error = Protocol::Command.new(
           "admin", getlasterror: 1, safe: safety
         )
 
-        socket_for(mode).execute(operation, last_error).documents.first
+        socket.execute(op, last_error).documents.first.tap do |result|
+          raise Errors::OperationFailure.new(
+            op, result
+          ) if result["err"] || result["errmsg"]
+        end
       else
-        socket_for(mode).execute(operation)
+        socket.execute(op)
       end
     end
 
