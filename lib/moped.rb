@@ -127,14 +127,16 @@ module Moped
       end
     end
 
-    def simple_query(*args)
+    # @api private
+    def simple_query(operation)
       mode = options[:consistency] == :eventual ? :read : :write
-      socket_for(mode).simple_query(*args)
+      socket_for(mode).simple_query(operation)
     end
 
-    def execute(*args)
+    # @api private
+    def execute(operation)
       mode = options[:consistency] == :eventual ? :read : :write
-      socket_for(mode).execute(*args)
+      socket_for(mode).execute(operation)
     end
 
     private
