@@ -386,7 +386,7 @@ describe Moped::Session do
 
           socket.should_receive(:execute) do |op, query|
             op.should eq operation
-            query.selector.should eq(getlasterror: 1, safe: { w: 2})
+            query.selector.should eq(getlasterror: 1, w: 2)
             reply
           end
 
@@ -405,7 +405,7 @@ describe Moped::Session do
 
           socket.should_receive(:execute) do |op, query|
             op.should eq operation
-            query.selector.should eq(getlasterror: 1, safe: { w: 2})
+            query.selector.should eq(getlasterror: 1, w: 2)
             reply
           end
 

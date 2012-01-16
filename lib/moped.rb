@@ -34,11 +34,6 @@ module Moped
       !!safety
     end
 
-    # @return [Boolean, Hash] the safety level for this session
-    def safety
-      options[:safe]
-    end
-
     # Switch the session's current database.
     #
     # @example
@@ -159,7 +154,7 @@ module Moped
 
       if safe?
         last_error = Protocol::Command.new(
-          "admin", getlasterror: 1, safe: safety
+          "admin", { getlasterror: 1 }.merge(safety)
         )
 
         socket.execute(op, last_error).documents.first.tap do |result|
@@ -173,6 +168,20 @@ module Moped
     end
 
     private
+
+    # @return [Boolean, Hash] the safety level for this session
+    def safety
+      safe = options[:safe]
+
+      case safe
+      when false
+        false
+      when true
+        { safe: true }
+      else
+        safe
+      end
+    end
 
     def socket_for(mode)
       if options[:retain_socket]
