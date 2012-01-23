@@ -84,15 +84,20 @@ module Moped
 
       if Protocol::Query === last || Protocol::GetMore === last
         length, = connection.read(4).unpack('l<')
-        data = connection.read(length - 4)
+
+        # Re-use the already allocated buffer used for writing the command.
+        connection.read(length - 4, buf)
+
         @mutex.unlock
 
-        parse_reply length, data
+        parse_reply length, buf
       else
         @mutex.unlock
 
         nil
       end
+    ensure
+      @mutex.unlock if @mutex.locked?
     end
 
     def parse_reply(length, data)
