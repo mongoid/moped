@@ -19,7 +19,7 @@ describe Moped::Socket do
   end
 
   after do
-    connection.close unless connection.closed?
+    connection.close if connection && !connection.closed?
     server.close unless server.closed?
   end
 
@@ -34,6 +34,80 @@ describe Moped::Socket do
 
     it "connects to the server" do
       socket.connection.should_not be_closed
+    end
+  end
+
+  describe "#connect" do
+    context "when node is not running" do
+      let(:bogus_port) do
+        server = TCPServer.new("127.0.0.1", 0)
+        server.addr[1].tap do
+          server.close
+        end
+      end
+
+      let(:socket) do
+        described_class.new "127.0.0.1", bogus_port
+      end
+
+      it "returns false" do
+        socket.connect.should be_false
+      end
+    end
+  end
+
+  describe "#alive?" do
+    context "when not connected" do
+      let(:socket) do
+        described_class.new("127.0.0.1", 99999).tap do |socket|
+          socket.stub(:connect)
+        end
+      end
+
+      it "should be false" do
+        socket.should_not be_alive
+      end
+    end
+
+    context "when connected but server goes away" do
+      before do
+        remote = server.accept
+        remote.shutdown
+        # Give the socket time to be notified
+        sleep 0.1
+      end
+
+      it "should be false" do
+        socket.should_not be_alive
+      end
+    end
+
+    context "when connected but server goes away" do
+      before do
+        server.close
+        # Give the socket time to be notified
+        sleep 0.1
+      end
+
+      it "should be false" do
+        socket.should_not be_alive
+      end
+    end
+
+    context "when connect is explicitly closed" do
+      before do
+        socket.close
+      end
+
+      it "should be false" do
+        socket.should_not be_alive
+      end
+    end
+
+    context "when connected and server is open" do
+      it "should be true" do
+        socket.should be_alive
+      end
     end
   end
 
@@ -128,29 +202,7 @@ describe Moped::Socket do
 
     it "marks the socket as dead" do
       socket.close
-      socket.should be_dead
-    end
-  end
-
-  describe "#dead?" do
-    context "when socket has been killed" do
-      before do
-        socket.close
-      end
-
-      it "should be dead" do
-        socket.should be_dead
-      end
-    end
-
-    context "when connection is closed" do
-      before do
-        socket.connection.close
-      end
-
-      it "should be dead" do
-        socket.should be_dead
-      end
+      socket.should_not be_alive
     end
   end
 

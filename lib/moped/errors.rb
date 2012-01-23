@@ -7,6 +7,9 @@ module Moped
     # source of information on error codes.
     ERROR_REFERENCE = "https://github.com/mongodb/mongo/blob/master/docs/errors.md"
 
+    # Generic error class for exceptions related to connection failures.
+    class ConnectionFailure < StandardError; end
+
     # Generic error class for exceptions generated on the remote MongoDB
     # server.
     class MongoError < StandardError; end

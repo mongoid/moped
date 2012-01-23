@@ -15,22 +15,22 @@ describe Moped::Cluster do
   end
 
   describe "initialize" do
-    let(:cluster) { Moped::Cluster.new("127.0.0.1:27017", true) }
+    let(:cluster) { Moped::Cluster.new("127.0.0.1:27017,127.0.0.1:27018", true) }
 
     it "stores the list of seeds" do
-      cluster.seeds.should eq [["127.0.0.1", 27017]]
+      cluster.seeds.should eq ["127.0.0.1:27017", "127.0.0.1:27018"]
     end
 
     it "stores whether the connection is direct" do
       cluster.direct.should be_true
     end
 
-    it "has an empty list of masters" do
-      cluster.masters.should be_empty
+    it "has an empty list of primaries" do
+      cluster.primaries.should be_empty
     end
 
-    it "has an empty list of slaves" do
-      cluster.slaves.should be_empty
+    it "has an empty list of secondaries" do
+      cluster.secondaries.should be_empty
     end
 
     it "has an empty list of servers" do
@@ -42,117 +42,154 @@ describe Moped::Cluster do
     end
   end
 
-  describe "#remove" do
-    let(:cluster) { Moped::Cluster.new("") }
-    let(:socket) { Moped::Socket.allocate }
-
-    context "when removing a slave connection" do
-      before do
-        cluster.slaves << socket
-        cluster.servers << socket
-        cluster.remove socket
-      end
-
-      it "is removed from the list of slaves" do
-        cluster.slaves.should_not include socket
-      end
-
-      it "is removed from the list of servers" do
-        cluster.servers.should_not include socket
-      end
-    end
-
-    context "when removing a master connection" do
-      before do
-        cluster.masters << socket
-        cluster.servers << socket
-        cluster.remove socket
-      end
-
-      it "is removed from the list of masters" do
-        cluster.masters.should_not include socket
-      end
-
-      it "is removed from the list of servers" do
-        cluster.servers.should_not include socket
-      end
-    end
-  end
-
   describe "#sync" do
     let(:cluster) { Moped::Cluster.new("127.0.0.1:27017") }
 
     it "syncs each seed node" do
-      socket = stub
-      Moped::Socket.should_receive(:new).with("127.0.0.1", 27017).
-        and_return(socket)
+      server = Moped::Server.allocate
+      Moped::Server.should_receive(:new).with("127.0.0.1:27017").and_return(server)
 
-      cluster.should_receive(:sync_socket).with(socket)
+      cluster.should_receive(:sync_server).with(server).and_return([])
       cluster.sync
     end
   end
 
-  describe "#sync_socket" do
-    let(:cluster) { Moped::Cluster.new("127.0.0.1:27017") }
-    let(:socket) { Moped::Socket.new("127.0.0.1", 27017) }
+  describe "#sync_server" do
+    let(:cluster) { Moped::Cluster.new "", false }
+    let(:server) { Moped::Server.allocate }
+    let(:socket) { Moped::Socket.new "", 99999 }
+    let(:connection) { Support::MockConnection.new }
 
     before do
-      socket.stub :connect
-      socket.stub :close
+      socket.stub(connection: connection, alive?: true)
+      server.stub(socket: socket)
     end
 
-    context "when socket is a master connection" do
-      before do
-        socket.stub(simple_query: { "ismaster" => true })
-      end
+    context "when node is not running" do
+      it "returns nothing" do
+        socket.stub(connect: false)
 
-      it "adds it to the list of servers" do
-        cluster.sync_socket socket
-        cluster.servers.should include socket
-      end
-
-      it "adds it to the list of masters" do
-        cluster.sync_socket socket
-        cluster.masters.should include socket
+        cluster.sync_server(server).should be_empty
       end
     end
 
-    context "when socket is a secondary connection" do
+    context "when talking to a single node" do
       before do
-        socket.stub(simple_query: { "secondary" => true })
+        connection.pending_replies << Hash[
+          "ismaster" => true,
+          "maxBsonObjectSize" => 16777216,
+          "ok" => 1.0
+        ]
       end
 
-      it "adds it to the list of servers" do
-        cluster.sync_socket socket
-        cluster.servers.should include socket
-      end
-
-      it "adds it to the list of slaves" do
-        cluster.sync_socket socket
-        cluster.slaves.should include socket
+      it "adds the node to the master set" do
+        cluster.sync_server server
+        cluster.primaries.should include server
       end
     end
 
-    context "when socket is a passive connection" do
-      before do
-        socket.stub(simple_query: { "passive" => true })
+    context "when talking to a replica set node" do
+
+      context "that is not configured" do
+        before do
+          connection.pending_replies << Hash[
+            "ismaster" => false,
+            "secondary" => false,
+            "info" => "can't get local.system.replset config from self or any seed (EMPTYCONFIG)",
+            "isreplicaset" => true,
+            "maxBsonObjectSize" => 16777216,
+            "ok" => 1.0
+          ]
+        end
+
+        it "returns nothing" do
+          cluster.sync_server(server).should be_empty
+        end
       end
 
-      it "does not add it to the list of servers" do
-        cluster.sync_socket socket
-        cluster.servers.should_not include socket
+      context "that is being initiated" do
+        before do
+          connection.pending_replies << Hash[
+            "ismaster" => false,
+            "secondary" => false,
+            "info" => "Received replSetInitiate - should come online shortly.",
+            "isreplicaset" => true,
+            "maxBsonObjectSize" => 16777216,
+            "ok" => 1.0
+          ]
+        end
+
+        it "raises a connection failure exception" do
+          cluster.sync_server(server).should be_empty
+        end
       end
 
-      it "closes the socket" do
-        socket.should_receive(:close)
-        cluster.sync_socket socket
+      context "that is ready but not elected" do
+        before do
+          connection.pending_replies << Hash[
+            "setName" => "3fef4842b608",
+            "ismaster" => false,
+            "secondary" => false,
+            "hosts" => ["localhost:61085", "localhost:61086", "localhost:61084"],
+            "primary" => "localhost:61084",
+            "me" => "localhost:61085",
+            "maxBsonObjectSize" => 16777216,
+            "ok" => 1.0
+          ]
+        end
+
+        it "raises no exception" do
+          lambda do
+            cluster.sync_server server
+          end.should_not raise_exception
+        end
+
+        it "adds the server to the list" do
+          cluster.sync_server server
+          cluster.servers.should include server
+        end
+
+        it "returns all other known hosts" do
+          cluster.sync_server(server).should =~ ["localhost:61085", "localhost:61086", "localhost:61084"]
+        end
       end
+
+      context "that is ready" do
+        before do
+          connection.pending_replies << Hash[
+            "setName" => "3ff029114780",
+            "ismaster" => true,
+            "secondary" => false,
+            "hosts" => ["localhost:59246", "localhost:59248", "localhost:59247"],
+            "primary" => "localhost:59246",
+            "me" => "localhost:59246",
+            "maxBsonObjectSize" => 16777216,
+            "ok" => 1.0
+          ]
+        end
+
+        it "adds the node to the master set" do
+          cluster.sync_server server
+          cluster.primaries.should include server
+        end
+
+        it "returns all other known hosts" do
+          cluster.sync_server(server).should =~ ["localhost:59246", "localhost:59248", "localhost:59247"]
+        end
+      end
+
     end
   end
 
   describe "#socket_for" do
     let(:cluster) do
       Moped::Cluster.new ""
+    end
+
+    let(:server) do
+      Moped::Server.allocate.tap do |server|
+        server.stub(socket: socket)
+      end
     end
 
     let(:socket) do
@@ -162,20 +199,26 @@ describe Moped::Cluster do
     end
 
     context "when socket is dead" do
+      let(:dead_server) do
+        Moped::Server.allocate.tap do |server|
+          server.stub(socket: dead_socket)
+        end
+      end
+
       let(:dead_socket) do
         Moped::Socket.new("127.0.0.1", 27017).tap do |socket|
-          socket.stub(:dead? => true)
+          socket.stub(:alive? => false)
         end
       end
 
       before do
-        cluster.masters << socket
-        cluster.masters << dead_socket
-        cluster.masters.stub(:sample).and_return(dead_socket, socket)
+        primaries = [server, dead_server]
+        primaries.stub(:sample).and_return(dead_server, server)
+        cluster.stub(primaries: primaries)
       end
 
       it "removes the socket" do
-        cluster.should_receive(:remove).with(dead_socket)
+        cluster.should_receive(:remove).with(dead_server)
         cluster.socket_for :write
       end
 
@@ -185,17 +228,21 @@ describe Moped::Cluster do
     end
 
     context "when mode is write" do
+      before do
+        server.primary = true
+      end
+
       context "and the cluster is not synced" do
         it "syncs the cluster" do
           cluster.should_receive(:sync) do
-            cluster.masters << socket
+            cluster.servers << server
           end
           cluster.socket_for :write
         end
 
         it "returns the socket" do
           cluster.stub(:sync) do
-            cluster.masters << socket
+            cluster.servers << server
           end
           cluster.socket_for(:write).should eq socket
         end
@@ -203,7 +250,7 @@ describe Moped::Cluster do
 
       context "and the cluster is synced" do
         before do
-          cluster.masters << socket
+          cluster.servers << server
         end
 
         it "does not re-sync the cluster" do
@@ -219,18 +266,23 @@ describe Moped::Cluster do
 
     context "when mode is read" do
       context "and the cluster is not synced" do
+        before do
+          server.primary = true
+        end
+
         it "syncs the cluster" do
           cluster.should_receive(:sync) do
-            cluster.masters << socket
+            cluster.servers << server
           end
           cluster.socket_for :read
         end
       end
 
       context "and the cluster is synced" do
-        context "and no slaves are found" do
+        context "and no secondaries are found" do
           before do
-            cluster.masters << socket
+            server.primary = true
+            cluster.servers << server
           end
 
           it "returns the master connection" do
@@ -239,12 +291,10 @@ describe Moped::Cluster do
         end
 
         context "and a slave is found" do
-          before do
-            cluster.slaves << socket
-          end
-
           it "returns a random slave connection" do
-            cluster.slaves.should_receive(:sample).and_return(socket)
+            secondaries = [server]
+            cluster.stub(secondaries: secondaries)
+            secondaries.should_receive(:sample).and_return(server)
             cluster.socket_for(:read).should eq socket
           end
         end

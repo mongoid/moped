@@ -506,6 +506,7 @@ module Moped
 
 end
 
+require "moped/server"
 require "moped/socket"
 require "moped/cluster"
 require "moped/cursor"

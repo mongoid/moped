@@ -8,13 +8,7 @@ module Moped
     # @return [Boolean] whether this is a direct connection
     attr_reader :direct
 
-    # @return [Array] available master connections
-    attr_reader :masters
-
-    # @return [Array] available slave connections
-    attr_reader :slaves
-
-    # @return [Array] all available connections
+    # @return [Array] all available nodes
     attr_reader :servers
 
     # @return [Array] seeds gathered from cluster discovery
@@ -24,74 +18,147 @@ module Moped
     # @param [Boolean] direct (false) whether to connect directly to the hosts
     # provided or to find additional available nodes.
     def initialize(seeds, direct = false)
-      @seeds  = parse_hosts seeds
+      @seeds  = seeds.split ","
       @direct = direct
 
       @servers = []
-      @masters = []
-      @slaves  = []
       @dynamic_seeds = []
     end
 
-    def remove(socket)
-      masters.delete socket
-      slaves.delete socket
-      servers.delete socket
+    # @return [Array] available secondary nodes
+    def secondaries
+      servers.select &:secondary?
+    end
+
+    # @return [Array] available primary nodes
+    def primaries
+      servers.select &:primary?
+    end
+
+    # @return [Array] all known addresses from user supplied seeds, dynamically
+    # discovered seeds, and active servers.
+    def known_addresses
+      [].tap do |addresses|
+        addresses.concat seeds
+        addresses.concat dynamic_seeds
+        addresses.concat servers.map { |server| server.address }
+      end.uniq
+    end
+
+    def remove(server)
+      servers.delete(server)
     end
 
     def sync
-      seeds.each do |host, port|
-        sync_socket Socket.new(host, port)
+      known = known_addresses.shuffle
+      seen  = {}
+
+      sync_seed = ->(seed) do
+        server = Server.new seed
+
+        unless seen[server.resolved_address]
+          seen[server.resolved_address] = true
+
+          hosts = sync_server(server)
+
+          hosts.each do |host|
+            sync_seed[host]
+          end
+        end
+      end
+
+      known.each do |seed|
+        sync_seed[seed]
+      end
+
+      unless servers.empty?
+        @dynamic_seeds = servers.map &:address
+      end
+
+      true
+    end
+
+    def sync_server(server)
+      [].tap do |hosts|
+        socket = server.socket
+
+        if socket.connect
+          info = socket.simple_query Protocol::Command.new(:$admin, ismaster: 1)
+
+          if info["ismaster"]
+            server.primary = true
+          end
+
+          if info["secondary"]
+            server.secondary = true
+          end
+
+          if info["primary"]
+            hosts.push info["primary"]
+          end
+
+          if info["hosts"]
+            hosts.concat info["hosts"]
+          end
+
+          if info["passives"]
+            hosts.concat info["passives"]
+          end
+
+          merge(server)
+
+        end
+      end.uniq
+    end
+
+    def merge(server)
+      previous = servers.find { |other| other == server }
+      primary = server.primary?
+      secondary = server.secondary?
+
+      if previous
+        previous.merge(server)
+      else
+        servers << server
       end
     end
 
-    def sync_socket(socket)
-      socket.connect
-
-      is_master = socket.simple_query Protocol::Command.new(:$admin, ismaster: 1)
-
-      if is_master["ismaster"]
-        servers << socket
-        masters << socket
-      elsif is_master["secondary"]
-        servers << socket
-        slaves  << socket
-      else
-        socket.close
+    def prune
+      servers.each do |server|
+        remove server unless server.socket.alive?
       end
     end
 
     # @param [:read, :write] mode the type of socket to return
     # @return [Socket] a socket valid for +mode+ operations
     def socket_for(mode)
-      socket = nil
+      prune
+      sync unless primaries.any? || (secondaries.any? && mode == :read)
 
-      until socket
-        sync unless masters.any? || (slaves.any? && mode == :read)
-
-        if mode == :write || slaves.empty?
-          socket = masters.sample
+      server = nil
+      while primaries.any? || (secondaries.any? && mode == :read)
+        if mode == :write || secondaries.empty?
+          server = primaries.sample
         else
-          socket = slaves.sample
+          server = secondaries.sample
         end
 
-        if socket.dead?
-          remove socket
-          socket = nil
+        if server
+          if server.socket.alive?
+            break server
+          else
+            remove server
+          end
         end
       end
 
-      socket
-    end
-
-    private
-
-    def parse_hosts(hosts)
-      hosts.split(",").map do |host|
-        host, port = host.split(":")
-        [host, port.to_i]
+      unless server
+        raise Errors::ConnectionFailure.new("Could not connect to any primary or secondary servers")
       end
+
+      server.socket
     end
+
   end
 
 end
