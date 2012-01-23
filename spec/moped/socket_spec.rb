@@ -112,12 +112,12 @@ describe Moped::Socket do
   end
 
   describe "#execute" do
-    let(:query) { Crutches::Protocol::Query.new(:crutches, :test, {}) }
+    let(:query) { Moped::Protocol::Query.new(:moped, :test, {}) }
 
     context "when competing threads attempt to query" do
       let(:messages) do
         10.times.map do |i|
-          Crutches::Protocol::Insert.new(:crutches, :test, {}).tap do |query|
+          Moped::Protocol::Insert.new(:moped, :test, {}).tap do |query|
             query.stub(request_id: 123)
           end
         end
@@ -147,7 +147,7 @@ describe Moped::Socket do
 
   describe "#parse_reply" do
     let(:raw) do
-      Crutches::Protocol::Reply.allocate.tap do |reply|
+      Moped::Protocol::Reply.allocate.tap do |reply|
         reply.request_id = 1
         reply.response_to = 1
         reply.op_code = 1
