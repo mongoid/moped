@@ -11,8 +11,6 @@ Gem::Specification.new do |s|
   s.summary     = ""
   s.description = s.summary
 
-  s.add_dependency "crutches-bson"
-
   s.files = Dir.glob("lib/**/*") + %w(README.md)
   s.require_path = "lib"
 end
