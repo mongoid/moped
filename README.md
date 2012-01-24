@@ -11,12 +11,6 @@ Moped offers automated syncing with replica sets -- discovering available
 primary and secondary nodes and providing automatic failover when a node
 becomes unavailable.
 
-### Concurrency
-
-Moped offers a synchronous interface with an asynchronous backend. Documents
-are processed as soon as they become available on the socket without expensive
-blocking and coordination.
-
 ## Example
 
     db = Moped::Session.new "127.0.0.1:27017", database: "moped"
