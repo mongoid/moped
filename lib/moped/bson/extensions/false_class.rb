@@ -1,5 +1,6 @@
 module Moped
   module BSON
+    # @private
     module Extensions
       module FalseClass
         def __bson_dump__(io, key)

@@ -10,6 +10,8 @@ require "moped/bson/document"
 require "moped/bson/types"
 
 module Moped
+
+  # The module for Moped's BSON implementation.
   module BSON
     EOD = NULL_BYTE = "\u0000".freeze
 

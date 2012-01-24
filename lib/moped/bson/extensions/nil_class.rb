@@ -1,5 +1,6 @@
 module Moped
   module BSON
+    # @private
     module Extensions
       module NilClass
         module ClassMethods

@@ -1,5 +1,6 @@
 module Moped
   module BSON
+    # @private
     module Extensions
       module Integer
         INT32_MIN = (-(1 << 31)+1)

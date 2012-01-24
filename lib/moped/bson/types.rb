@@ -1,5 +1,7 @@
 module Moped
   module BSON
+
+    # @private
     module Types
       class CodeWithScope
         def self.__bson_load__(io)

@@ -2,12 +2,36 @@ require "monitor"
 require "forwardable"
 
 module Moped
+
+  # A session in moped is root for all interactions with a MongoDB server or
+  # replica set.
+  #
+  # It can talk to a single default database, or dynamically speak to multiple
+  # databases.
+  #
+  # @example Single database (console-style)
+  #   session = Moped::Session.new("127.0.0.1:27017")
+  #   session.use :moped
+  #   session[:users].find.one # => { name: "John" }
+  #
+  # @example Multiple databases
+  #   session = Moped::Session.new("127.0.0.1:27017")
+  #
+  #   session.with(database: :admin) do |admin|
+  #     admin.command ismaster: 1
+  #   end
+  #
+  #   session.with(database: :moped) do |moped|
+  #     moped[:users].find.one # => { name: "John" }
+  #   end
+  #
   class Session
     extend Forwardable
 
     # @return [Hash] this session's options
     attr_reader :options
 
+    # @private
     # @return [Cluster] this session's cluster
     attr_reader :cluster
 
@@ -115,6 +139,7 @@ module Moped
     # @return (see Moped::Database#drop)
     delegate :drop => :current_database
 
+    # @private
     def current_database
       return @current_database if defined? @current_database
 
@@ -125,14 +150,14 @@ module Moped
       end
     end
 
-    # @api private
+    # @private
     def simple_query(query)
       query.limit = -1
 
       query(query).documents.first
     end
 
-    # @api private
+    # @private
     def query(query)
       if options[:consistency] == :eventual
         query.flags |= [:slave_ok] if query.respond_to? :flags
@@ -150,7 +175,7 @@ module Moped
       end
     end
 
-    # @api private
+    # @private
     def execute(op)
       mode = options[:consistency] == :eventual ? :read : :write
       socket = socket_for(mode)
@@ -210,6 +235,18 @@ module Moped
     end
   end
 
+  # The class for interacting with a MongoDB database. One only interacts with
+  # this class indirectly through a session.
+  #
+  # @example
+  #   session.use :moped
+  #   session.drop
+  #   session[:users].insert(name: "John")
+  #
+  # @example
+  #   session.with(database: :moped) do |moped|
+  #     moped[:users].drop
+  #   end
   class Database
 
     # @return [Session] the database's session
@@ -259,6 +296,13 @@ module Moped
     end
   end
 
+  # The class for interacting with a MongoDB collection.
+  #
+  # @example
+  #   users = session[:users] # => <Moped::Collection ...>
+  #   users.drop
+  #   users.insert(name: "John")
+  #   users.find.to_a # => [{ name: "John" }]
   class Collection
 
     # @return [Database] the database this collection belongs to
