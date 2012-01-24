@@ -1,4 +1,8 @@
 module Moped
+
+  # @api private
+  #
+  # The internal class for storing information about a server.
   class Server
 
     # @return [String] the original host:port address provided

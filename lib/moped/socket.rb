@@ -1,4 +1,8 @@
 module Moped
+
+  # @api private
+  #
+  # The internal class wrapping a socket connection.
   class Socket
 
     # Thread-safe atomic integer.
@@ -26,6 +30,11 @@ module Moped
       @request_id = RequestId.new
     end
 
+    # @return [true, false] whether the connection was successful
+    # @note The connection timeout is currently just 0.5 seconds, which should
+    # be sufficient, but may need to be raised or made configurable for
+    # high-latency situations. That said, if connecting to the remote server
+    # takes that long, we may not want to use the node any way.
     def connect
       return true if connection
 
@@ -70,7 +79,7 @@ module Moped
       end
     end
 
-    # Execute the operation on the connection.
+    # Execute the operations on the connection.
     def execute(*ops)
       buf = ""
 
