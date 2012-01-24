@@ -28,3 +28,11 @@ becomes unavailable.
     db.with(safe: true) do |db|
       db.insert(name: "Sue")
     end
+
+## Compatibility
+
+Moped is tested against Ruby 1.9.2, 1.9.3, Rubinius (1.9), and JRuby (1.9).
+
+<img src="https://secure.travis-ci.org/mongoid/moped.png?branch=master&.png"/>
+
+[Build History](http://travis-ci.org/mongoid/moped)
