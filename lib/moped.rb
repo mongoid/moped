@@ -1,3 +1,4 @@
+require "stringio"
 require "monitor"
 require "forwardable"
 
