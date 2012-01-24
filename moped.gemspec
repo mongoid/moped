@@ -12,6 +12,7 @@ Gem::Specification.new do |s|
   s.description = s.summary
 
   s.add_development_dependency "rspec"
+  s.add_development_dependency "guard-rspec"
 
   s.files = Dir.glob("lib/**/*") + %w(README.md)
   s.require_path = "lib"
