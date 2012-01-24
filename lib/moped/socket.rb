@@ -88,25 +88,24 @@ module Moped
         op.serialize buf
       end.last
 
-      @mutex.lock
-      connection.write buf
-
       if Protocol::Query === last || Protocol::GetMore === last
-        length, = connection.read(4).unpack('l<')
+        @mutex.synchronize do
+          connection.write buf
 
-        # Re-use the already allocated buffer used for writing the command.
-        connection.read(length - 4, buf)
+          length, = connection.read(4).unpack('l<')
 
-        @mutex.unlock
+          # Re-use the already allocated buffer used for writing the command.
+          connection.read(length - 4, buf)
 
-        parse_reply length, buf
+          parse_reply length, buf
+        end
       else
-        @mutex.unlock
+        @mutex.synchronize do
+          connection.write buf
+        end
 
         nil
       end
-    ensure
-      @mutex.unlock if @mutex.locked?
     end
 
     def parse_reply(length, data)
