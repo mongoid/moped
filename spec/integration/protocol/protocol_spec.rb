@@ -1,7 +1,7 @@
 require "spec_helper"
 
 describe Moped::Protocol do
-  Protocol = Moped::Protocol
+  let(:Protocol) { Moped::Protocol }
 
   let(:connection) do
     TCPSocket.new("localhost", 27017)
