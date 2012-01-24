@@ -9,8 +9,7 @@ platforms :ruby do
   end
 end
 
-group :test do
-  gem "rspec"
-end
+gem "rspec"
+gem "rake"
 
 gemspec
