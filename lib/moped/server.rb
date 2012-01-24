@@ -1,5 +1,37 @@
 module Moped
 
+  unless defined? Addrinfo
+    # @private
+    class Addrinfo
+      class << self
+        def getaddrinfo(host, port, family, socktype)
+          family = ::Socket::AF_INET
+          socktype = ::Socket::SOCK_STREAM
+
+          ::Socket.getaddrinfo(host, port, family, socktype).map do |addrinfo|
+            new(addrinfo)
+          end
+        end
+      end
+
+      def initialize(addrinfo)
+        @addrinfo = addrinfo
+      end
+
+      def ip_address
+        @addrinfo[3]
+      end
+
+      def ip_port
+        @addrinfo[1]
+      end
+
+      def inspect_sockaddr
+        [ip_address, ip_port].join(":")
+      end
+    end
+  end
+
   # @api private
   #
   # The internal class for storing information about a server.
