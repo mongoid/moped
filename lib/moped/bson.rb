@@ -11,8 +11,6 @@ require "moped/bson/types"
 
 module Moped
   module BSON
-    class InvalidKeyName < Exception; end
-
     EOD = NULL_BYTE = "\u0000".freeze
 
     INT32_PACK = 'l'.freeze
@@ -20,7 +18,5 @@ module Moped
     FLOAT_PACK = 'E'.freeze
 
     START_LENGTH = [0].pack(INT32_PACK).freeze
-
-    OrderedHash = Hash
   end
 end
