@@ -6,9 +6,9 @@ module Moped
   # sets.
   #
   # @note Though the socket class itself *is* threadsafe, the cluster presently
-  # is not. This means that in the course of normal operations sessions can be
-  # shared across threads, but in failure modes (when a resync is required),
-  # things can possibly go wrong.
+  #   is not. This means that in the course of normal operations sessions can be
+  #   shared across threads, but in failure modes (when a resync is required),
+  #   things can possibly go wrong.
   class Cluster
 
     # @return [Array] the user supplied seeds

@@ -32,9 +32,9 @@ module Moped
 
     # @return [true, false] whether the connection was successful
     # @note The connection timeout is currently just 0.5 seconds, which should
-    # be sufficient, but may need to be raised or made configurable for
-    # high-latency situations. That said, if connecting to the remote server
-    # takes that long, we may not want to use the node any way.
+    #   be sufficient, but may need to be raised or made configurable for
+    #   high-latency situations. That said, if connecting to the remote server
+    #   takes that long, we may not want to use the node any way.
     def connect
       return true if connection
 
