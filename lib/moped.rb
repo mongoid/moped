@@ -84,6 +84,14 @@ module Moped
     # @yieldparam [Moped::Session] session the new session
     # @return [Moped::Session] the new session
     def new(options = {})
+      session = with(options)
+      session.cluster.reconnect
+
+      if block_given?
+        yield session
+      else
+        session
+      end
     end
 
     # @method [](collection)

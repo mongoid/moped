@@ -126,5 +126,13 @@ describe Moped::Session do
       session[:people].insert(documents)
       session[:people].find.to_a.length.should eq 1000
     end
+
+    it "can have multiple connections" do
+      status = session.command serverStatus: 1
+      status["connections"]["current"].should eq 1
+      new_session = session.new
+      status = new_session.command serverStatus: 1
+      status["connections"]["current"].should eq 2
+    end
   end
 end

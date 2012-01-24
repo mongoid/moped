@@ -157,6 +157,42 @@ describe Moped::Session do
     end
   end
 
+  describe "#new" do
+    let(:new_options) { Hash[database: "test-2"] }
+    let(:new_session) { described_class.new seeds, options }
+
+    before do
+      new_session.cluster.stub(:reconnect)
+    end
+
+    it "delegates to #with" do
+      session.should_receive(:with).with(new_options).and_return(new_session)
+      session.new(new_options)
+    end
+
+    it "instructs the cluster to reconnect" do
+      session.stub(with: new_session)
+      new_session.cluster.should_receive(:reconnect)
+      session.new(new_options)
+    end
+
+    context "when called with a block" do
+      it "yields the new session" do
+        session.stub(with: new_session)
+        session.new(new_options) do |session|
+          session.should eql new_session
+        end
+      end
+    end
+
+    context "when called without a block" do
+      it "returns the new session" do
+        session.stub(with: new_session)
+        session.new(new_options).should eql new_session
+      end
+    end
+  end
+
   describe "#drop" do
     it "delegates to the current database" do
       database = mock(Moped::Database)

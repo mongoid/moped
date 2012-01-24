@@ -58,6 +58,11 @@ module Moped
       servers.delete(server)
     end
 
+    def reconnect
+      @servers = servers.map { |server| Server.new(server.address) }
+      sync
+    end
+
     def sync
       known = known_addresses.shuffle
       seen  = {}
