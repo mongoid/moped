@@ -1,11 +1,16 @@
 source :rubygems
 
-group :development, :test do
-  gem "perftools.rb"
-  gem "rdiscount"
+platforms :ruby do
+  group :development do
+    gem "perftools.rb"
+    gem "rdiscount"
+    gem "watchr"
+    gem "yard"
+  end
+end
+
+group :test do
   gem "rspec"
-  gem "watchr"
-  gem "yard"
 end
 
 gemspec
