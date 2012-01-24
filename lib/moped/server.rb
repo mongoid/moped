@@ -23,7 +23,7 @@ module Moped
     def initialize(address)
       @address = address
 
-      addrinfo = Addrinfo.tcp(*address.split(":"))
+      addrinfo = Addrinfo.getaddrinfo(*address.split(":"), :INET, :STREAM).first
 
       @ip_address = addrinfo.ip_address
       @port = addrinfo.ip_port
