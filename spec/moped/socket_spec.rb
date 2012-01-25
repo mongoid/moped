@@ -54,6 +54,26 @@ describe Moped::Socket do
         socket.connect.should be_false
       end
     end
+
+    context "when connection times out" do
+      let(:timout_server) do
+        TCPServer.new "127.0.0.1", 0
+      end
+
+      let(:timeout_socket) do
+        described_class.new "127.0.0.1", timout_server.addr[1]
+      end
+
+      before do
+        timout_server.listen(1)
+        TCPSocket.new "127.0.0.1", timout_server.addr[1]
+      end
+
+      it "returns false" do
+        pending "JRUBY - socket#listen is a noop, so this case fails" if RUBY_PLATFORM == "java"
+        timeout_socket.connect.should be_false
+      end
+    end
   end
 
   describe "#alive?" do

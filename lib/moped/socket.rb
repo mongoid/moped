@@ -43,35 +43,19 @@ module Moped
 
       begin
         socket.connect_nonblock sockaddr
-      rescue IO::WaitWritable
+      rescue IO::WaitWritable, Errno::EINPROGRESS
         IO.select nil, [socket], nil, 0.5
 
         begin
           socket.connect_nonblock sockaddr
         rescue Errno::EISCONN # we're connected
         rescue
-          socket.close
+          socket.close rescue nil # jruby raises EBADF
           return false
         end
       end
 
       @connection = socket
-    end
-
-    if RUBY_PLATFORM == "java"
-      # This is a temporary fix for jruby's incompatible select implementation
-      # with connect_nonblock. See: http://jira.codehaus.org/browse/JRUBY-5165
-      define_method(:connect) do
-        return true if connection
-        begin
-          socket = TCPSocket.open(host, port)
-        rescue
-          socket.close if socket
-          return false
-        end
-
-        @connection = socket
-      end
     end
 
     # @return [true, false] whether this socket connection is alive
