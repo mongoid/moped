@@ -56,21 +56,43 @@ describe Moped::Socket do
     end
 
     context "when connection times out" do
-      let(:timout_server) do
-        TCPServer.new "127.0.0.1", 0
+      if RUBY_PLATFORM == "java"
+        let(:timeout_server) do
+          java.net.ServerSocket.new(0, 1)
+        end
+
+        let(:timeout_port) do
+          timeout_server.getLocalPort
+        end
+      else
+        let(:timeout_server) do
+          TCPServer.new("127.0.0.1", 0).tap do |server|
+            server.listen(1)
+          end
+        end
+
+        let(:timeout_port) do
+          timeout_server.addr[1]
+        end
       end
 
       let(:timeout_socket) do
-        described_class.new "127.0.0.1", timout_server.addr[1]
+        described_class.new "127.0.0.1", timeout_port
       end
 
       before do
-        timout_server.listen(1)
-        TCPSocket.new "127.0.0.1", timout_server.addr[1]
+        sockaddr = Socket.pack_sockaddr_in(timeout_port, '127.0.0.1')
+
+        5.times do # flood the server socket
+          ::Socket.new(::Socket::AF_INET, ::Socket::SOCK_STREAM, 0).connect_nonblock(sockaddr) rescue nil
+        end
+      end
+
+      after do
+        timeout_server.close unless timeout_server.closed?
       end
 
       it "returns false" do
-        pending "JRUBY - socket#listen is a noop, so this case fails" if RUBY_PLATFORM == "java"
         timeout_socket.connect.should be_false
       end
     end

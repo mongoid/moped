@@ -1,3 +1,4 @@
+require "java" if RUBY_PLATFORM == "java"
 require "bundler"
 Bundler.require
 
