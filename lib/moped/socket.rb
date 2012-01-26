@@ -64,15 +64,13 @@ module Moped
         return false if connection.closed?
 
         begin
-          begin
-            connection.ungetc connection.read_nonblock(1)
-          rescue EOFError
-            false
-          rescue Errno::ECONNRESET
-            false
-          rescue
-            true
-          end
+          connection.ungetc connection.read_nonblock(1)
+        rescue EOFError
+          false
+        rescue Errno::ECONNRESET
+          false
+        rescue
+          true
         end
       else
         false
