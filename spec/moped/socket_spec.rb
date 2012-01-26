@@ -120,7 +120,6 @@ describe Moped::Socket do
       end
 
       it "should be false" do
-        pending "JRUBY - select does not detect closed socket" if RUBY_PLATFORM == "java"
         socket.should_not be_alive
       end
     end
@@ -133,7 +132,6 @@ describe Moped::Socket do
       end
 
       it "should be false" do
-        pending "JRUBY - select does not detect closed socket" if RUBY_PLATFORM == "java"
         socket.should_not be_alive
       end
     end

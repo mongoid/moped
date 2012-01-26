@@ -63,16 +63,16 @@ module Moped
       if connection
         return false if connection.closed?
 
-        readable, = IO.select([connection], [connection], [])
-
-        if readable[0]
+        begin
           begin
-            !connection.eof?
+            connection.ungetc connection.read_nonblock(1)
+          rescue EOFError
+            false
           rescue Errno::ECONNRESET
             false
+          rescue
+            true
           end
-        else
-          true
         end
       else
         false
