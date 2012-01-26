@@ -1,11 +1,21 @@
 require "spec_helper"
 
 describe Moped::Collection do
-  let(:session) { mock(Moped::Session) }
-  let(:database) { mock(Moped::Database, session: session, name: "moped") }
-  let(:collection) { described_class.new database, :users }
+
+  let(:session) do
+    mock(Moped::Session)
+  end
+
+  let(:database) do
+    mock(Moped::Database, session: session, name: "moped")
+  end
+
+  let(:collection) do
+    described_class.new database, :users
+  end
 
   describe "#initialize" do
+
     it "stores the database" do
       collection.database.should eq database
     end
@@ -16,6 +26,7 @@ describe Moped::Collection do
   end
 
   describe "#drop" do
+
     it "drops the collection" do
       database.should_receive(:command).with(drop: :users)
       collection.drop
@@ -23,8 +34,14 @@ describe Moped::Collection do
   end
 
   describe "#find" do
-    let(:selector) { Hash[a: 1] }
-    let(:query) { mock(Moped::Query) }
+
+    let(:selector) do
+      Hash[ a: 1 ]
+    end
+
+    let(:query) do
+      mock(Moped::Query)
+    end
 
     it "returns a new Query" do
       Moped::Query.should_receive(:new).
@@ -40,16 +57,14 @@ describe Moped::Collection do
   end
 
   describe "#insert" do
-    before do
-      session.should_receive(:with, :consistency => :strong).
-        and_yield(session)
-    end
 
     before do
+      session.should_receive(:with, :consistency => :strong).and_yield(session)
       session.stub safe?: false
     end
 
     context "when passed a single document" do
+
       it "inserts the document" do
         session.should_receive(:execute).with do |insert|
           insert.documents.should eq [{a: 1}]
@@ -59,6 +74,7 @@ describe Moped::Collection do
     end
 
     context "when passed multiple documents" do
+
       it "inserts the documents" do
         session.should_receive(:execute).with do |insert|
           insert.documents.should eq [{a: 1}, {b: 2}]
