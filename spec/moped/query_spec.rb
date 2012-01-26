@@ -22,11 +22,16 @@ describe Moped::Query do
     )
   end
 
-  let(:selector) { Hash[a: 1] }
+  let(:selector) do
+    Hash[ a: 1 ]
+  end
 
-  let(:query) { described_class.new collection, selector }
+  let(:query) do
+    described_class.new collection, selector
+  end
 
   describe "#initialize" do
+
     it "stores the collection" do
       query.collection.should eq collection
     end
@@ -37,6 +42,7 @@ describe Moped::Query do
   end
 
   describe "#limit" do
+
     it "sets the query operation's limit field" do
       query.limit(5)
       query.operation.limit.should eq 5
@@ -48,6 +54,7 @@ describe Moped::Query do
   end
 
   describe "#skip" do
+
     it "sets the query operation's skip field" do
       query.skip(5)
       query.operation.skip.should eq 5
@@ -59,6 +66,7 @@ describe Moped::Query do
   end
 
   describe "#select" do
+
     it "sets the query operation's fields" do
       query.select(a: 1)
       query.operation.fields.should eq(a: 1)
@@ -70,7 +78,9 @@ describe Moped::Query do
   end
 
   describe "#sort" do
+
     context "when called for the first time" do
+
       it "updates the selector to mongo's advanced selector" do
         query.sort(a: 1)
         query.operation.selector.should eq(
@@ -81,6 +91,7 @@ describe Moped::Query do
     end
 
     context "when called again" do
+
       it "changes the $orderby" do
         query.sort(a: 1)
         query.sort(a: 2)
@@ -97,6 +108,7 @@ describe Moped::Query do
   end
 
   describe "#one" do
+
     it "executes a simple query" do
       session.should_receive(:simple_query).with(query.operation)
       query.one
@@ -104,6 +116,7 @@ describe Moped::Query do
   end
 
   describe "#count" do
+
     it "executes a count command" do
       database.should_receive(:command).with(
         count: collection.name,
@@ -121,7 +134,10 @@ describe Moped::Query do
   end
 
   describe "#update" do
-    let(:change) { Hash[a: 1] }
+
+    let(:change) do
+      Hash[ a: 1 ]
+    end
 
     it "updates the record matching selector with change" do
       session.should_receive(:with, :consistency => :strong).
@@ -138,7 +154,10 @@ describe Moped::Query do
   end
 
   describe "#update_all" do
-    let(:change) { Hash[a: 1] }
+
+    let(:change) do
+      Hash[ a: 1 ]
+    end
 
     it "updates all records matching selector with change" do
       query.should_receive(:update).with(change, [:multi])
@@ -147,7 +166,10 @@ describe Moped::Query do
   end
 
   describe "#upsert" do
-    let(:change) { Hash[a: 1] }
+
+    let(:change) do
+      Hash[ a: 1 ]
+    end
 
     it "upserts the record matching selector with change" do
       query.should_receive(:update).with(change, [:upsert])
@@ -156,6 +178,7 @@ describe Moped::Query do
   end
 
   describe "#remove" do
+
     it "removes the first matching document" do
       session.should_receive(:with, :consistency => :strong).
         and_yield(session)
@@ -170,6 +193,7 @@ describe Moped::Query do
   end
 
   describe "#remove_all" do
+
     it "removes all matching documents" do
       session.should_receive(:with, :consistency => :strong).
         and_yield(session)
@@ -184,6 +208,7 @@ describe Moped::Query do
   end
 
   describe "#each" do
+
     before do
       session.should_receive(:with).
         with(retain_socket: true).and_return(session)
