@@ -44,10 +44,6 @@ module Moped
       )
     end
 
-    def transforming?
-      !!transformer
-    end
-
     # Yield documents to the provided transformer.
     #
     # @param [ Proc ] transformer
@@ -112,7 +108,7 @@ module Moped
       cursor = Cursor.new(session.with(retain_socket: true), operation)
       cursor.to_enum.tap do |enum|
         enum.each do |document|
-          transforming? ? yield(transformer[document]) : yield(document)
+          transformer ? yield(transformer[document]) : yield(document)
         end if block_given?
       end
     end
