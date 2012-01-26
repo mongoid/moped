@@ -1,6 +1,7 @@
 require "spec_helper"
 
 describe Moped::Database do
+
   let(:session) do
     Moped::Session.new ""
   end
@@ -10,6 +11,7 @@ describe Moped::Database do
   end
 
   describe "#initialize" do
+
     it "stores the session" do
       database.session.should eq session
     end
@@ -20,6 +22,7 @@ describe Moped::Database do
   end
 
   describe "#command" do
+
     before do
       session.stub(:with).and_yield(session)
     end
@@ -38,24 +41,27 @@ describe Moped::Database do
     end
 
     context "when the command fails" do
+
       it "raises an exception" do
         session.stub(simple_query: { "ok" => 0.0 })
 
-        lambda { database.command ismaster: 1 }.should \
-          raise_exception(Moped::Errors::OperationFailure)
+        expect {
+          database.command ismaster: 1
+        }.to raise_exception(Moped::Errors::OperationFailure)
       end
     end
   end
 
   describe "#drop" do
+
     it "drops the database" do
       database.should_receive(:command).with(dropDatabase: 1)
-
       database.drop
     end
   end
 
   describe "#[]" do
+
     it "returns a collection with that name" do
       Moped::Collection.should_receive(:new).with(database, :users)
       database[:users]
