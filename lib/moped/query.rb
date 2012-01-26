@@ -22,9 +22,6 @@ module Moped
     # @return [Collection] the query's collection
     attr_reader :collection
 
-    # @api private
-    attr_reader :transformer
-
     # @return [Hash] the query's selector
     attr_reader :selector
 
@@ -42,15 +39,6 @@ module Moped
         collection.name,
         selector
       )
-    end
-
-    # Yield documents to the provided transformer.
-    #
-    # @param [ Proc ] transformer
-    # @return [ Query ] self
-    def transform_with(transformer)
-      @transformer = transformer
-      self
     end
 
     # Set the query's limit.
@@ -108,7 +96,7 @@ module Moped
       cursor = Cursor.new(session.with(retain_socket: true), operation)
       cursor.to_enum.tap do |enum|
         enum.each do |document|
-          transformer ? yield(transformer[document]) : yield(document)
+          yield document
         end if block_given?
       end
     end

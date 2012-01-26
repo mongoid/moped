@@ -101,14 +101,6 @@ describe Moped::Session do
       mary["name"].should eq "Mary"
     end
 
-    it "can transform documents" do
-      factory = ->(doc){ doc["name"] }
-      session[:people].insert([{name: "John"}, {name: "Mary"}])
-      john, mary = session[:people].find.transform_with(factory).to_a
-      john.should eq "John"
-      mary.should eq "Mary"
-    end
-
     it "can retrieve no documents" do
       session[:people].find.limit(-2).sort(name: 1).to_a.should eq []
     end
