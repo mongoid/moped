@@ -1,46 +1,69 @@
 require "spec_helper"
 
 describe Moped::Session do
-  let(:seeds) { "127.0.0.1:27017" }
-  let(:options) { Hash[database: "test", safe: true, consistency: :eventual] }
-  let(:session) { described_class.new seeds, options }
+
+  let(:seeds) do
+    "127.0.0.1:27017"
+  end
+
+  let(:options) do
+    Hash[database: "test", safe: true, consistency: :eventual]
+  end
+
+  let(:session) do
+    described_class.new seeds, options
+  end
 
   describe "#initialize" do
+
     it "stores the options provided" do
-      session.options.should eq options
+      session.options.should eq(options)
     end
 
     it "stores the cluster" do
-      session.cluster.should be_a Moped::Cluster
+      session.cluster.should be_a(Moped::Cluster)
     end
   end
 
   describe "#current_database" do
+
     context "when no database option has been set" do
-      let(:session) { described_class.new seeds, {} }
+
+      let(:session) do
+        described_class.new seeds, {}
+      end
 
       it "raises an exception" do
-        lambda { session.current_database }.should raise_exception
+        expect { session.current_database }.to raise_exception
       end
     end
 
-    it "returns the database from the options" do
-      database = stub
-      Moped::Database.should_receive(:new).
-        with(session, options[:database]).and_return(database)
+    context "when a database option is set" do
 
-      session.current_database.should eq database
-    end
+      let(:database) do
+        stub
+      end
 
-    it "memoizes the database" do
-      database = session.current_database
+      before do
+        Moped::Database.should_receive(:new).
+          with(session, options[:database]).and_return(database)
+      end
 
-      session.current_database.should eql database
+      it "returns the database from the options" do
+        session.current_database.should eq(database)
+      end
+
+      it "memoizes the database" do
+        database = session.current_database
+        session.current_database.should equal(database)
+      end
     end
   end
 
   describe "#safe?" do
+
     context "when :safe is not present" do
+
       before do
         session.options.delete(:safe)
       end
@@ -51,6 +74,7 @@ describe Moped::Session do
     end
 
     context "when :safe is present but false" do
+
       before do
         session.options[:safe] = false
       end
@@ -61,6 +85,7 @@ describe Moped::Session do
     end
 
     context "when :safe is true" do
+
       before do
         session.options[:safe] = true
       end
@@ -71,6 +96,7 @@ describe Moped::Session do
     end
 
     context "when :safe is a hash" do
+
       before do
         session.options[:safe] = { fsync: true }
       end
@@ -82,12 +108,14 @@ describe Moped::Session do
   end
 
   describe "#use" do
+
     it "sets the :database option" do
       session.use :admin
-      session.options[:database].should eq :admin
+      session.options[:database].should eq(:admin)
     end
 
     context "when there is not already a current database" do
+
       it "sets the current database" do
         session.should_receive(:set_current_database).with(:admin)
         session.use :admin
@@ -96,9 +124,13 @@ describe Moped::Session do
   end
 
   describe "#with" do
-    let(:new_options) { Hash[database: "test-2"] }
+
+    let(:new_options) do
+      Hash[database: "test-2"]
+    end
 
     context "when called with a block" do
+
       it "yields a session" do
         session.with(new_options) do |new_session|
           new_session.should be_a Moped::Session
@@ -137,6 +169,7 @@ describe Moped::Session do
     end
 
     context "when called without a block" do
+
       it "returns a session" do
         session.with(new_options).should be_a Moped::Session
       end
@@ -158,8 +191,14 @@ describe Moped::Session do
   end
 
   describe "#new" do
-    let(:new_options) { Hash[database: "test-2"] }
-    let(:new_session) { described_class.new seeds, options }
+
+    let(:new_options) do
+      Hash[database: "test-2"]
+    end
+
+    let(:new_session) do
+      described_class.new seeds, options
+    end
 
     before do
       new_session.cluster.stub(:reconnect)
@@ -177,6 +216,7 @@ describe Moped::Session do
     end
 
     context "when called with a block" do
+
       it "yields the new session" do
         session.stub(with: new_session)
         session.new(new_options) do |session|
@@ -186,6 +226,7 @@ describe Moped::Session do
     end
 
     context "when called without a block" do
+
       it "returns the new session" do
         session.stub(with: new_session)
         session.new(new_options).should eql new_session
@@ -194,36 +235,38 @@ describe Moped::Session do
   end
 
   describe "#drop" do
+
     it "delegates to the current database" do
       database = mock(Moped::Database)
       session.should_receive(:current_database).and_return(database)
       database.should_receive(:drop)
-
       session.drop
     end
   end
 
   describe "#command" do
-    let(:command) { Hash[ismaster: 1] }
+
+    let(:command) do
+      Hash[ismaster: 1]
+    end
 
     it "delegates to the current database" do
       database = mock(Moped::Database)
       session.should_receive(:current_database).and_return(database)
       database.should_receive(:command).with(command)
-
       session.command command
     end
   end
 
   describe "#socket_for" do
-    it "delegates to the cluster" do
-      session.cluster.should_receive(:socket_for).
-        with(:read)
 
+    it "delegates to the cluster" do
+      session.cluster.should_receive(:socket_for).with(:read)
       session.send(:socket_for, :read)
     end
 
     context "when retain socket option is set" do
+
       before do
         session.options[:retain_socket] = true
       end
@@ -239,8 +282,15 @@ describe Moped::Session do
   end
 
   describe "#simple_query" do
-    let(:query) { Moped::Protocol::Query.allocate }
-    let(:socket) { mock(Moped::Socket) }
+
+    let(:query) do
+      Moped::Protocol::Query.allocate
+    end
+
+    let(:socket) do
+      mock(Moped::Socket)
+    end
+
     let(:reply) do
       Moped::Protocol::Reply.allocate.tap do |reply|
         reply.documents = [{a: 1}]
@@ -255,7 +305,6 @@ describe Moped::Session do
     it "limits the query" do
       session.should_receive(:query) do |query|
         query.limit.should eq -1
-
         reply
       end
 
@@ -268,8 +317,15 @@ describe Moped::Session do
   end
 
   describe "#query" do
-    let(:query) { Moped::Protocol::Query.allocate }
-    let(:socket) { mock(Moped::Socket) }
+
+    let(:query) do
+      Moped::Protocol::Query.allocate
+    end
+
+    let(:socket) do
+      mock(Moped::Socket)
+    end
+
     let(:reply) do
       Moped::Protocol::Reply.allocate.tap do |reply|
         reply.documents = [{a: 1}]
@@ -282,6 +338,7 @@ describe Moped::Session do
     end
 
     context "when consistency is strong" do
+
       before do
         session.options[:consistency] = :strong
       end
@@ -294,6 +351,7 @@ describe Moped::Session do
     end
 
     context "when consistency is eventual" do
+
       before do
         session.options[:consistency] = :eventual
       end
@@ -305,6 +363,7 @@ describe Moped::Session do
       end
 
       context "and query accepts flags" do
+
         it "sets slave_ok on the query flags" do
           session.stub(socket_for: socket)
           socket.should_receive(:execute) do |query|
@@ -316,38 +375,50 @@ describe Moped::Session do
       end
 
       context "and query does not accept flags" do
-        let(:query) { Moped::Protocol::GetMore.allocate }
+
+        let(:query) do
+          Moped::Protocol::GetMore.allocate
+        end
 
         it "doesn't try to set flags" do
           session.stub(socket_for: socket)
-          lambda { session.query(query) }.should_not raise_exception
+          expect { session.query(query) }.not_to raise_exception
         end
       end
     end
 
     context "when reply has :query_failure flag" do
+
       before do
         reply.flags = [:query_failure]
       end
 
       it "raises a QueryFailure exception" do
-        lambda do
+        expect {
           session.query(query)
-        end.should raise_exception(Moped::Errors::QueryFailure)
+        }.to raise_exception(Moped::Errors::QueryFailure)
       end
     end
   end
 
   describe "#execute" do
-    let(:operation) { Moped::Protocol::Insert.allocate }
-    let(:socket) { mock(Moped::Socket) }
+
+    let(:operation) do
+      Moped::Protocol::Insert.allocate
+    end
+
+    let(:socket) do
+      mock(Moped::Socket)
+    end
 
     context "when session is not in safe mode" do
+
       before do
         session.options[:safe] = false
       end
 
       context "when consistency is strong" do
+
         before do
           session.options[:consistency] = :strong
         end
@@ -362,6 +433,7 @@ describe Moped::Session do
       end
 
       context "when consistency is eventual" do
+
         before do
           session.options[:consistency] = :eventual
         end
@@ -389,6 +461,7 @@ describe Moped::Session do
       end
 
       context "when the operation fails" do
+
         let(:reply) do
           Moped::Protocol::Reply.allocate.tap do |reply|
             reply.documents = [{
@@ -405,13 +478,14 @@ describe Moped::Session do
           session.stub(socket_for: socket)
           socket.stub(execute: reply)
 
-          lambda do
+          expect {
             session.execute(operation)
-          end.should raise_exception(Moped::Errors::OperationFailure)
+          }.to raise_exception(Moped::Errors::OperationFailure)
         end
       end
 
       context "when consistency is strong" do
+
         before do
           session.options[:consistency] = :strong
         end
@@ -431,6 +505,7 @@ describe Moped::Session do
       end
 
       context "when consistency is eventual" do
+
         before do
           session.options[:consistency] = :eventual
         end
