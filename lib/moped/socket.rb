@@ -87,6 +87,8 @@ module Moped
       end.last
 
       if Protocol::Query === last || Protocol::GetMore === last
+        length = nil
+
         @mutex.synchronize do
           connection.write buf
 
@@ -94,9 +96,9 @@ module Moped
 
           # Re-use the already allocated buffer used for writing the command.
           connection.read(length - 4, buf)
-
-          parse_reply length, buf
         end
+
+        parse_reply length, buf
       else
         @mutex.synchronize do
           connection.write buf
