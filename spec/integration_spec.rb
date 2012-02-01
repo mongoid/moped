@@ -135,10 +135,10 @@ describe Moped::Session do
 
     it "can have multiple connections" do
       status = session.command serverStatus: 1
-      status["connections"]["current"].should eq 1
+      count = status["connections"]["current"]
       new_session = session.new
       status = new_session.command serverStatus: 1
-      status["connections"]["current"].should eq 2
+      status["connections"]["current"].should eq count + 1
     end
   end
 end
