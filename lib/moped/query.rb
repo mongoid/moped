@@ -101,6 +101,23 @@ module Moped
       end
     end
 
+    # Get the distinct values in the collection for the provided key.
+    #
+    # @example Get the distinct values.
+    #   query.distinct(:name)
+    #
+    # @param [ Symbol, String ] key The name of the field.
+    #
+    # @return [ Array<Object ] The distinct values.
+    def distinct(key)
+      result = collection.database.command(
+        distinct: collection.name,
+        key: key.to_s,
+        query: selector
+      )
+      result["values"]
+    end
+
     # @return [Numeric] the number of documents that match the selector.
     def count
       result = collection.database.command(

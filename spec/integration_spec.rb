@@ -101,6 +101,12 @@ describe Moped::Session do
       mary["name"].should eq "Mary"
     end
 
+    it "can retrieve distinct values" do
+      session[:people].insert([{name: "John"}, {name: "Mary"}])
+      values = session[:people].find.distinct(:name)
+      values.should eq [ "John", "Mary" ]
+    end
+
     it "can retrieve no documents" do
       session[:people].find.limit(-2).sort(name: 1).to_a.should eq []
     end

@@ -115,6 +115,18 @@ describe Moped::Query do
     end
   end
 
+  describe "#distinct" do
+
+    it "executes a distinct command" do
+      database.should_receive(:command).with(
+        distinct: collection.name,
+        key: "name",
+        query: selector
+      ).and_return("values" => [ "durran", "bernerd" ])
+      query.distinct(:name)
+    end
+  end
+
   describe "#count" do
 
     it "executes a count command" do
