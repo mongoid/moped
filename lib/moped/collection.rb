@@ -22,6 +22,13 @@ module Moped
       @name     = name
     end
 
+    # Access information about this collection's indexes.
+    #
+    # @return [Indexes]
+    def indexes
+      Indexes.new(database, name)
+    end
+
     # Drop the collection.
     def drop
       database.command drop: name

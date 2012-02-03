@@ -25,6 +25,12 @@ describe Moped::Collection do
     end
   end
 
+  describe "#indexes" do
+    it "returns a new indexes instance" do
+      collection.indexes.should be_an_instance_of Moped::Indexes
+    end
+  end
+
   describe "#drop" do
 
     it "drops the collection" do
