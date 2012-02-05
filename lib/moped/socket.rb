@@ -63,17 +63,41 @@ module Moped
       if connection
         return false if connection.closed?
 
-        begin
-          connection.ungetc connection.read_nonblock(1)
-        rescue EOFError
-          false
-        rescue Errno::ECONNRESET
-          false
-        rescue
+        readable, = IO.select([connection], [connection], [])
+
+        if readable[0]
+          begin
+            !connection.eof?
+          rescue Errno::ECONNRESET
+            false
+          rescue
+            true
+          end
+        else
           true
         end
       else
         false
+      end
+    end
+
+    if RUBY_PLATFORM == "java"
+      def alive?
+        if connection
+          return false if connection.closed?
+
+          begin
+            connection.ungetc connection.read_nonblock(1)
+          rescue EOFError
+            false
+          rescue Errno::ECONNRESET
+            false
+          rescue
+            true
+          end
+        else
+          false
+        end
       end
     end
 
