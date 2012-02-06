@@ -60,46 +60,11 @@ module Moped
 
     # @return [true, false] whether this socket connection is alive
     def alive?
-      if connection
-        return false if connection.closed?
-
-        readable, = IO.select([connection], [connection], [])
-
-        if readable[0]
-          begin
-            !connection.eof?
-          rescue Errno::ECONNRESET
-            false
-          rescue
-            true
-          end
-        else
-          true
-        end
-      else
-        false
-      end
+      return false unless connection
+      return false if connection.closed?
+      return connection_alive?
     end
 
-    if RUBY_PLATFORM == "java"
-      def alive?
-        if connection
-          return false if connection.closed?
-
-          begin
-            connection.ungetc connection.read_nonblock(1)
-          rescue EOFError
-            false
-          rescue Errno::ECONNRESET
-            false
-          rescue
-            true
-          end
-        else
-          false
-        end
-      end
-    end
 
     # Execute the operations on the connection.
     def execute(*ops)
@@ -169,6 +134,35 @@ module Moped
       @mutex.synchronize do
         connection.close if connection && !connection.closed?
         @connection = nil
+      end
+    end
+
+    private
+
+    if RUBY_PLATFORM == "java"
+      def connection_alive?
+        begin
+          connection.ungetc connection.read_nonblock(1)
+        rescue EOFError
+          false
+        rescue Errno::ECONNRESET
+          false
+        rescue
+          true
+        end
+      end
+    else
+      def connection_alive?
+        readable, = IO.select([connection], [connection], [])
+        return true unless readable[0]
+
+        begin
+          !connection.eof?
+        rescue Errno::ECONNRESET
+          false
+        rescue
+          true
+        end
       end
     end
 
