@@ -15,6 +15,12 @@ module Moped
         super database, :$cmd, command, limit: -1
       end
 
+      def log_inspect
+        type = "COMMAND"
+
+        "%-12s database=%s command=%s" % [type, database, selector.inspect]
+      end
+
     end
 
   end

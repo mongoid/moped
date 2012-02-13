@@ -103,32 +103,34 @@ module Moped
 
     # Execute the operations on the connection.
     def execute(*ops)
-      buf = ""
+      instrument(ops) do
+        buf = ""
 
-      last = ops.each do |op|
-        op.request_id = @request_id.next
-        op.serialize buf
-      end.last
+        last = ops.each do |op|
+          op.request_id = @request_id.next
+          op.serialize buf
+        end.last
 
-      if Protocol::Query === last || Protocol::GetMore === last
-        length = nil
+        if Protocol::Query === last || Protocol::GetMore === last
+          length = nil
 
-        @mutex.synchronize do
-          connection.write buf
+          @mutex.synchronize do
+            connection.write buf
 
-          length, = connection.read(4).unpack('l<')
+            length, = connection.read(4).unpack('l<')
 
-          # Re-use the already allocated buffer used for writing the command.
-          connection.read(length - 4, buf)
+            # Re-use the already allocated buffer used for writing the command.
+            connection.read(length - 4, buf)
+          end
+
+          parse_reply length, buf
+        else
+          @mutex.synchronize do
+            connection.write buf
+          end
+
+          nil
         end
-
-        parse_reply length, buf
-      else
-        @mutex.synchronize do
-          connection.write buf
-        end
-
-        nil
       end
     end
 
@@ -169,6 +171,29 @@ module Moped
       @mutex.synchronize do
         connection.close if connection && !connection.closed?
         @connection = nil
+      end
+    end
+
+    def instrument(ops)
+      instrument_start = (logger = Moped.logger) && logger.debug? && Time.now
+      yield
+    ensure
+      log_operations(ops, Time.now - instrument_start) if instrument_start && !$!
+    end
+
+    def log_operations(ops, duration)
+      prefix  = "  MOPED: #{host}:#{port} "
+      indent  = " "*prefix.length
+      runtime = (" (%.1fms)" % duration)
+
+      if ops.length == 1
+        logger.debug prefix + ops.first.log_inspect + runtime
+      else
+        first, *middle, last = ops
+
+        logger.debug prefix + first.log_inspect
+        middle.each { |m| logger.debug indent + m.log_inspect }
+        logger.debug indent + last.log_inspect + runtime
       end
     end
 

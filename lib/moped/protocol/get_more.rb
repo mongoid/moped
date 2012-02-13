@@ -68,6 +68,12 @@ module Moped
         @limit                = limit
         @request_id           = options[:request_id]
       end
+
+      def log_inspect
+        type = "GET_MORE"
+
+        "%-12s database=%s collection=%s limit=%s cursor_id=%s" % [type, database, collection, limit, cursor_id]
+      end
     end
   end
 end

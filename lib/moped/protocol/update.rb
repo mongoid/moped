@@ -93,6 +93,15 @@ module Moped
         @request_id           = options[:request_id]
         @flags                = options[:flags]
       end
+
+      def log_inspect
+        type = "UPDATE"
+
+        "%-12s database=%s collection=%s selector=%s update=%s flags=%s" % [type, database, collection,
+                                                                            selector.inspect,
+                                                                            update.inspect,
+                                                                            flags.inspect]
+      end
     end
   end
 end

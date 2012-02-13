@@ -248,4 +248,55 @@ describe Moped::Socket do
     end
   end
 
+  describe "instrument" do
+
+    context "when a logger is configured in debug mode" do
+      before do
+        Moped.stub(logger: mock(Logger, debug?: true))
+      end
+
+      it "logs the operations" do
+        socket.should_receive(:log_operations).once
+        socket.instrument([]) {}
+      end
+    end
+
+    context "when a logger is configured but not in debug level" do
+      before do
+        Moped.stub(logger: mock(Logger, debug?: false))
+      end
+
+      it "does not log the operations" do
+        socket.should_receive(:log_operations).never
+        socket.instrument([]) {}
+      end
+    end
+
+    context "when no logger is configured" do
+      before do
+        Moped.stub(logger: nil)
+      end
+
+      it "does not log the operations" do
+        socket.should_receive(:log_operations).never
+        socket.instrument([]) {}
+      end
+    end
+
+    context "when an error occurs" do
+      before do
+        Moped.stub(logger: mock(Logger, debug?: true))
+      end
+
+      it "does not log the operations" do
+        socket.should_receive(:log_operations).never
+
+        lambda do
+          socket.instrument([]) { raise "inner error" }
+        end.should raise_exception("inner error")
+      end
+    end
+
+  end
+
 end

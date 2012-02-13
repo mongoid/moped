@@ -81,6 +81,12 @@ module Moped
         @request_id           = options[:request_id]
         @flags                = options[:flags]
       end
+
+      def log_inspect
+        type = "INSERT"
+
+        "%-12s database=%s collection=%s documents=%s flags=%s" % [type, database, collection, documents.inspect, flags.inspect]
+      end
     end
   end
 end

@@ -108,6 +108,24 @@ module Moped
         @fields               = options[:fields]
       end
 
+      def log_inspect
+        type = "QUERY"
+
+        fields = []
+        fields << ["%-12s", type]
+        fields << ["database=%s", database]
+        fields << ["collection=%s", collection]
+        fields << ["selector=%s", selector.inspect]
+        fields << ["flags=%s", flags.inspect]
+        fields << ["limit=%s", limit.inspect]
+        fields << ["skip=%s", skip.inspect]
+        fields << ["fields=%s", self.fields.inspect]
+
+        f, v = fields.transpose
+
+        f.join(" ") % v
+      end
+
     end
   end
 end

@@ -50,6 +50,12 @@ module Moped
         @number_of_cursor_ids = cursor_ids.length
         @request_id           = options[:request_id]
       end
+
+      def log_inspect
+        type = "KILL_CURSORS"
+
+        "%-12s cursor_ids=%s" % [type, cursor_ids.inspect]
+      end
     end
   end
 end
