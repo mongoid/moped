@@ -97,7 +97,7 @@ module Moped
         socket = server.socket
 
         if socket.connect
-          info = socket.simple_query Protocol::Command.new(:$admin, ismaster: 1)
+          info = socket.simple_query Protocol::Command.new(:admin, ismaster: 1)
 
           if info["ismaster"]
             server.primary = true
