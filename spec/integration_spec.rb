@@ -2,7 +2,7 @@ require "spec_helper"
 
 describe Moped::Session do
   context "with a single master node" do
-    let(:session) { Moped::Session.new "127.0.0.1:27017", database: "moped_test" }
+    let(:session) { Moped::Session.new ["127.0.0.1:27017"], database: "moped_test" }
 
     after do
       session[:people].drop if session[:people].find.count > 0
@@ -37,6 +37,11 @@ describe Moped::Session do
           session[:people].insert("$invalid" => nil)
         end.should raise_exception(Moped::Errors::OperationFailure)
       end
+    end
+
+    it "can sort documents" do
+      session[:people].insert([{name: "John"}, {name: "Mary"}])
+      session[:people].find.sort(_id: -1).first["name"].should eq "Mary"
     end
 
     it "can update documents" do

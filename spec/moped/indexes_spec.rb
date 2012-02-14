@@ -1,7 +1,7 @@
 require "spec_helper"
 
 describe Moped::Indexes do
-  let(:session) { Moped::Session.new "127.0.0.1:27017", database: "moped_test" }
+  let(:session) { Moped::Session.new ["127.0.0.1:27017"], database: "moped_test" }
   let(:indexes) do
     described_class.new(session.current_database, :users)
   end

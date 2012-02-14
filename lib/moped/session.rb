@@ -7,12 +7,12 @@ module Moped
   # databases.
   #
   # @example Single database (console-style)
-  #   session = Moped::Session.new("127.0.0.1:27017")
+  #   session = Moped::Session.new(["127.0.0.1:27017"])
   #   session.use :moped
   #   session[:users].find.one # => { name: "John" }
   #
   # @example Multiple databases
-  #   session = Moped::Session.new("127.0.0.1:27017")
+  #   session = Moped::Session.new(["127.0.0.1:27017"])
   #
   #   session.with(database: :admin) do |admin|
   #     admin.command ismaster: 1
@@ -32,7 +32,7 @@ module Moped
     # @return [Cluster] this session's cluster
     attr_reader :cluster
 
-    # @param [String] seeds a comma separated list of host:port pairs
+    # @param [Array] seeds an of host:port pairs
     # @param [Hash] options
     # @option options [Boolean] :safe (false) ensure writes are persisted
     # @option options [Hash] :safe ensure writes are persisted with the

@@ -53,6 +53,10 @@ describe Moped::Query do
     end
   end
 
+  describe "#map_reduce" do
+
+  end
+
   describe "#skip" do
 
     it "sets the query operation's skip field" do

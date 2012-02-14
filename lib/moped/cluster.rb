@@ -23,11 +23,11 @@ module Moped
     # @return [Array] seeds gathered from cluster discovery
     attr_reader :dynamic_seeds
 
-    # @param [String] seeds a comma separated list of host:port pairs
+    # @param [Array] seeds an array of host:port pairs
     # @param [Boolean] direct (false) whether to connect directly to the hosts
     # provided or to find additional available nodes.
     def initialize(seeds, direct = false)
-      @seeds  = seeds.split ","
+      @seeds  = seeds
       @direct = direct
 
       @servers = []

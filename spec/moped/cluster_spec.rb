@@ -15,7 +15,9 @@ describe Moped::Cluster do
   end
 
   describe "initialize" do
-    let(:cluster) { Moped::Cluster.new("127.0.0.1:27017,127.0.0.1:27018", true) }
+    let(:cluster) do
+      Moped::Cluster.new(["127.0.0.1:27017","127.0.0.1:27018"], true)
+    end
 
     it "stores the list of seeds" do
       cluster.seeds.should eq ["127.0.0.1:27017", "127.0.0.1:27018"]
@@ -43,7 +45,7 @@ describe Moped::Cluster do
   end
 
   describe "#sync" do
-    let(:cluster) { Moped::Cluster.new("127.0.0.1:27017") }
+    let(:cluster) { Moped::Cluster.new(["127.0.0.1:27017"]) }
 
     it "syncs each seed node" do
       server = Moped::Server.allocate
@@ -55,7 +57,7 @@ describe Moped::Cluster do
   end
 
   describe "#sync_server" do
-    let(:cluster) { Moped::Cluster.new "", false }
+    let(:cluster) { Moped::Cluster.new [""], false }
     let(:server) { Moped::Server.allocate }
     let(:socket) { Moped::Socket.new "", 99999 }
     let(:connection) { Support::MockConnection.new }
