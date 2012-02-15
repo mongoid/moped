@@ -178,10 +178,10 @@ module Moped
       instrument_start = (logger = Moped.logger) && logger.debug? && Time.now
       yield
     ensure
-      log_operations(ops, Time.now - instrument_start) if instrument_start && !$!
+      log_operations(logger, ops, Time.now - instrument_start) if instrument_start && !$!
     end
 
-    def log_operations(ops, duration)
+    def log_operations(logger, ops, duration)
       prefix  = "  MOPED: #{host}:#{port} "
       indent  = " "*prefix.length
       runtime = (" (%.1fms)" % duration)
