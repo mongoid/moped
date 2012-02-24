@@ -32,6 +32,20 @@ module Moped
       command dropDatabase: 1
     end
 
+    # Log in with +username+ and +password+ on the current database.
+    #
+    # @param [String] username the username
+    # @param [String] password the password
+    # @raise [Errors::OperationFailure] when authentication fails
+    def login(username, password)
+    end
+
+    # Log out from the current database.
+    #
+    # @raise [Errors::OperationFailure] when logout fails
+    def logout
+    end
+
     # Run +command+ on the database.
     #
     # @example

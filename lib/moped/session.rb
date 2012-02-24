@@ -22,6 +22,11 @@ module Moped
   #     moped[:users].find.one # => { name: "John" }
   #   end
   #
+  # @example Authentication
+  #
+  #   session = Moped::Session.new %w[127.0.0.1:27017],
+  #   session.with(database: "admin").login("admin", "s3cr3t")
+  #
   class Session
     extend Forwardable
 
@@ -135,6 +140,20 @@ module Moped
     # @param (see Moped::Database#drop)
     # @return (see Moped::Database#drop)
     delegate :drop => :current_database
+
+    # @method login(username, password)
+    # Log in with +username+ and +password+ on the current database.
+    #
+    # @param (see Moped::Database#login)
+    # @raise (see Moped::Database#login)
+    delegate :login => :current_database
+
+    # @method logout
+    # Log out from the current database.
+    #
+    # @param (see Moped::Database#logout)
+    # @raise (see Moped::Database#login)
+    delegate :logout => :current_database
 
     # @private
     def current_database

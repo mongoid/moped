@@ -248,6 +248,115 @@ describe Moped::Socket do
     end
   end
 
+  describe "#login" do
+
+    let(:connection) do
+      Support::MockConnection.new
+    end
+
+    before do
+      socket.stub(connection: connection)
+    end
+
+    context "when authentication is successful" do
+      before do
+        # getnonce
+        connection.pending_replies << Hash["nonce" => "123", "ok" => 1]
+        # authenticate
+        connection.pending_replies << Hash["ok" => 1]
+      end
+
+      it "returns true" do
+        socket.login("admin", "username", "password").should be_true
+      end
+
+      it "adds the credentials to the auth cache" do
+        socket.login(:admin, "username", "password")
+        socket.auth.should eq("admin" => ["username", "password"])
+      end
+    end
+
+    context "when a nonce fails to generate" do
+      before do
+        # getnonce
+        connection.pending_replies << Hash["ok" => 0]
+      end
+
+      it "raises an operation failure" do
+        lambda do
+          socket.login(:admin, "username", "password")
+        end.should raise_exception(Moped::Errors::OperationFailure)
+      end
+
+      it "does not add the credentials to the auth cache" do
+        socket.login(:admin, "username", "password") rescue nil
+        socket.auth.should be_empty
+      end
+    end
+
+    context "when authentication fails" do
+      before do
+        # getnonce
+        connection.pending_replies << Hash["nonce" => "123", "ok" => 1]
+        # authenticate
+        connection.pending_replies << Hash["ok" => 0]
+      end
+
+      it "raises an operation failure" do
+        lambda do
+          socket.login(:admin, "username", "password")
+        end.should raise_exception(Moped::Errors::OperationFailure)
+      end
+
+      it "does not add the credentials to the auth cache" do
+        socket.login(:admin, "username", "password") rescue nil
+        socket.auth.should be_empty
+      end
+    end
+
+  end
+
+  describe "#logout" do
+
+    let(:connection) do
+      Support::MockConnection.new
+    end
+
+    before do
+      socket.stub(connection: connection)
+      socket.auth["admin"] = ["username", "password"]
+    end
+
+    context "when logout is successful" do
+      before do
+        connection.pending_replies << Hash["ok" => 1]
+      end
+
+      it "removes the stored credentials" do
+        socket.logout :admin
+        socket.auth.should be_empty
+      end
+    end
+
+    context "when logout is unsuccessful" do
+      before do
+        connection.pending_replies << Hash["ok" => 0]
+      end
+
+      it "does not remove the stored credentials" do
+        socket.logout :admin rescue nil
+        socket.auth.should_not be_empty
+      end
+
+      it "raises an operation failure" do
+        lambda do
+          socket.logout :admin
+        end.should raise_exception(Moped::Errors::OperationFailure)
+      end
+    end
+
+  end
+
   describe "instrument" do
 
     context "when a logger is configured in debug mode" do

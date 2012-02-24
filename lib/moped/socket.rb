@@ -173,6 +173,30 @@ module Moped
       end
     end
 
+    def auth
+      @auth ||= {}
+    end
+
+    def login(database, username, password)
+      getnonce = Protocol::Command.new(database, getnonce: 1)
+      result = simple_query getnonce
+
+      raise Errors::OperationFailure.new(getnonce, result) unless result["ok"] == 1
+
+      authenticate = Protocol::Commands::Authenticate.new(database, username, password, result["nonce"])
+      result = simple_query authenticate
+      raise Errors::OperationFailure.new(authenticate, result) unless result["ok"] == 1
+
+      auth[database.to_s] = [username, password]
+    end
+
+    def logout(database)
+      command = Protocol::Command.new(database, logout: 1)
+      result = simple_query command
+      raise Errors::OperationFailure.new(command, result) unless result["ok"] == 1
+      auth.delete(database.to_s)
+    end
+
     def instrument(ops)
       instrument_start = (logger = Moped.logger) && logger.debug? && Time.now
       yield
