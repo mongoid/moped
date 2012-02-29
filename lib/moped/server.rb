@@ -1,6 +1,6 @@
 module Moped
 
-  unless defined? Addrinfo
+  unless (defined? Addrinfo) && (Addrinfo.respond_to?(:getaddrinfo))
     # @private
     class Addrinfo
       class << self
