@@ -44,9 +44,8 @@ module Moped
       begin
         socket.connect_nonblock sockaddr
       rescue IO::WaitWritable, Errno::EINPROGRESS
-        IO.select nil, [socket], nil, 0.5
-
         begin
+          IO.select nil, [socket], nil, 0.5
           socket.connect_nonblock sockaddr
         rescue Errno::EISCONN # we're connected
         rescue
