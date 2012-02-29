@@ -177,6 +177,19 @@ module Moped
       @auth ||= {}
     end
 
+    def apply_auth(credentials)
+      return if auth == credentials
+      logouts = auth.keys - credentials.keys
+
+      logouts.each do |database|
+        logout database
+      end
+
+      credentials.each do |database, (username, password)|
+        login(database, username, password) unless auth[database] == [username, password]
+      end
+    end
+
     def login(database, username, password)
       getnonce = Protocol::Command.new(database, getnonce: 1)
       result = simple_query getnonce

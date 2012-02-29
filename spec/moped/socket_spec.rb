@@ -357,6 +357,57 @@ describe Moped::Socket do
 
   end
 
+  describe "#apply_auth" do
+    context "when the socket is unauthenticated" do
+      it "logs in with each credential provided" do
+        socket.should_receive(:login).with("admin", "username", "password")
+        socket.should_receive(:login).with("test", "username", "password")
+
+        socket.apply_auth(
+          "admin" => ["username", "password"],
+          "test" => ["username", "password"]
+        )
+      end
+    end
+
+    context "when the socket is authenticated" do
+      before do
+        socket.auth["admin"] = ["username", "password"]
+      end
+
+      context "and a credential is unchanged" do
+        it "does nothing" do
+          socket.should_not_receive(:login)
+          socket.apply_auth("admin" => ["username", "password"])
+        end
+      end
+
+      context "and a credential changes" do
+        it "logs in with the new credentials" do
+          socket.should_receive(:login).with("admin", "newuser", "password")
+          socket.apply_auth("admin" => ["newuser", "password"])
+        end
+      end
+
+      context "and a credential is removed" do
+        it "logs out from the database" do
+          socket.should_receive(:logout).with("admin")
+          socket.apply_auth({})
+        end
+      end
+
+      context "and a credential is added" do
+        it "logs in with the added credentials" do
+          socket.should_receive(:login).with("test", "username", "password")
+          socket.apply_auth(
+            "admin" => ["username", "password"],
+            "test" => ["username", "password"]
+          )
+        end
+      end
+    end
+  end
+
   describe "instrument" do
 
     context "when a logger is configured in debug mode" do
