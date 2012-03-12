@@ -258,6 +258,26 @@ describe Moped::Session do
     end
   end
 
+  describe "#login" do
+
+    it "delegates to the current database" do
+      database = mock(Moped::Database)
+      session.should_receive(:current_database).and_return(database)
+      database.should_receive(:login).with("username", "password")
+      session.login("username", "password")
+    end
+  end
+
+  describe "#logout" do
+
+    it "delegates to the current database" do
+      database = mock(Moped::Database)
+      session.should_receive(:current_database).and_return(database)
+      database.should_receive(:logout)
+      session.logout
+    end
+  end
+
   describe "#socket_for" do
 
     it "delegates to the cluster" do

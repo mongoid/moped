@@ -67,4 +67,20 @@ describe Moped::Database do
       database[:users]
     end
   end
+
+  describe "#login" do
+
+    it "logs in to the database with the username and password" do
+      session.cluster.should_receive(:login).with(:admin, "username", "password")
+      database.login("username", "password")
+    end
+  end
+
+  describe "#log out" do
+
+    it "logs out from the database" do
+      session.cluster.should_receive(:logout).with(:admin)
+      database.logout
+    end
+  end
 end
