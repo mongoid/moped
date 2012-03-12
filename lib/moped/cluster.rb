@@ -60,7 +60,6 @@ module Moped
 
     def reconnect
       @servers = servers.map { |server| Server.new(server.address) }
-      sync
     end
 
     def sync
