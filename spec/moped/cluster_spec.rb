@@ -303,4 +303,30 @@ describe Moped::Cluster do
       end
     end
   end
+
+  describe "#login" do
+    let(:cluster) do
+      Moped::Cluster.allocate
+    end
+
+    it "adds the credentials to the auth cache" do
+      cluster.login("admin", "username", "password")
+      cluster.auth.should eq("admin" => ["username", "password"])
+    end
+  end
+
+  describe "#logout" do
+    let(:cluster) do
+      Moped::Cluster.allocate
+    end
+
+    before do
+      cluster.login("admin", "username", "password")
+    end
+
+    it "removes the stored credentials" do
+      cluster.logout :admin
+      cluster.auth.should be_empty
+    end
+  end
 end

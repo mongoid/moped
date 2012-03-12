@@ -173,6 +173,24 @@ module Moped
       server.socket
     end
 
+    # @return [Hash] the cached authentication credentials for this cluster.
+    def auth
+      @auth ||= {}
+    end
+
+    # Log in to +database+ with +username+ and +password+. Does not perform the
+    # actual log in, but saves the credentials for later authentication on a
+    # socket.
+    def login(database, username, password)
+      auth[database.to_s] = [username, password]
+    end
+
+    # Log out of +database+. Does not perform the actual log out, but will log
+    # out when the socket is used next.
+    def logout(database)
+      auth.delete(database.to_s)
+    end
+
   end
 
 end
