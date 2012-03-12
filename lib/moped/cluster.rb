@@ -137,16 +137,9 @@ module Moped
       end
     end
 
-    def prune
-      servers.each do |server|
-        remove server unless server.socket.alive?
-      end
-    end
-
     # @param [:read, :write] mode the type of socket to return
     # @return [Socket] a socket valid for +mode+ operations
     def socket_for(mode)
-      prune
       sync unless primaries.any? || (secondaries.any? && mode == :read)
 
       server = nil
@@ -158,7 +151,10 @@ module Moped
         end
 
         if server
-          if server.socket.alive?
+          socket = server.socket
+          socket.connect unless socket.connection
+
+          if socket.alive?
             break server
           else
             remove server
