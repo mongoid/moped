@@ -243,10 +243,14 @@ describe Moped::Cluster do
         end
 
         it "returns the socket" do
-          cluster.stub(:sync) do
-            cluster.servers << server
-          end
+          cluster.stub(:sync) { cluster.servers << server }
           cluster.socket_for(:write).should eq socket
+        end
+
+        it "applies the cached authentication" do
+          cluster.stub(:sync) { cluster.servers << server }
+          socket.should_receive(:apply_auth).with(cluster.auth)
+          cluster.socket_for(:write)
         end
       end
 
@@ -263,6 +267,11 @@ describe Moped::Cluster do
         it "returns the socket" do
           cluster.socket_for(:write).should eq socket
         end
+
+        it "applies the cached authentication" do
+          socket.should_receive(:apply_auth).with(cluster.auth)
+          cluster.socket_for(:write)
+        end
       end
     end
 
@@ -278,6 +287,12 @@ describe Moped::Cluster do
           end
           cluster.socket_for :read
         end
+
+        it "applies the cached authentication" do
+          cluster.stub(:sync) { cluster.servers << server }
+          socket.should_receive(:apply_auth).with(cluster.auth)
+          cluster.socket_for(:read)
+        end
       end
 
       context "and the cluster is synced" do
@@ -290,6 +305,11 @@ describe Moped::Cluster do
           it "returns the master connection" do
             cluster.socket_for(:read).should eq socket
           end
+
+          it "applies the cached authentication" do
+            socket.should_receive(:apply_auth).with(cluster.auth)
+            cluster.socket_for(:read)
+          end
         end
 
         context "and a slave is found" do
@@ -298,6 +318,12 @@ describe Moped::Cluster do
             cluster.stub(secondaries: secondaries)
             secondaries.should_receive(:sample).and_return(server)
             cluster.socket_for(:read).should eq socket
+          end
+
+          it "applies the cached authentication" do
+            cluster.stub(secondaries: [server])
+            socket.should_receive(:apply_auth).with(cluster.auth)
+            cluster.socket_for(:read)
           end
         end
       end

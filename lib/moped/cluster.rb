@@ -170,7 +170,9 @@ module Moped
         raise Errors::ConnectionFailure.new("Could not connect to any primary or secondary servers")
       end
 
-      server.socket
+      socket = server.socket
+      socket.apply_auth auth
+      socket
     end
 
     # @return [Hash] the cached authentication credentials for this cluster.
