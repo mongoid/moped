@@ -11,7 +11,6 @@ module Moped
 
             while (buf = io.readbyte) != 0
               io.gets(NULL_BYTE)
-              p array
               array << Types::MAP[buf].__bson_load__(io)
             end
 
