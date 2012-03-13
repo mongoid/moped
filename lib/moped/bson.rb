@@ -1,5 +1,6 @@
 require "moped/bson/extensions"
 
+require "moped/bson/binary"
 require "moped/bson/code"
 require "moped/bson/object_id"
 require "moped/bson/max_key"

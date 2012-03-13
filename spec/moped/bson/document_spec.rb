@@ -61,11 +61,51 @@ describe Moped::BSON::Document do
   end
 
   context "binary" do
-    pending
+    context "generic" do
+      it_behaves_like "a serializable bson document" do
+        let(:raw) { "\x16\x00\x00\x00\x05data\x00\x06\x00\x00\x00\x00binary\x00" }
+        let(:doc) { {"data" => Moped::BSON::Binary.new(:generic, "binary") } }
+      end
+    end
+
+    context "function" do
+      it_behaves_like "a serializable bson document" do
+        let(:raw) { "\x16\x00\x00\x00\x05data\x00\x06\x00\x00\x00\x01binary\x00" }
+        let(:doc) { {"data" => Moped::BSON::Binary.new(:function, "binary") } }
+      end
+    end
+
+    context "old" do
+      it_behaves_like "a serializable bson document" do
+        let(:raw) { "\x1A\x00\x00\x00\x05data\x00\n\x00\x00\x00\x02\x06\x00\x00\x00binary\x00" }
+        let(:doc) { {"data" => Moped::BSON::Binary.new(:old, "binary") } }
+      end
+    end
+
+    context "uuid" do
+      it_behaves_like "a serializable bson document" do
+        let(:raw) { "\x16\x00\x00\x00\x05data\x00\x06\x00\x00\x00\x03binary\x00" }
+        let(:doc) { {"data" => Moped::BSON::Binary.new(:uuid, "binary") } }
+      end
+    end
+
+    context "md5" do
+      it_behaves_like "a serializable bson document" do
+        let(:raw) { "\x16\x00\x00\x00\x05data\x00\x06\x00\x00\x00\x05binary\x00" }
+        let(:doc) { {"data" => Moped::BSON::Binary.new(:md5, "binary") } }
+      end
+    end
+
+    context "user" do
+      it_behaves_like "a serializable bson document" do
+        let(:raw) { "\x16\x00\x00\x00\x05data\x00\x06\x00\x00\x00\x80binary\x00" }
+        let(:doc) { {"data" => Moped::BSON::Binary.new(:user, "binary") } }
+      end
+    end
   end
 
   context "Undefined [deprecared]" do
-    let(:raw) { "\v\x00\x00\x00\x05null\x00\x00" }
+    let(:raw) { "\v\x00\x00\x00\x06null\x00\x00" }
 
     it "is ignored in deserialization" do
       Moped::BSON::Document.deserialize(io).should == {}

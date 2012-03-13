@@ -25,7 +25,7 @@ module Moped
       MAP[2]  = String
       MAP[3]  = Hash
       MAP[4]  = Array
-      # MAP[5]  = binary
+      MAP[5]  = Binary
       # MAP[6]  = undefined - deprecated
       MAP[7]  = ObjectId
       MAP[8]  = TrueClass
@@ -46,6 +46,7 @@ module Moped
       STRING = 2.chr.freeze
       HASH = 3.chr.freeze
       ARRAY = 4.chr.freeze
+      BINARY = 5.chr.freeze
       OBJECT_ID = 7.chr.freeze
       BOOLEAN = 8.chr.freeze
       TIME = 9.chr.freeze
