@@ -486,10 +486,10 @@ describe Moped::Session do
           Moped::Protocol::Reply.allocate.tap do |reply|
             reply.documents = [{
               "err"=>"document to insert can't have $ fields",
-             "code"=>13511,
-             "n"=>0,
-             "connectionId"=>894,
-             "ok"=>1.0
+              "code"=>13511,
+              "n"=>0,
+              "connectionId"=>894,
+              "ok"=>1.0
             }]
           end
         end
