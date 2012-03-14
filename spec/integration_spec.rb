@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require "spec_helper"
 
 describe Moped::Session do
@@ -15,6 +17,19 @@ describe Moped::Session do
       john = session[:people].find(_id: id).one
       john["_id"].should eq id
       john["name"].should eq "John"
+    end
+
+    it "inserts and queries on utf-8 data" do
+      id = Moped::BSON::ObjectId.new
+      doc = {
+        "_id" => id,
+        "GÜLTIG BIS" => "2012-10-20",
+        "type" => "Tätigkeiten",
+        "type_2" => :"Tätigkeiten",
+        "other_types" => ["Tätigkeiten"]
+      }
+      session[:people].insert(doc)
+      session[:people].find(_id: id).one.should eq doc
     end
 
     it "drops a collection" do

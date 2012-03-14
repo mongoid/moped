@@ -5,7 +5,7 @@ module Moped
       module Symbol
         module ClassMethods
           def __bson_load__(io)
-            io.read(*io.read(4).unpack(INT32_PACK)).chop!.intern
+            io.read(*io.read(4).unpack(INT32_PACK)).chop!.force_encoding('utf-8').intern
           end
         end
 
@@ -13,8 +13,10 @@ module Moped
           io << Types::SYMBOL
           io << key
           io << NULL_BYTE
-          io << [length+1].pack(INT32_PACK)
-          io << to_s
+
+          str = to_s.force_encoding('utf-8').force_encoding('binary')
+          io << [str.length+1].pack(INT32_PACK)
+          io << str
           io << NULL_BYTE
         end
       end

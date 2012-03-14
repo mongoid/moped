@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require "spec_helper"
 
 describe Moped::BSON::Document do
@@ -9,7 +11,7 @@ describe Moped::BSON::Document do
     end
 
     it "serializes the document" do
-      Moped::BSON::Document.serialize(doc).should == raw
+      Moped::BSON::Document.serialize(doc).should == raw.force_encoding('binary')
     end
   end
 
@@ -22,6 +24,13 @@ describe Moped::BSON::Document do
     it_behaves_like "a serializable bson document" do
       let(:raw) { "\x16\x00\x00\x00\x02hello\x00\x06\x00\x00\x00world\x00\x00" }
       let(:doc) { { "hello" => "world" } }
+    end
+  end
+
+  context "utf8 data" do
+    it_behaves_like "a serializable bson document" do
+      let(:raw) { "^\x00\x00\x00\x02G\xC3\x9CLTIG BIS\x00\v\x00\x00\x002012-10-20\x00\x02type\x00\r\x00\x00\x00T\xC3\xA4tigkeiten\x00\x04other_types\x00\x19\x00\x00\x00\x020\x00\r\x00\x00\x00T\xC3\xA4tigkeiten\x00\x00\x00" }
+      let(:doc) { {"GÜLTIG BIS" => "2012-10-20", "type" => "Tätigkeiten", "other_types" => ["Tätigkeiten"]} }
     end
   end
 
