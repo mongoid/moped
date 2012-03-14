@@ -14,9 +14,8 @@ module Moped
           io << key
           io << NULL_BYTE
 
-          str = encode('utf-8').force_encoding('binary')
-          io << [str.length+1].pack(INT32_PACK)
-          io << str
+          io << [bytesize+1].pack(INT32_PACK)
+          io << encode('utf-8').force_encoding('binary')
           io << NULL_BYTE
         end
       end

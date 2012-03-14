@@ -28,9 +28,39 @@ describe Moped::BSON::Document do
   end
 
   context "utf8 data" do
-    it_behaves_like "a serializable bson document" do
-      let(:raw) { "^\x00\x00\x00\x02G\xC3\x9CLTIG BIS\x00\v\x00\x00\x002012-10-20\x00\x02type\x00\r\x00\x00\x00T\xC3\xA4tigkeiten\x00\x04other_types\x00\x19\x00\x00\x00\x020\x00\r\x00\x00\x00T\xC3\xA4tigkeiten\x00\x00\x00" }
-      let(:doc) { {"GÜLTIG BIS" => "2012-10-20", "type" => "Tätigkeiten", "other_types" => ["Tätigkeiten"]} }
+    it "handles utf-8 keys" do
+      doc = { "_id" => Moped::BSON::ObjectId.new, "gültig" => 1 }
+      Moped::BSON::Document.deserialize(StringIO.new(Moped::BSON::Document.serialize(doc))).should eq doc
+    end
+
+    it "handles utf-8 string values" do
+      doc = { "_id" => Moped::BSON::ObjectId.new, "type" => "gültig" }
+      Moped::BSON::Document.deserialize(StringIO.new(Moped::BSON::Document.serialize(doc))).should eq doc
+    end
+
+    it "handles utf-8 symbol values" do
+      doc = { "_id" => Moped::BSON::ObjectId.new, "type" => :"gültig" }
+      Moped::BSON::Document.deserialize(StringIO.new(Moped::BSON::Document.serialize(doc))).should eq doc
+    end
+
+    it "handles utf-8 regex values" do
+      doc = { "_id" => Moped::BSON::ObjectId.new, "type" => /gültig/ }
+      Moped::BSON::Document.deserialize(StringIO.new(Moped::BSON::Document.serialize(doc))).should eq doc
+    end
+
+    it "handles utf-8 string values in an array" do
+      doc = { "_id" => Moped::BSON::ObjectId.new, "type" => ["gültig"] }
+      Moped::BSON::Document.deserialize(StringIO.new(Moped::BSON::Document.serialize(doc))).should eq doc
+    end
+
+    it "handles utf-8 code values" do
+      doc = { "_id" => Moped::BSON::ObjectId.new, "code" => Moped::BSON::Code.new("// gültig") }
+      Moped::BSON::Document.deserialize(StringIO.new(Moped::BSON::Document.serialize(doc))).should eq doc
+    end
+
+    it "handles utf-8 code with scope values" do
+      doc = { "_id" => Moped::BSON::ObjectId.new, "code" => Moped::BSON::Code.new("// gültig", {}) }
+      Moped::BSON::Document.deserialize(StringIO.new(Moped::BSON::Document.serialize(doc))).should eq doc
     end
   end
 

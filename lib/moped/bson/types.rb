@@ -7,7 +7,7 @@ module Moped
         def self.__bson_load__(io)
           io.read 4 # swallow the length
 
-          code = io.read(*io.read(4).unpack(INT32_PACK)).chop!
+          code = io.read(*io.read(4).unpack(INT32_PACK)).chop!.force_encoding('utf-8')
           scope = BSON::Document.deserialize(io)
 
           Code.new code, scope

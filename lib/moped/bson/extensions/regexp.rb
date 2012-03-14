@@ -5,7 +5,7 @@ module Moped
       module Regexp
         module ClassMethods
           def __bson_load__(io)
-            source = io.gets(NULL_BYTE).chop!
+            source = io.gets(NULL_BYTE).chop!.force_encoding('utf-8')
             options = 0
             while (option = io.getbyte) != 0
               case option
@@ -26,7 +26,7 @@ module Moped
           io << Types::REGEX
           io << key
           io << NULL_BYTE
-          io << source
+          io << source.force_encoding('binary')
           io << NULL_BYTE
 
           io << 'i'  if (options & ::Regexp::IGNORECASE) != 0

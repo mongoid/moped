@@ -23,10 +23,11 @@ describe Moped::Session do
       id = Moped::BSON::ObjectId.new
       doc = {
         "_id" => id,
-        "GÜLTIG BIS" => "2012-10-20",
-        "type" => "Tätigkeiten",
-        "type_2" => :"Tätigkeiten",
-        "other_types" => ["Tätigkeiten"]
+        "gültig" => "1",
+        "1" => "gültig",
+        "2" => :"gültig",
+        "3" => ["gültig"],
+        "4" => /gültig/
       }
       session[:people].insert(doc)
       session[:people].find(_id: id).one.should eq doc

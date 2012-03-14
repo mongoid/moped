@@ -24,7 +24,7 @@ module Moped
 
       class << self
         def __bson_load__(io)
-          code = io.read(*io.read(4).unpack(INT32_PACK)).chop!
+          code = io.read(*io.read(4).unpack(INT32_PACK)).chop!.force_encoding('utf-8')
           new code
         end
       end
@@ -38,20 +38,20 @@ module Moped
           code_start = io.length
 
           io << START_LENGTH
-          io << [code.length+1].pack(INT32_PACK)
-          io << code
+          io << [code.bytesize+1].pack(INT32_PACK)
+          io << code.encode('utf-8').force_encoding('binary')
           io << NULL_BYTE
 
           scope.__bson_dump__(io)
 
-          io[code_start, 4] = [io.length - code_start].pack(INT32_PACK)
+          io[code_start, 4] = [io.bytesize - code_start].pack(INT32_PACK)
 
         else
           io << Types::CODE
           io << key
           io << NULL_BYTE
-          io << [code.length+1].pack(INT32_PACK)
-          io << code
+          io << [code.bytesize+1].pack(INT32_PACK)
+          io << code.encode('utf-8').force_encoding('binary')
           io << NULL_BYTE
         end
       end
