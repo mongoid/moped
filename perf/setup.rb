@@ -1,6 +1,6 @@
 def session
   return @session if defined? @session
-  @session = Moped::Session.new "127.0.0.1:27017", database: "moped_test"
+  @session = Moped::Session.new %w[ 127.0.0.1:27017 ], database: "moped_test"
 end
 
 session.with database: "system" do |system|
