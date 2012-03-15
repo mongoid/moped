@@ -58,7 +58,7 @@ describe Moped::Cluster do
 
   describe "#sync_server" do
     let(:cluster) { Moped::Cluster.new [""], false }
-    let(:server) { Moped::Server.allocate }
+    let(:server) { Moped::Server.new("localhost:27017") }
     let(:socket) { Moped::Socket.new "", 99999 }
     let(:connection) { Support::MockConnection.new }
 
@@ -189,7 +189,7 @@ describe Moped::Cluster do
     end
 
     let(:server) do
-      Moped::Server.allocate.tap do |server|
+      Moped::Server.new("localhost:27017").tap do |server|
         server.stub(socket: socket)
       end
     end

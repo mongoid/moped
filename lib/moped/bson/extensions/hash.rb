@@ -33,8 +33,8 @@ module Moped
           # write dummy length
           io << START_LENGTH
 
-          each do |key, value|
-            value.__bson_dump__(io, key.to_s.encode('utf-8').force_encoding('binary'))
+          each do |k, v|
+            v.__bson_dump__(io, k.to_s.encode('utf-8').force_encoding('binary'))
           end
           io << EOD
 

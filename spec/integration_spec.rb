@@ -8,7 +8,7 @@ describe Moped::Session do
 
     after do
       session[:people].drop if session[:people].find.count > 0
-      session.cluster.servers.each &:close
+      session.cluster.servers.each(&:close)
     end
 
     it "inserts and queries a single document" do

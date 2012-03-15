@@ -36,12 +36,12 @@ module Moped
 
     # @return [Array] available secondary nodes
     def secondaries
-      servers.select &:secondary?
+      servers.select(&:secondary?)
     end
 
     # @return [Array] available primary nodes
     def primaries
-      servers.select &:primary?
+      servers.select(&:primary?)
     end
 
     # @return [Array] all known addresses from user supplied seeds, dynamically
@@ -85,7 +85,7 @@ module Moped
       end
 
       unless servers.empty?
-        @dynamic_seeds = servers.map &:address
+        @dynamic_seeds = servers.map(&:address)
       end
 
       true

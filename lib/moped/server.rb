@@ -57,6 +57,7 @@ module Moped
 
       addrinfo = Addrinfo.getaddrinfo(*address.split(":"), :INET, :STREAM).first
 
+      @primary = @secondary = false
       @ip_address = addrinfo.ip_address
       @port = addrinfo.ip_port
       @resolved_address = addrinfo.inspect_sockaddr

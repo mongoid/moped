@@ -16,7 +16,7 @@ describe Moped::Protocol::Command do
     end
 
     it "sets the query's limit to -1" do
-      command.limit.should eq -1
+      command.limit.should eq(-1)
     end
   end
 

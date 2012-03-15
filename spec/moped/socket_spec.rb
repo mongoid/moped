@@ -175,7 +175,7 @@ describe Moped::Socket do
           end
         end
 
-        threads.each &:join
+        threads.each(&:join)
 
         sock = server.accept
         data = sock.read messages.join.length

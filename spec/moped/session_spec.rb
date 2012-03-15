@@ -324,7 +324,7 @@ describe Moped::Session do
 
     it "limits the query" do
       session.should_receive(:query) do |query|
-        query.limit.should eq -1
+        query.limit.should eq(-1)
         reply
       end
 

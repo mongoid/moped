@@ -86,7 +86,7 @@ module Moped
 
     # @yield [Hash] each index for the collection.
     def each(&block)
-      database[:"system.indexes"].find(ns: namespace).each &block
+      database[:"system.indexes"].find(ns: namespace).each(&block)
     end
 
   end
