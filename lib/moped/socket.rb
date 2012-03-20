@@ -1,3 +1,5 @@
+require "timeout"
+
 module Moped
 
   # @api private
@@ -38,23 +40,11 @@ module Moped
     def connect
       return true if connection
 
-      socket = ::Socket.new ::Socket::AF_INET, ::Socket::SOCK_STREAM, 0
-      sockaddr = ::Socket.pack_sockaddr_in(port, host)
-
-      begin
-        socket.connect_nonblock sockaddr
-      rescue IO::WaitWritable, Errno::EINPROGRESS
-        begin
-          IO.select nil, [socket], nil, 0.5
-          socket.connect_nonblock sockaddr
-        rescue Errno::EISCONN # we're connected
-        rescue
-          socket.close rescue nil # jruby raises EBADF
-          return false
-        end
+      Timeout::timeout 0.5 do
+        @connection = TCPSocket.new(host, port)
       end
-
-      @connection = socket
+    rescue Errno::ECONNREFUSED, Timeout::Error
+      return false
     end
 
     # @return [true, false] whether this socket connection is alive
