@@ -1,37 +1,5 @@
 module Moped
 
-  unless (defined? Addrinfo) && (Addrinfo.respond_to?(:getaddrinfo))
-    # @private
-    class Addrinfo
-      class << self
-        def getaddrinfo(host, port, family, socktype)
-          family = ::Socket::AF_INET
-          socktype = ::Socket::SOCK_STREAM
-
-          ::Socket.getaddrinfo(host, port, family, socktype).map do |addrinfo|
-            new(addrinfo)
-          end
-        end
-      end
-
-      def initialize(addrinfo)
-        @addrinfo = addrinfo
-      end
-
-      def ip_address
-        @addrinfo[3]
-      end
-
-      def ip_port
-        @addrinfo[1]
-      end
-
-      def inspect_sockaddr
-        [ip_address, ip_port].join(":")
-      end
-    end
-  end
-
   # @api private
   #
   # The internal class for storing information about a server.
@@ -55,12 +23,15 @@ module Moped
     def initialize(address)
       @address = address
 
-      addrinfo = Addrinfo.getaddrinfo(*address.split(":"), :INET, :STREAM).first
+      host, port = address.split(":")
+      port = port ? port.to_i : 27017
+
+      ip_address = ::Socket.getaddrinfo(host, nil, ::Socket::AF_INET, ::Socket::SOCK_STREAM).first[3]
 
       @primary = @secondary = false
-      @ip_address = addrinfo.ip_address
-      @port = addrinfo.ip_port
-      @resolved_address = addrinfo.inspect_sockaddr
+      @ip_address = ip_address
+      @port = port
+      @resolved_address = "#{ip_address}:#{port}"
     end
 
     def primary?
