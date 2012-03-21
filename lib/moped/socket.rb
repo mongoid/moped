@@ -50,7 +50,21 @@ module Moped
     # @return [true, false] whether this socket connection is alive
     def alive?
       if connection
-        connection.stat.readable?
+        return false if connection.closed?
+
+        readable, = IO.select([connection], [connection], [])
+
+        if readable[0]
+          begin
+            !connection.eof?
+          rescue Errno::ECONNRESET
+            false
+          rescue
+            true
+          end
+        else
+          true
+        end
       else
         false
       end
