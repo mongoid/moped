@@ -62,7 +62,9 @@ module Moped
           return false if connection.closed?
 
           begin
-            connection.ungetc connection.read_nonblock(1)
+            @mutex.synchronize do
+              connection.ungetc connection.read_nonblock(1)
+            end
           rescue EOFError
             false
           rescue Errno::ECONNRESET
