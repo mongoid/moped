@@ -52,43 +52,15 @@ module Moped
       if connection
         return false if connection.closed?
 
-        readable, = IO.select([connection], [connection], [])
-
-        if readable[0]
-          begin
-            !connection.eof?
-          rescue Errno::ECONNRESET
-            false
-          rescue
+        @mutex.synchronize do
+          if select([connection], nil, nil, 0)
+            !connection.eof? rescue false
+          else
             true
           end
-        else
-          true
         end
       else
         false
-      end
-    end
-
-    if RUBY_PLATFORM == "java"
-      def alive?
-        if connection
-          return false if connection.closed?
-
-          begin
-            @mutex.synchronize do
-              connection.ungetc connection.read_nonblock(1)
-            end
-          rescue EOFError
-            false
-          rescue Errno::ECONNRESET
-            false
-          rescue
-            true
-          end
-        else
-          false
-        end
       end
     end
 
