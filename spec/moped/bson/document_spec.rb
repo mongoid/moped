@@ -38,6 +38,27 @@ describe Moped::BSON::Document do
       Moped::BSON::Document.deserialize(StringIO.new(Moped::BSON::Document.serialize(doc))).should eq doc
     end
 
+    it "handles binary string values of utf-8 content" do
+      string = "europäischen"
+      doc = { "type" => string.encode('binary', 'binary') }
+      Moped::BSON::Document.deserialize(StringIO.new(Moped::BSON::Document.serialize(doc))).should eq \
+        Hash["type" => string]
+    end
+
+    it "tries to encode non-utf8 data to utf-8" do
+      string = "gültig"
+      doc = { "type" => string.encode('iso-8859-1') }
+
+      Moped::BSON::Document.deserialize(StringIO.new(Moped::BSON::Document.serialize(doc))).should eq \
+        Hash["type" => string]
+    end
+
+    it "raises an exception for binary string values of non utf-8 content" do
+      lambda do
+        Moped::BSON::Document.serialize({ "type" => 255.chr })
+      end.should raise_exception(EncodingError)
+    end
+
     it "handles utf-8 symbol values" do
       doc = { "_id" => Moped::BSON::ObjectId.new, "type" => :"gültig" }
       Moped::BSON::Document.deserialize(StringIO.new(Moped::BSON::Document.serialize(doc))).should eq doc

@@ -14,8 +14,19 @@ module Moped
           io << key
           io << NULL_BYTE
 
-          io << [bytesize+1].pack(INT32_PACK)
-          io << encode('utf-8').force_encoding('binary')
+          begin
+            data = encode('utf-8')
+          rescue EncodingError
+            data = dup
+            data.force_encoding('utf-8')
+
+            raise unless data.valid_encoding?
+          end
+
+          data.force_encoding('binary')
+
+          io << [data.bytesize+1].pack(INT32_PACK)
+          io << data
           io << NULL_BYTE
         end
       end
