@@ -43,7 +43,7 @@ describe Moped::BSON::Document do
       doc = { "type" => string.encode('binary', 'binary') }
       Moped::BSON::Document.deserialize(StringIO.new(Moped::BSON::Document.serialize(doc))).should eq \
         Hash["type" => string]
-    end
+    end unless RUBY_PLATFORM =~ /java/
 
     it "tries to encode non-utf8 data to utf-8" do
       string = "gültig"
@@ -57,7 +57,7 @@ describe Moped::BSON::Document do
       lambda do
         Moped::BSON::Document.serialize({ "type" => 255.chr })
       end.should raise_exception(EncodingError)
-    end
+    end unless RUBY_PLATFORM =~ /java/
 
     it "handles utf-8 symbol values" do
       doc = { "_id" => Moped::BSON::ObjectId.new, "type" => :"gültig" }
