@@ -111,32 +111,32 @@ end
 
 <tr><th>use</th>
 <td>Set the current database<br>
-<code>session.use :my_app_test</code></td>
+<code>session.use :my_app_test</code></td></tr>
 
 <tr><th>with</th>
 <td>Return or yield a copy of session with different options.<br>
 <code>session.with(safe: true) { |s| ... }</code><br>
-<code>session.with(database: "admin").command(...)</code></td>
+<code>session.with(database: "admin").command(...)</code></td></tr>
 
 <tr><th>[]</th>
 <td>Choose a collection in the current database.<br>
-<code>session[:people]</code></td>
+<code>session[:people]</code></td></tr>
 
 <tr><th>drop</th>
 <td>Drop the current database<br>
-<code>session.drop</code></td>
+<code>session.drop</code></td></tr>
 
 <tr><th>command</th>
 <td>Run a command on the current database.<br>
-<code>session.command(ping: 1)</code></td>
+<code>session.command(ping: 1)</code></td></tr>
 
 <tr><th>login</th>
 <td>Log in to the current database.<br>
-<code>session.login(username, password)</code></td>
+<code>session.login(username, password)</code></td></tr>
 
 <tr><th>logout</th>
 <td>Log out from the current database.<br>
-<code>session.logout</code></td>
+<code>session.logout</code></td></tr>
 
 </tbody></table>
 
@@ -166,20 +166,20 @@ end # raises Moped::Errors::OperationFailure
 
 <tr><th>drop</th>
 <td>Drop the collection<br>
-<code>users.drop</code></td>
+<code>users.drop</code></td></tr>
 
 <tr><th>indexes</th>
 <td>Access information about this collection's indexes<br>
-<code>users.indexes</code></td>
+<code>users.indexes</code></td></tr>
 
 <tr><th>find</th>
 <td>Build a query on the collection<br>
-<code>users.find(name: "John")</code></td>
+<code>users.find(name: "John")</code></td></tr>
 
 <tr><th>insert</th>
 <td>Insert one or multiple documents.<br>
 <code>users.insert(name: "John")</code><br>
-<code>users.insert([{name: "John"}, {name: "Mary"}])</code></td>
+<code>users.insert([{name: "John"}, {name: "Mary"}])</code></td></tr>
 
 </tbody></table>
 
@@ -204,20 +204,20 @@ session[:users].indexes[name: 1] # => nil
 
 <tr><th>[]</th>
 <td>Get an index by its spec.<br>
-<code>indexes[id: 1]</code></td>
+<code>indexes[id: 1]</code></td></tr>
 
 <tr><th>create</th>
 <td>Create an index<br>
-<code>indexes.create({name: 1}, {unique: true})</code></td>
+<code>indexes.create({name: 1}, {unique: true})</code></td></tr>
 
 <tr><th>drop</th>
 <td>Drop one or all indexes<br>
 <code>indexes.drop</code><br>
-<code>indexes.drop(name: 1)</code></td>
+<code>indexes.drop(name: 1)</code></td></tr>
 
 <tr><th>each</th>
 <td>Yield each index<br>
-<code>indexes.each { |idx| }</code></td>
+<code>indexes.each { |idx| }</code></td></tr>
 
 </tbody></table>
 
@@ -245,122 +245,57 @@ scope.one # nil
 ### API
 <table><tbody>
 
-<tr>
-<th>limit</th>
-<td>
-Set the limit for this query.
-<br>
-<code>query.limit(5)</code>
-</td>
-</tr>
+<tr><th>limit</th>
+<td>Set the limit for this query.<br>
+<code>query.limit(5)</code></td></tr>
 
-<tr>
-<th>skip</th>
-<td>
-Set the offset for this query.
-<br>
-<code>query.skip(5)</code>
-</td>
-</tr>
+<tr><th>skip</th>
+<td>Set the offset for this query.<br>
+<code>query.skip(5)</code></td></tr>
 
-<tr>
-<th>sort</th>
-<td>
-Sort the results of the query
-<br>
-<code>query.sort(name: -1)</code>
-</td>
-</tr>
+<tr><th>sort</th>
+<td>Sort the results of the query<br>
+<code>query.sort(name: -1)</code></td></tr>
 
-<tr>
-<th>distinct</th>
-<td>
-Get the distinct values for a field.
-<br>
-<code>query.distinct(:name)</code>
-</td>
-</tr>
+<tr><th>distinct</th>
+<td>Get the distinct values for a field.<br>
+<code>query.distinct(:name)</code></td></tr>
 
-<tr>
-<th>select</th>
-<td>
-Select a set of fields to return.
-<br>
-<code>query.select(_id: 0, name: 1)</code>
-</td>
-</tr>
+<tr><th>select</th>
+<td>Select a set of fields to return.<br>
+<code>query.select(_id: 0, name: 1)</code></td></tr>
 
-<tr>
-<th>one/first</th>
-<td>
-Return the first result from the query.
-<br>
-<code>query.one</code>
-</td>
-</tr>
+<tr><th>one/first</th>
+<td>Return the first result from the query.<br>
+<code>query.one</code></td></tr>
 
-<tr>
-<th>each</th>
-<td>
-Iterate through the results of the query
-<br>
-<code>query.each { |doc| }</code>
-</td>
-</tr>
+<tr><th>each</th>
+<td>Iterate through the results of the query.<br>
+<code>query.each { |doc| }</code></td></tr>
 
-<tr>
-<th>count</th>
-<td>
-Return the number of documents matching the query.
-<br>
-<code>query.count</code>
-</td>
-</tr>
+<tr><th>count</th>
+<td>Return the number of documents matching the query.<br>
+<code>query.count</code></td></tr>
 
-<tr>
-<th>update</th>
-<td>
-Update the first document matching the query's selector.
-<br>
-<code>query.update(name: "John")</code>
-</td>
-</tr>
+<tr><th>update</th>
+<td>Update the first document matching the query's selector.<br>
+<code>query.update(name: "John")</code></td></tr>
 
-<tr>
-<th>update_all</th>
-<td>
-Update all documents matching the query's selector.
-<br>
-<code>query.update_all(name: "John")</code>
-</td>
-</tr>
+<tr><th>update_all</th>
+<td>Update all documents matching the query's selector.<br>
+<code>query.update_all(name: "John")</code></td></tr>
 
-<tr>
-<th>upsert</th>
-<td>
-Create or update a document using query's selector.
-<br>
-<code>query.upsert(name: "John")</code>
-</td>
-</tr>
+<tr><th>upsert</th>
+<td>Create or update a document using query's selector.<br>
+<code>query.upsert(name: "John")</code></td></tr>
 
-<tr>
-<th>remove</th>
-<td>
-Remove a single document matching the query's selector
-<br>
-<code>query.remove</code>
-</td>
-</tr>
+<tr><th>remove</th>
+<td>Remove a single document matching the query's selector.<br>
+<code>query.remove</code></td></tr>
 
-<tr>
-<th>remove_all</th>
-<td>
-Remove all documents matching the query's selector
-<br>
-<code>query.remove_all</code>
-</td>
-</tr>
+<tr><th>remove_all</th>
+<td>Remove all documents matching the query's selector.<br>
+<code>query.remove_all</code></td></tr>
 
 </tbody></table>
 
