@@ -82,8 +82,7 @@ module Moped
         "$query" => selector,
         "$orderby" => operation.selector.fetch("$orderby", {}),
         "$explain" => true
-      }
-      session.simple_query(operation)
+      } and first
     end
 
     # Set the fields to return from the query.
@@ -99,10 +98,10 @@ module Moped
     end
 
     # @return [Hash] the first document that matches the selector.
-    def one()
+    def first
       session.simple_query(operation)
     end
-    alias first one
+    alias one first
 
     # Iterate through documents matching the query's selector.
     #
