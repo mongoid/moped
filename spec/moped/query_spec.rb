@@ -53,10 +53,6 @@ describe Moped::Query do
     end
   end
 
-  describe "#map_reduce" do
-
-  end
-
   describe "#skip" do
 
     it "sets the query operation's skip field" do
@@ -108,6 +104,41 @@ describe Moped::Query do
 
     it "returns the query" do
       query.sort(a: 1).should eql query
+    end
+  end
+
+  describe "#explain" do
+
+    before do
+      session.should_receive(:simple_query).with(query.operation)
+    end
+
+    context "when a sort exists" do
+
+      before do
+        query.sort(_id: 1)
+      end
+
+      it "updates to a mongo advanced selector" do
+        query.explain
+        query.operation.selector.should eq(
+          "$query" => selector,
+          "$explain" => true,
+          "$orderby" => { _id: 1 }
+        )
+      end
+    end
+
+    context "when no sort exists" do
+
+      it "updates to a mongo advanced selector" do
+        query.explain
+        query.operation.selector.should eq(
+          "$query" => selector,
+          "$explain" => true,
+          "$orderby" => {}
+        )
+      end
     end
   end
 

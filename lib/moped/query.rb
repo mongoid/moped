@@ -67,8 +67,23 @@ module Moped
     # @param [Hash] sort
     # @return [Query] self
     def sort(sort)
-      operation.selector = {"$query" => selector, "$orderby" => sort}
+      operation.selector = { "$query" => selector, "$orderby" => sort }
       self
+    end
+
+    # Explain the current query.
+    #
+    # @example Explain the query.
+    #   db[:people].find.explain
+    #
+    # @return [ Hash ] The explain document.
+    def explain
+      operation.selector = {
+        "$query" => selector,
+        "$orderby" => operation.selector.fetch("$orderby", {}),
+        "$explain" => true
+      }
+      session.simple_query(operation)
     end
 
     # Set the fields to return from the query.

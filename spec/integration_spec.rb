@@ -33,6 +33,17 @@ describe Moped::Session do
       session[:people].find(_id: id).one.should eq doc
     end
 
+    it "can explain a query" do
+      id = Moped::BSON::ObjectId.new
+      session[:people].find(_id: id).explain["cursor"].should eq("BasicCursor")
+    end
+
+    it "can explain a query with a sort" do
+      id = Moped::BSON::ObjectId.new
+      query = session[:people].find(_id: id)
+      query.sort(_id: 1).explain["cursor"].should eq("BasicCursor")
+    end
+
     it "drops a collection" do
       session.command(count: :people)["n"].should eq 0
       session[:people].insert(name: "John")
