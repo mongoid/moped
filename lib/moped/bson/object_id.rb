@@ -5,14 +5,6 @@ module Moped
   module BSON
     class ObjectId
 
-      # Generate and cache 3 bytes of identifying information from the current
-      # machine.
-      @@machine_id = Digest::MD5.digest(Socket.gethostname).unpack("C3")
-
-      # Counter for object ids generated in the same second in the same process
-      # on the same thread.
-      @@counter = 0
-
       # Formatting string for outputting an ObjectId.
       @@string_format = ("%02x" * 12).freeze
 
@@ -31,7 +23,13 @@ module Moped
       end
 
       def initialize(data = nil, time = nil)
-        @data = data || generate(time)
+        if data
+          @data = data
+        elsif time
+          @data = @@generator.generate(time.to_i)
+        else
+          @data = @@generator.next
+        end
       end
 
       def ==(other)
@@ -68,29 +66,58 @@ module Moped
         io << data.pack('C12')
       end
 
-      private
+      # @api private
+      class Generator
+        def initialize
+          # Generate and cache 3 bytes of identifying information from the current
+          # machine.
+          @machine_id = Digest::MD5.digest(Socket.gethostname).unpack("C3")
 
-      def generate(time=nil)
-        time = (time || Time.new).to_i
-        pid = (Thread.current.object_id + Process.pid) % 0xFFFF
-        inc = @@counter = (@@counter + 1) % 0xFFFFFF
+          @mutex = Mutex.new
+          @last_timestamp = nil
+          @counter = 0
+        end
 
-        [
-          time >> 24 & 0xFF, # 4 bytes time (network order)
-          time >> 16 & 0xFF,
-          time >> 8  & 0xFF,
-          time       & 0xFF,
-          @@machine_id[0],   # 3 bytes machine
-          @@machine_id[1],
-          @@machine_id[2],
-          pid  >> 8  & 0xFF, # 2 bytes thread and process id
-          pid        & 0xFF,
-          inc  >> 16 & 0xFF, # 3 bytes increment
-          inc  >> 8  & 0xFF,
-          inc        & 0xFF,
-        ]
+        # Return object id data based on the current time, incrementing a
+        # counter for object ids generated in the same second.
+        def next
+          now = Time.new.to_i
+
+          counter = @mutex.synchronize do
+            last_timestamp, @last_timestamp = @last_timestamp, now
+
+            if last_timestamp == now
+              @counter += 1
+            else
+              @counter = 0
+            end
+          end
+
+          generate(now, counter)
+        end
+
+        # Generate object id data for a given time using the provided +inc+.
+        def generate(time, inc = 0)
+          pid = Process.pid % 0xFFFF
+
+          [
+            time >> 24 & 0xFF, # 4 bytes time (network order)
+            time >> 16 & 0xFF,
+            time >> 8  & 0xFF,
+            time       & 0xFF,
+            @machine_id[0],   # 3 bytes machine
+            @machine_id[1],
+            @machine_id[2],
+            pid  >> 8  & 0xFF, # 2 bytes process id
+            pid        & 0xFF,
+            inc  >> 16 & 0xFF, # 3 bytes increment
+            inc  >> 8  & 0xFF,
+            inc        & 0xFF,
+          ]
+        end
       end
 
+      @@generator = Generator.new
     end
   end
 end

@@ -60,11 +60,6 @@ describe Moped::BSON::ObjectId do
         time = Time.at((Time.now.utc - 64800).to_i).utc
         Moped::BSON::ObjectId.new(nil, time).generation_time.should == time
       end
-
-      it "generates unique ids" do
-        time = Time.at((Time.now.utc - 64800).to_i).utc
-        Moped::BSON::ObjectId.new(nil, time).should_not eq Moped::BSON::ObjectId.new(nil, time)
-      end
     end
 
   end
