@@ -25,6 +25,26 @@ describe Moped::BSON::ObjectId do
     end
   end
 
+  describe "()" do
+
+    context "when the string is valid" do
+
+      it "initializes with the strings bytes" do
+        Moped::BSON::ObjectId.should_receive(:new).with(bytes)
+        Moped::BSON::ObjectId("4e4d66343b39b68407000001")
+      end
+    end
+
+    context "when the string is not valid" do
+
+      it "raises an error" do
+        expect {
+          Moped::BSON::ObjectId("asadsf")
+        }.to raise_error(Moped::Errors::InvalidObjectId)
+      end
+    end
+  end
+
   describe ".legal?" do
 
     context "when the string is too short to be an object id" do
@@ -127,6 +147,14 @@ describe Moped::BSON::ObjectId do
 
     it "returns a hex string representation of the id" do
       Moped::BSON::ObjectId.new(bytes).to_s.should eq "4e4d66343b39b68407000001"
+    end
+
+  end
+
+  describe '#inspect' do
+
+    it "returns an inspection of the id" do
+      Moped::BSON::ObjectId.new(bytes).inspect.should eq "Moped::BSON::ObjectId('4e4d66343b39b68407000001')"
     end
 
   end
