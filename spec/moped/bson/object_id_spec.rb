@@ -7,11 +7,22 @@ describe Moped::BSON::ObjectId do
 
   describe ".from_string" do
 
-    it "initializes with the strings bytes" do
-      Moped::BSON::ObjectId.should_receive(:new).with(bytes)
-      Moped::BSON::ObjectId.from_string "4e4d66343b39b68407000001"
+    context "when the string is valid" do
+
+      it "initializes with the strings bytes" do
+        Moped::BSON::ObjectId.should_receive(:new).with(bytes)
+        Moped::BSON::ObjectId.from_string "4e4d66343b39b68407000001"
+      end
     end
 
+    context "when the string is not valid" do
+
+      it "raises an error" do
+        expect {
+          Moped::BSON::ObjectId.from_string("asadsf")
+        }.to raise_error(Moped::Errors::InvalidObjectId)
+      end
+    end
   end
 
   describe ".legal?" do

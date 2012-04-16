@@ -10,6 +10,13 @@ module Moped
     # Generic error class for exceptions related to connection failures.
     class ConnectionFailure < StandardError; end
 
+    # Raised when providing an invalid string from an object id.
+    class InvalidObjectId < StandardError
+      def initialize(string)
+        super("'#{string}' is not a valid object id.")
+      end
+    end
+
     # Generic error class for exceptions generated on the remote MongoDB
     # server.
     class MongoError < StandardError; end
