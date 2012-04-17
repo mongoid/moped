@@ -56,12 +56,10 @@ module Moped
     #   @param [Array<Hash>] documents the documents to insert
     def insert(documents)
       documents = [documents] unless documents.is_a? Array
-      insert = Protocol::Insert.new(database.name, name, documents)
 
       database.session.with(consistency: :strong) do |session|
-        session.execute insert
+        session.context.insert(database.name, name, documents)
       end
-
     end
   end
 end

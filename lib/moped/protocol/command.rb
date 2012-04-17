@@ -11,8 +11,9 @@ module Moped
 
       # @param [String, Symbol] database the database to run this command on
       # @param [Hash] command the command to run
-      def initialize(database, command)
-        super database, :$cmd, command, limit: -1
+      # @param [Hash] additional query options
+      def initialize(database, command, options = {})
+        super database, :$cmd, command, options.merge(limit: -1)
       end
 
       def log_inspect

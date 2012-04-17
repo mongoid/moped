@@ -99,7 +99,7 @@ module Moped
 
     # @return [Hash] the first document that matches the selector.
     def first
-      session.simple_query(operation)
+      limit(-1).each.first
     end
     alias one first
 
@@ -107,7 +107,7 @@ module Moped
     #
     # @yieldparam [Hash] document each matching document
     def each
-      cursor = Cursor.new(session.with(retain_socket: true), operation)
+      cursor = Cursor.new(session, operation)
       cursor.to_enum.tap do |enum|
         enum.each do |document|
           yield document
@@ -129,6 +129,7 @@ module Moped
         key: key.to_s,
         query: selector
       )
+
       result["values"]
     end
 
@@ -151,16 +152,12 @@ module Moped
     # @param [Array] flags an array of operation flags. Valid values are:
     #   +:multi+ and +:upsert+
     def update(change, flags = nil)
-      update = Protocol::Update.new(
-        operation.database,
-        operation.collection,
-        operation.selector,
-        change,
-        flags: flags
-      )
-
       session.with(consistency: :strong) do |session|
-        session.execute update
+        session.context.update operation.database,
+          operation.collection,
+          operation.selector,
+          change,
+          flags: flags
       end
     end
 
@@ -193,15 +190,11 @@ module Moped
     # @example
     #   db[:people].find(name: "John").remove
     def remove
-      delete = Protocol::Delete.new(
-        operation.database,
-        operation.collection,
-        operation.selector,
-        flags: [:remove_first]
-      )
-
       session.with(consistency: :strong) do |session|
-        session.execute delete
+        session.context.remove operation.database,
+          operation.collection,
+          operation.selector,
+          flags: [:remove_first]
       end
     end
 
@@ -210,14 +203,10 @@ module Moped
     # @example
     #   db[:people].find(name: "John").remove_all
     def remove_all
-      delete = Protocol::Delete.new(
-        operation.database,
-        operation.collection,
-        operation.selector
-      )
-
       session.with(consistency: :strong) do |session|
-        session.execute delete
+        session.context.remove operation.database,
+          operation.collection,
+          operation.selector
       end
     end
 

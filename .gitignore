@@ -2,5 +2,6 @@ Gemfile.lock
 doc
 .yardoc
 .rvmrc
+.env
 perf/results
 tmp/

@@ -2,15 +2,15 @@ require "spec_helper"
 
 describe Moped::BSON::ObjectId do
   let(:bytes) do
-    [78, 77, 102, 52, 59, 57, 182, 132, 7, 0, 0, 1]
+    [78, 77, 102, 52, 59, 57, 182, 132, 7, 0, 0, 1].pack("C12")
   end
 
   describe ".from_string" do
 
     context "when the string is valid" do
 
-      it "initializes with the strings bytes" do
-        Moped::BSON::ObjectId.should_receive(:new).with(bytes)
+      it "initializes with the string's bytes" do
+        Moped::BSON::ObjectId.should_receive(:from_data).with(bytes)
         Moped::BSON::ObjectId.from_string "4e4d66343b39b68407000001"
       end
     end
@@ -47,14 +47,14 @@ describe Moped::BSON::ObjectId do
 
   end
 
-  describe "#initialize" do
-
-    context "with data" do
-      it "sets the object id's data" do
-        Moped::BSON::ObjectId.new(bytes).data.should == bytes
-      end
+  describe "#from_time" do
+    it "sets the generation time" do
+      time = Time.at((Time.now.utc - 64800).to_i).utc
+      Moped::BSON::ObjectId.from_time(time).generation_time.should == time
     end
+  end
 
+  describe "#initialize" do
     context "with no data" do
       it "increments the id on each call" do
         Moped::BSON::ObjectId.new.should_not eq Moped::BSON::ObjectId.new
@@ -65,21 +65,13 @@ describe Moped::BSON::ObjectId do
         ids[0].value.should_not eq ids[1].value
       end
     end
-
-    context "with a time" do
-      it "sets the generation time" do
-        time = Time.at((Time.now.utc - 64800).to_i).utc
-        Moped::BSON::ObjectId.new(nil, time).generation_time.should == time
-      end
-    end
-
   end
 
   describe "#==" do
 
     context "when data is identical" do
       it "returns true" do
-        Moped::BSON::ObjectId.new(bytes).should == Moped::BSON::ObjectId.new(bytes)
+        Moped::BSON::ObjectId.from_data(bytes).should == Moped::BSON::ObjectId.from_data(bytes)
       end
     end
 
@@ -95,7 +87,7 @@ describe Moped::BSON::ObjectId do
 
     context "when data is identical" do
       it "returns true" do
-        Moped::BSON::ObjectId.new(bytes).should eql Moped::BSON::ObjectId.new(bytes)
+        Moped::BSON::ObjectId.from_data(bytes).should eql Moped::BSON::ObjectId.from_data(bytes)
       end
     end
 
@@ -111,7 +103,7 @@ describe Moped::BSON::ObjectId do
 
     context "when data is identical" do
       it "returns the same hash" do
-        Moped::BSON::ObjectId.new(bytes).hash.should eq Moped::BSON::ObjectId.new(bytes).hash
+        Moped::BSON::ObjectId.from_data(bytes).hash.should eq Moped::BSON::ObjectId.from_data(bytes).hash
       end
     end
 
@@ -126,7 +118,7 @@ describe Moped::BSON::ObjectId do
   describe "#to_s" do
 
     it "returns a hex string representation of the id" do
-      Moped::BSON::ObjectId.new(bytes).to_s.should eq "4e4d66343b39b68407000001"
+      Moped::BSON::ObjectId.from_data(bytes).to_s.should eq "4e4d66343b39b68407000001"
     end
 
   end

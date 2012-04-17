@@ -37,6 +37,10 @@ module Moped
     # @return [Cluster] this session's cluster
     attr_reader :cluster
 
+    # @private
+    # @return [Context] this session's context
+    attr_reader :context
+
     # @param [Array] seeds an of host:port pairs
     # @param [Hash] options
     # @option options [Boolean] :safe (false) ensure writes are persisted
@@ -45,7 +49,8 @@ module Moped
     # @option options [Symbol, String] :database the database to use
     # @option options [:strong, :eventual] :consistency (:eventual)
     def initialize(seeds, options = {})
-      @cluster = Cluster.new(seeds)
+      @cluster = Cluster.new(seeds, {})
+      @context = Context.new(self)
       @options = options
       @options[:consistency] ||= :eventual
     end
@@ -55,11 +60,16 @@ module Moped
       !!safety
     end
 
+    # @return [:strong, :eventual] the session's consistency
+    def consistency
+      options[:consistency]
+    end
+
     # Switch the session's current database.
     #
     # @example
     #   session.use :moped
-    #   session[:people].     john, mary = session[:people].find.one # => { :name => "John" }
+    #   session[:people].find.one # => { :name => "John" }
     #
     # @param [String] database the database to use
     def use(database)
@@ -111,7 +121,7 @@ module Moped
     # @return [Moped::Session] the new session
     def new(options = {})
       session = with(options)
-      session.cluster.reconnect
+      session.instance_variable_set(:@cluster, cluster.dup)
 
       if block_given?
         yield session
@@ -155,64 +165,6 @@ module Moped
     # @raise (see Moped::Database#login)
     delegate :logout => :current_database
 
-    # @private
-    def current_database
-      return @current_database if defined? @current_database
-
-      if database = options[:database]
-        set_current_database(database)
-      else
-        raise "No database set for session. Call #use or #with before accessing the database"
-      end
-    end
-
-    # @private
-    def simple_query(query)
-      query.limit = -1
-
-      query(query).documents.first
-    end
-
-    # @private
-    def query(query)
-      if options[:consistency] == :eventual
-        query.flags |= [:slave_ok] if query.respond_to? :flags
-        mode = :read
-      else
-        mode = :write
-      end
-
-      reply = socket_for(mode).execute(query)
-
-      reply.tap do |reply|
-        if reply.flags.include?(:query_failure)
-          raise Errors::QueryFailure.new(query, reply.documents.first)
-        end
-      end
-    end
-
-    # @private
-    def execute(op)
-      mode = options[:consistency] == :eventual ? :read : :write
-      socket = socket_for(mode)
-
-      if safe?
-        last_error = Protocol::Command.new(
-          "admin", { getlasterror: 1 }.merge(safety)
-        )
-
-        socket.execute(op, last_error).documents.first.tap do |result|
-          raise Errors::OperationFailure.new(
-            op, result
-          ) if result["err"] || result["errmsg"]
-        end
-      else
-        socket.execute(op)
-      end
-    end
-
-    private
-
     # @return [Boolean, Hash] the safety level for this session
     def safety
       safe = options[:safe]
@@ -227,11 +179,15 @@ module Moped
       end
     end
 
-    def socket_for(mode)
-      if options[:retain_socket]
-        @socket ||= cluster.socket_for(mode)
+    private
+
+    def current_database
+      return @current_database if defined? @current_database
+
+      if database = options[:database]
+        set_current_database(database)
       else
-        cluster.socket_for(mode)
+        raise "No database set for session. Call #use or #with before accessing the database"
       end
     end
 
@@ -239,15 +195,13 @@ module Moped
       @current_database = Database.new(self, database)
     end
 
-    def dup
-      session = super
-      session.instance_variable_set :@options, options.dup
+    def initialize_copy(_)
+      @context = Context.new(self)
+      @options = @options.dup
 
       if defined? @current_database
-        session.send(:remove_instance_variable, :@current_database)
+        remove_instance_variable :@current_database
       end
-
-      session
     end
   end
 end

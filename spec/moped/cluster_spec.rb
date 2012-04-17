@@ -1,358 +1,319 @@
 require "spec_helper"
 
-describe Moped::Cluster do
-
-  let(:master) do
-    TCPServer.new "127.0.0.1", 0
+describe Moped::Cluster, replica_set: true do
+  let(:replica_set) do
+    Moped::Cluster.new(seeds, {})
   end
 
-  let(:secondary_1) do
-    TCPServer.new "127.0.0.1", 0
-  end
-
-  let(:secondary_2) do
-    TCPServer.new "127.0.0.1", 0
-  end
-
-  describe "initialize" do
-    let(:cluster) do
-      Moped::Cluster.new(["127.0.0.1:27017","127.0.0.1:27018"], true)
-    end
-
-    it "stores the list of seeds" do
-      cluster.seeds.should eq ["127.0.0.1:27017", "127.0.0.1:27018"]
-    end
-
-    it "stores whether the connection is direct" do
-      cluster.direct.should be_true
-    end
-
-    it "has an empty list of primaries" do
-      cluster.primaries.should be_empty
-    end
-
-    it "has an empty list of secondaries" do
-      cluster.secondaries.should be_empty
-    end
-
-    it "has an empty list of servers" do
-      cluster.servers.should be_empty
-    end
-
-    it "has an empty list of dynamic seeds" do
-      cluster.dynamic_seeds.should be_empty
-    end
-  end
-
-  describe "#sync" do
-    let(:cluster) { Moped::Cluster.new(["127.0.0.1:27017"]) }
-
-    it "syncs each seed node" do
-      server = Moped::Server.allocate
-      Moped::Server.should_receive(:new).with("127.0.0.1:27017").and_return(server)
-
-      cluster.should_receive(:sync_server).with(server).and_return([])
-      cluster.sync
-    end
-  end
-
-  describe "#sync_server" do
-    let(:cluster) { Moped::Cluster.new [""], false }
-    let(:server) { Moped::Server.new("localhost:27017") }
-    let(:socket) { Moped::Socket.new "", 99999 }
-    let(:connection) { Support::MockConnection.new }
-
-    before do
-      socket.stub(connection: connection, alive?: true)
-      server.stub(socket: socket)
-    end
-
-    context "when node is not running" do
-      it "returns nothing" do
-        socket.stub(connect: false)
-
-        cluster.sync_server(server).should be_empty
+  context "when the replica set hasn't connected yet" do
+    describe "#with_primary" do
+      it "connects and yields the primary node" do
+        replica_set.with_primary do |node|
+          node.address.should eq @primary.address
+        end
       end
     end
 
-    context "when talking to a single node" do
+    describe "#with_secondary" do
+      it "connects and yields a secondary node" do
+        replica_set.with_secondary do |node|
+          @secondaries.map(&:address).should include node.address
+        end
+      end
+    end
+
+    context "and the primary is down" do
       before do
-        connection.pending_replies << Hash[
-          "ismaster" => true,
-          "maxBsonObjectSize" => 16777216,
-          "ok" => 1.0
-        ]
+        @primary.stop
       end
 
-      it "adds the node to the master set" do
-        cluster.sync_server server
-        cluster.primaries.should include server
-      end
-    end
-
-    context "when talking to a replica set node" do
-
-      context "that is not configured" do
-        before do
-          connection.pending_replies << Hash[
-            "ismaster" => false,
-            "secondary" => false,
-            "info" => "can't get local.system.replset config from self or any seed (EMPTYCONFIG)",
-            "isreplicaset" => true,
-            "maxBsonObjectSize" => 16777216,
-            "ok" => 1.0
-          ]
-        end
-
-        it "returns nothing" do
-          cluster.sync_server(server).should be_empty
-        end
-      end
-
-      context "that is being initiated" do
-        before do
-          connection.pending_replies << Hash[
-            "ismaster" => false,
-            "secondary" => false,
-            "info" => "Received replSetInitiate - should come online shortly.",
-            "isreplicaset" => true,
-            "maxBsonObjectSize" => 16777216,
-            "ok" => 1.0
-          ]
-        end
-
-        it "raises a connection failure exception" do
-          cluster.sync_server(server).should be_empty
-        end
-      end
-
-      context "that is ready but not elected" do
-        before do
-          connection.pending_replies << Hash[
-            "setName" => "3fef4842b608",
-            "ismaster" => false,
-            "secondary" => false,
-            "hosts" => ["localhost:61085", "localhost:61086", "localhost:61084"],
-            "primary" => "localhost:61084",
-            "me" => "localhost:61085",
-            "maxBsonObjectSize" => 16777216,
-            "ok" => 1.0
-          ]
-        end
-
-        it "raises no exception" do
+      describe "#with_primary" do
+        it "raises a connection error" do
           lambda do
-            cluster.sync_server server
-          end.should_not raise_exception
-        end
-
-        it "adds the server to the list" do
-          cluster.sync_server server
-          cluster.servers.should include server
-        end
-
-        it "returns all other known hosts" do
-          cluster.sync_server(server).should =~ ["localhost:61085", "localhost:61086", "localhost:61084"]
+            replica_set.with_primary do |node|
+              node.command "admin", ping: 1
+            end
+          end.should raise_exception(Moped::Errors::ConnectionFailure)
         end
       end
 
-      context "that is ready" do
-        before do
-          connection.pending_replies << Hash[
-            "setName" => "3ff029114780",
-            "ismaster" => true,
-            "secondary" => false,
-            "hosts" => ["localhost:59246", "localhost:59248", "localhost:59247"],
-            "primary" => "localhost:59246",
-            "me" => "localhost:59246",
-            "maxBsonObjectSize" => 16777216,
-            "ok" => 1.0
-          ]
+      describe "#with_secondary" do
+        it "connects and yields a secondary node" do
+          replica_set.with_secondary do |node|
+            @secondaries.map(&:address).should include node.address
+          end
         end
-
-        it "adds the node to the master set" do
-          cluster.sync_server server
-          cluster.primaries.should include server
-        end
-
-        it "returns all other known hosts" do
-          cluster.sync_server(server).should =~ ["localhost:59246", "localhost:59248", "localhost:59247"]
-        end
-      end
-
-    end
-  end
-
-  describe "#socket_for" do
-    let(:cluster) do
-      Moped::Cluster.new ""
-    end
-
-    let(:server) do
-      Moped::Server.new("localhost:27017").tap do |server|
-        server.stub(socket: socket)
       end
     end
 
-    let(:socket) do
-      Moped::Socket.new("127.0.0.1", 27017).tap do |socket|
-        socket.connect
-      end
-    end
-
-    context "when socket is dead" do
-      let(:dead_server) do
-        Moped::Server.allocate.tap do |server|
-          server.stub(socket: dead_socket)
-        end
-      end
-
-      let(:dead_socket) do
-        Moped::Socket.new("127.0.0.1", 27017).tap do |socket|
-          socket.stub(:alive? => false)
-        end
-      end
-
+    context "and a single secondary is down" do
       before do
-        primaries = [server, dead_server]
-        primaries.stub(:sample).and_return(dead_server, server)
-        cluster.stub(primaries: primaries)
+        @secondaries.first.stop
       end
 
-      it "removes the socket" do
-        cluster.should_receive(:remove).with(dead_server)
-        cluster.socket_for :write
+      describe "#with_primary" do
+        it "connects and yields the primary node" do
+          replica_set.with_primary do |node|
+            node.address.should eq @primary.address
+          end
+        end
       end
 
-      it "returns the living socket" do
-        cluster.socket_for(:write).should eq socket
+      describe "#with_secondary" do
+        it "connects and yields a secondary node" do
+          replica_set.with_secondary do |node|
+            node.address.should eq @secondaries.last.address
+          end
+        end
       end
     end
 
-    context "when mode is write" do
+    context "and all secondaries are down" do
       before do
-        server.primary = true
+        @secondaries.each &:stop
       end
 
-      context "and the cluster is not synced" do
-        it "syncs the cluster" do
-          cluster.should_receive(:sync) do
-            cluster.servers << server
+      describe "#with_primary" do
+        it "connects and yields the primary node" do
+          replica_set.with_primary do |node|
+            node.address.should eq @primary.address
           end
-          cluster.socket_for :write
-        end
-
-        it "returns the socket" do
-          cluster.stub(:sync) { cluster.servers << server }
-          cluster.socket_for(:write).should eq socket
-        end
-
-        it "applies the cached authentication" do
-          cluster.stub(:sync) { cluster.servers << server }
-          socket.should_receive(:apply_auth).with(cluster.auth)
-          cluster.socket_for(:write)
         end
       end
 
-      context "and the cluster is synced" do
-        before do
-          cluster.servers << server
-        end
-
-        it "does not re-sync the cluster" do
-          cluster.should_receive(:sync).never
-          cluster.socket_for :write
-        end
-
-        it "returns the socket" do
-          cluster.socket_for(:write).should eq socket
-        end
-
-        it "applies the cached authentication" do
-          socket.should_receive(:apply_auth).with(cluster.auth)
-          cluster.socket_for(:write)
-        end
-      end
-    end
-
-    context "when mode is read" do
-      context "and the cluster is not synced" do
-        before do
-          server.primary = true
-        end
-
-        it "syncs the cluster" do
-          cluster.should_receive(:sync) do
-            cluster.servers << server
-          end
-          cluster.socket_for :read
-        end
-
-        it "applies the cached authentication" do
-          cluster.stub(:sync) { cluster.servers << server }
-          socket.should_receive(:apply_auth).with(cluster.auth)
-          cluster.socket_for(:read)
-        end
-      end
-
-      context "and the cluster is synced" do
-        context "and no secondaries are found" do
-          before do
-            server.primary = true
-            cluster.servers << server
-          end
-
-          it "returns the master connection" do
-            cluster.socket_for(:read).should eq socket
-          end
-
-          it "applies the cached authentication" do
-            socket.should_receive(:apply_auth).with(cluster.auth)
-            cluster.socket_for(:read)
-          end
-        end
-
-        context "and a slave is found" do
-          it "returns a random slave connection" do
-            secondaries = [server]
-            cluster.stub(secondaries: secondaries)
-            secondaries.should_receive(:sample).and_return(server)
-            cluster.socket_for(:read).should eq socket
-          end
-
-          it "applies the cached authentication" do
-            cluster.stub(secondaries: [server])
-            socket.should_receive(:apply_auth).with(cluster.auth)
-            cluster.socket_for(:read)
+      describe "#with_secondary" do
+        it "connects and yields the primary node" do
+          replica_set.with_secondary do |node|
+            node.address.should eq @primary.address
           end
         end
       end
     end
   end
 
-  describe "#login" do
-    let(:cluster) do
-      Moped::Cluster.allocate
-    end
-
-    it "adds the credentials to the auth cache" do
-      cluster.login("admin", "username", "password")
-      cluster.auth.should eq("admin" => ["username", "password"])
-    end
-  end
-
-  describe "#logout" do
-    let(:cluster) do
-      Moped::Cluster.allocate
-    end
-
+  context "when the replica set is connected" do
     before do
-      cluster.login("admin", "username", "password")
+      replica_set.refresh
     end
 
-    it "removes the stored credentials" do
-      cluster.logout :admin
-      cluster.auth.should be_empty
+    describe "#with_primary" do
+      it "connects and yields the primary node" do
+        replica_set.with_primary do |node|
+          node.address.should eq @primary.address
+        end
+      end
+    end
+
+    describe "#with_secondary" do
+      it "connects and yields a secondary node" do
+        replica_set.with_secondary do |node|
+          @secondaries.map(&:address).should include node.address
+        end
+      end
+    end
+
+    context "and the primary is down" do
+      before do
+        @primary.stop
+      end
+
+      describe "#with_primary" do
+        it "raises a connection error" do
+          lambda do
+            replica_set.with_primary do |node|
+              node.command "admin", ping: 1
+            end
+          end.should raise_exception(Moped::Errors::ConnectionFailure)
+        end
+      end
+
+      describe "#with_secondary" do
+        it "connects and yields a secondary node" do
+          replica_set.with_secondary do |node|
+            @secondaries.map(&:address).should include node.address
+          end
+        end
+      end
+    end
+
+    context "and a single secondary is down" do
+      before do
+        @secondaries.first.stop
+      end
+
+      describe "#with_primary" do
+        it "connects and yields the primary node" do
+          replica_set.with_primary do |node|
+            node.address.should eq @primary.address
+          end
+        end
+      end
+
+      describe "#with_secondary" do
+        it "connects and yields a secondary node" do
+          replica_set.with_secondary do |node|
+            node.command "admin", ping: 1
+            node.address.should eq @secondaries.last.address
+          end
+        end
+      end
+    end
+
+    context "and all secondaries are down" do
+      before do
+        @secondaries.each &:stop
+      end
+
+      describe "#with_primary" do
+        it "connects and yields the primary node" do
+          replica_set.with_primary do |node|
+            node.address.should eq @primary.address
+          end
+        end
+      end
+
+      describe "#with_secondary" do
+        it "connects and yields the primary node" do
+          replica_set.with_secondary do |node|
+            node.command "admin", ping: 1
+            node.address.should eq @primary.address
+          end
+        end
+      end
+    end
+  end
+
+  context "with down interval" do
+    let(:replica_set) do
+      Moped::Cluster.new(seeds, { down_interval: 5 })
+    end
+
+    context "and all secondaries are down" do
+      before do
+        replica_set.refresh
+        @secondaries.each &:stop
+        replica_set.refresh
+      end
+
+      describe "#with_secondary" do
+        it "connects and yields the primary node" do
+          replica_set.with_secondary do |node|
+            node.command "admin", ping: 1
+            node.address.should eq @primary.address
+          end
+        end
+      end
+
+      context "when a secondary node comes back up" do
+        before do
+          @secondaries.each &:restart
+        end
+
+        describe "#with_secondary" do
+          it "connects and yields the primary node" do
+            replica_set.with_secondary do |node|
+              node.command "admin", ping: 1
+              node.address.should eq @primary.address
+            end
+          end
+        end
+
+        context "and the node is ready to be retried" do
+          it "connects and yields the secondary node" do
+            Time.stub(:new).and_return(Time.now + 10)
+            replica_set.with_secondary do |node|
+              node.command "admin", ping: 1
+              @secondaries.map(&:address).should include node.address
+            end
+          end
+        end
+      end
+    end
+  end
+
+  context "with only primary provided as a seed" do
+    let(:replica_set) do
+      Moped::Cluster.new([@primary.address], {})
+    end
+
+    describe "#with_primary" do
+      it "connects and yields the primary node" do
+        replica_set.with_primary do |node|
+          node.address.should eq @primary.address
+        end
+      end
+    end
+
+    describe "#with_secondary" do
+      it "connects and yields a secondary node" do
+        replica_set.with_secondary do |node|
+          @secondaries.map(&:address).should include node.address
+        end
+      end
+    end
+  end
+
+  context "with only primary provided as a seed" do
+    let(:replica_set) do
+      Moped::Cluster.new([@secondaries[0].address], {})
+    end
+
+    describe "#with_primary" do
+      it "connects and yields the primary node" do
+        replica_set.with_primary do |node|
+          node.address.should eq @primary.address
+        end
+      end
+    end
+
+    describe "#with_secondary" do
+      it "connects and yields a secondary node" do
+        replica_set.with_secondary do |node|
+          @secondaries.map(&:address).should include node.address
+        end
+      end
+    end
+  end
+end
+
+describe Moped::Cluster, "authentication", mongohq: :auth do
+  let(:session) do
+    Support::MongoHQ.auth_session(false)
+  end
+
+  describe "logging in with valid credentials" do
+    it "logs in and processes commands" do
+      session.login *Support::MongoHQ.auth_credentials
+      session.command(ping: 1).should eq("ok" => 1)
+    end
+  end
+
+  describe "logging in with invalid credentials" do
+    it "raises an AuthenticationFailure exception" do
+      session.login "invalid-user", "invalid-password"
+
+      lambda do
+        session.command(ping: 1)
+      end.should raise_exception(Moped::Errors::AuthenticationFailure)
+    end
+  end
+
+  describe "logging in with valid credentials and then logging out" do
+    before do
+      session.login *Support::MongoHQ.auth_credentials
+      session.command(ping: 1).should eq("ok" => 1)
+    end
+
+    it "logs out" do
+      lambda do
+        session.command dbStats: 1
+      end.should_not raise_exception
+
+      session.logout
+
+      lambda do
+        session.command dbStats: 1
+      end.should raise_exception(Moped::Errors::OperationFailure)
     end
   end
 end
