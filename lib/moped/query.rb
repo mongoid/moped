@@ -99,7 +99,16 @@ module Moped
 
     # @return [Hash] the first document that matches the selector.
     def first
-      limit(-1).each.first
+      reply = session.context.query(
+        operation.database,
+        operation.collection,
+        operation.selector,
+        fields: operation.fields,
+        flags: operation.flags,
+        skip: operation.skip,
+        limit: -1
+      )
+      reply.documents.first
     end
     alias one first
 
