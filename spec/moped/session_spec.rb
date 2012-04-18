@@ -44,6 +44,20 @@ describe Moped::Session do
     end
   end
 
+  describe "#new" do
+    it "returns a thread-safe session" do
+      session.command ping: 1
+
+      5.times.map do
+        Thread.new do
+          session.new do |new_session|
+            new_session.command ping: 1
+          end
+        end
+      end.each(&:join)
+    end
+  end
+
   describe "#drop" do
     it "drops the current database" do
       session.with(database: "moped_test_2") do |session|
