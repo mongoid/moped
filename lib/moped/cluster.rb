@@ -33,26 +33,28 @@ module Moped
 
       # Set up a recursive lambda function for refreshing a node and it's peers.
       refresh_node = ->(node) do
-        return if seen[node]
-        seen[node] = true
+        unless seen[node]
+          seen[node] = true
 
-        # Add the node to the global list of known nodes.
-        @nodes << node unless @nodes.include?(node)
+          # Add the node to the global list of known nodes.
+          @nodes << node unless @nodes.include?(node)
 
-        begin
-          node.refresh
+          begin
+            node.refresh
 
-          # This node is good, so add it to the list of nodes to return.
-          refreshed_nodes << node unless refreshed_nodes.include?(node)
+            # This node is good, so add it to the list of nodes to return.
+            refreshed_nodes << node unless refreshed_nodes.include?(node)
 
-          # Now refresh any newly discovered peer nodes.
-          (node.peers - @nodes).each &refresh_node
-        rescue Errors::ConnectionFailure
-          # We couldn't connect to the node, so don't do anything with it.
+            # Now refresh any newly discovered peer nodes.
+            (node.peers - @nodes).each &refresh_node
+          rescue Errors::ConnectionFailure
+            # We couldn't connect to the node, so don't do anything with it.
+          end
         end
       end
 
       nodes_to_refresh.each &refresh_node
+
       refreshed_nodes.to_a
     end
 

@@ -8,32 +8,40 @@ module Support
 
     module Helpers
       def self.included(context)
-        context.before :all do
-          @replica_set = ReplicaSetSimulator.new
-          @replica_set.start
-
-          @primary, @secondaries = @replica_set.initiate
-        end
-
-        context.after :all do
-          @replica_set.stop
-        end
-
-        context.after :each do
-          @replica_set.nodes.each &:restart
-        end
-
         context.let :seeds do
           @replica_set.nodes.map &:address
         end
       end
     end
 
+    def self.configure(config)
+      config.before :all, replica_set: true do |example|
+        @replica_set = ReplicaSetSimulator.new
+        @replica_set.start
+
+        @primary, @secondaries = @replica_set.initiate
+      end
+
+      config.after :each, replica_set: true do
+        @replica_set.nodes.each &:restart
+      end
+
+      config.after :all, replica_set: true do
+        @replica_set.stop
+      end
+
+      config.include Helpers, replica_set: true
+    end
+
     attr_reader :nodes
     attr_reader :manager
 
     def initialize(nodes = 3)
-      @nodes = nodes.times.map { Node.new(self) }
+      start_port = 31000
+      @nodes = nodes.times.map do |i|
+        Node.new(self, start_port + i)
+      end
+
       @manager = ConnectionManager.new(@nodes)
       @mongo = TCPSocket.new "127.0.0.1", 27017
     end
@@ -81,15 +89,13 @@ module Support
       attr_reader :port
       attr_reader :host
 
-      def initialize(set)
+      def initialize(set, port)
         @set = set
         @primary = false
         @secondary = false
 
-        server = TCPServer.new 0
         @host = Socket.gethostname
-        @port = server.addr[1]
-        server.close
+        @port = port
       end
 
       def ==(other)
@@ -143,10 +149,12 @@ module Support
       # Stop the node.
       def stop
         if @server
-          hiccup
-
+          # We need the shutdown on travis, but my iMac complains about this.
+          @server.shutdown rescue nil
           @server.close
           @server = nil
+
+          hiccup
         end
       end
       alias close stop
@@ -292,6 +300,9 @@ module Support
           port = client.addr(false)[1]
 
           if port == server.port
+            # We need the shutdown for the travis ubuntu boxes, but it causes
+            # problems with jruby.
+            client.shutdown unless RUBY_PLATFORM =~ /java/
             client.close
             true
           else

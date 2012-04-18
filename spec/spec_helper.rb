@@ -26,8 +26,7 @@ Moped.logger = Logger.new(StringIO.new, Logger::DEBUG)
 
 RSpec.configure do |config|
   Support::Stats.install!
-
-  config.include Support::ReplicaSetSimulator::Helpers, replica_set: true
+  Support::ReplicaSetSimulator.configure config
 
   config.filter_run_excluding mongohq: ->(value) do
     return true if value == :replica_set && !Support::MongoHQ.replica_set_configured?
