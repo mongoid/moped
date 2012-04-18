@@ -7,11 +7,11 @@ describe Moped::BSON::Document do
 
   shared_examples_for "a serializable bson document" do
     it "deserializes the document" do
-      Moped::BSON::Document.deserialize(io).should == doc
+      Moped::BSON::Document.deserialize(io).should eq doc
     end
 
     it "serializes the document" do
-      Moped::BSON::Document.serialize(doc).should == raw.force_encoding('binary')
+      Moped::BSON::Document.serialize(doc).should eq raw.force_encoding('binary')
     end
   end
 
@@ -168,7 +168,7 @@ describe Moped::BSON::Document do
     let(:raw) { "\v\x00\x00\x00\x06null\x00\x00" }
 
     it "is ignored in deserialization" do
-      Moped::BSON::Document.deserialize(io).should == {}
+      Moped::BSON::Document.deserialize(io).should eq({})
     end
   end
 
@@ -227,7 +227,7 @@ describe Moped::BSON::Document do
     pending do
       let(:raw) { ",\x00\x00\x00\x03ref\x00\"\x00\x00\x00\x02$ref\x00\x02\x00\x00\x00a\x00\a$id\x00NM\x00\xE2;9\xB6S\xF4\x00\x00\x01\x00\x00" }
       it "is ignored in deserialization" do
-        Moped::BSON::Document.deserialize(io).should == {}
+        Moped::BSON::Document.deserialize(io).should eq({})
       end
     end
   end

@@ -11,9 +11,9 @@ module Moped
       class << self
         def from_string(string)
           raise Errors::InvalidObjectId.new(string) unless legal?(string)
-          data = ""
+          data = []
           12.times { |i| data << string[i*2, 2].to_i(16) }
-          from_data data
+          from_data data.pack("C12")
         end
 
         def from_time(time)
