@@ -5,6 +5,32 @@ describe Moped::Cluster, replica_set: true do
     Moped::Cluster.new(seeds, {})
   end
 
+  context "when no nodes are available" do
+    before do
+      @replica_set.nodes.each &:stop
+    end
+
+    describe "#with_primary" do
+      it "raises a connection error" do
+        lambda do
+          replica_set.with_primary do |node|
+            node.command("admin", ping: 1)
+          end
+        end.should raise_exception(Moped::Errors::ConnectionFailure)
+      end
+    end
+
+    describe "#with_secondary" do
+      it "raises a connection error" do
+        lambda do
+          replica_set.with_secondary do |node|
+            node.command("admin", ping: 1)
+          end
+        end.should raise_exception(Moped::Errors::ConnectionFailure)
+      end
+    end
+  end
+
   context "when the replica set hasn't connected yet" do
     describe "#with_primary" do
       it "connects and yields the primary node" do
@@ -253,7 +279,7 @@ describe Moped::Cluster, replica_set: true do
     end
   end
 
-  context "with only primary provided as a seed" do
+  context "with only a secondary provided as a seed" do
     let(:replica_set) do
       Moped::Cluster.new([@secondaries[0].address], {})
     end
