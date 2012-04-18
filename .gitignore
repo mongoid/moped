@@ -1,5 +1,6 @@
 .env
 .rvmrc
+.vagrant
 .yardoc
 coverage
 doc
