@@ -52,6 +52,17 @@ describe Moped::Node, replica_set: true do
         end.should eq("ok" => 1)
       end
     end
+
+    context "when node closes the connection before sending a reply" do
+      it "raises an exception" do
+        replica_set_node.hiccup_on_next_message!
+        lambda do
+          node.ensure_connected do
+            node.command("admin", ping: 1)
+          end
+        end.should raise_exception(Moped::Errors::SocketError)
+      end
+    end
   end
 
 end

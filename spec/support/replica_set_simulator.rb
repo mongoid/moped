@@ -183,8 +183,16 @@ module Support
         hiccup
       end
 
+      def hiccup_on_next_message!
+        @hiccup_on_next_message = true
+      end
+
       # Proxies a single message from client to the mongo connection.
       def proxy(client, mongo)
+        if @hiccup_on_next_message
+          return hiccup
+        end
+
         incoming_message = client.read(16)
         length, op_code = incoming_message.unpack("l<x8l<")
         incoming_message << client.read(length - 16)
