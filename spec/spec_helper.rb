@@ -1,3 +1,14 @@
+if ENV["COVERAGE"]
+  require 'simplecov'
+  SimpleCov.start do
+    add_filter 'spec'
+
+    add_group "BSON", 'lib/moped/bson'
+    add_group "Protocol", 'lib/moped/protocol'
+    add_group "Driver", 'lib/moped(?!/bson|/protocol)'
+  end
+end
+
 require "java" if RUBY_PLATFORM == "java"
 require "rspec"
 
