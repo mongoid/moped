@@ -289,7 +289,13 @@ module Support
         end
 
         Moped.logger.debug "replica_set: closing dead clients"
-        closed, open = clients.partition &:eof?
+        closed, open = clients.partition do |client|
+          begin
+            client.eof?
+          rescue IOError
+            true
+          end
+        end
         closed.each { |client| @clients.delete client }
 
         if client = open.shift
