@@ -149,12 +149,12 @@ module Support
       # Stop the node.
       def stop
         if @server
+          hiccup
+
           # We need the shutdown on travis, but my iMac complains about this.
           @server.shutdown rescue nil
           @server.close
           @server = nil
-
-          hiccup
         end
       end
       alias close stop
@@ -220,6 +220,7 @@ module Support
             client.write outgoing_message
           end
         end
+      rescue
       end
 
       private
@@ -245,8 +246,13 @@ module Support
       end
 
       def shutdown
-        @servers.each &:close
-        @clients.each &:close
+        @clients.each do |client|
+          begin
+            client.shutdown unless RUBY_PLATFORM =~ /java/
+            client.close
+          rescue
+          end
+        end
         @shutdown = true
       end
 
@@ -267,7 +273,11 @@ module Support
         return unless readable || errors
 
         errors.each do |client|
-          client.close
+          begin
+            client.shutdown unless RUBY_PLATFORM =~ /java/
+            client.close
+          rescue
+          end
           @clients.delete client
         end
 
@@ -300,10 +310,13 @@ module Support
           port = client.addr(false)[1]
 
           if port == server.port
-            # We need the shutdown for the travis ubuntu boxes, but it causes
-            # problems with jruby.
-            client.shutdown unless RUBY_PLATFORM =~ /java/
-            client.close
+            begin
+              # We need the shutdown for the travis ubuntu boxes, but it causes
+              # problems with jruby.
+              client.shutdown unless RUBY_PLATFORM =~ /java/
+              client.close
+            rescue
+            end
             true
           else
             false
