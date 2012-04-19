@@ -13,7 +13,7 @@ code, as well as testing against a real replica set.
 If you want to run this portion of the suite, email durran (at) gmail (dot) com
 for the credentials.
 
-## Testing Netowrking on OS X
+## Testing Networking on OS X
 
 If you're on OS X and working with the networking code in Moped, you should
 also run the tests against a travis environment. Here's how I got set up for
