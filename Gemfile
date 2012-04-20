@@ -9,7 +9,6 @@ platforms :ruby do
   end
 end
 
-gem "rspec", "~> 2.7.0"
 gem "rake"
 
 gemspec
