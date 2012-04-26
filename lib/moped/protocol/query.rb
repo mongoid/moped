@@ -64,6 +64,7 @@ module Moped
       # @return [Hash, nil] the fields to include in the reply
       document :fields, :optional => true
 
+      undef op_code
       # @return [Number] OP_QUERY operation code (2004)
       def op_code
         2004

@@ -35,6 +35,7 @@ module Moped
       # @return [Array] the cursor ids to kill
       int64    :cursor_ids, type: :array
 
+      undef op_code
       # @return [Number] OP_KILL_CURSORS operation code (2007)
       def op_code
         2007
