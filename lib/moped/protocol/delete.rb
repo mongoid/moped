@@ -76,6 +76,7 @@ module Moped
         @flags                = options[:flags]
       end
 
+      undef op_code
       # @return [Number] OP_DELETE operation code (2006)
       def op_code
         2006

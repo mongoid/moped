@@ -152,8 +152,6 @@ module Moped
         # @param [String] name the name of this field
         # @param [Hash{Symbol => Number}] flags the flags for this flag field
         def flags(name, flag_map = {})
-          attr_writer name
-
           class_eval <<-RUBY, __FILE__, __LINE__ + 1
             def #{name}
               @#{name} ||= []
