@@ -20,7 +20,7 @@ module Support
 
     def replica_set_session(auth = true)
       session = Moped::Session.new replica_set_seeds, database: replica_set_database
-      session.login *replica_set_credentials if auth
+      session.login(*replica_set_credentials) if auth
       session
     end
 
@@ -42,7 +42,7 @@ module Support
 
     def auth_session(auth = true)
       session = Moped::Session.new auth_seeds, database: auth_database
-      session.login *auth_credentials if auth
+      session.login(*auth_credentials) if auth
       session
     end
 

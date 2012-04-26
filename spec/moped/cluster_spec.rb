@@ -309,7 +309,7 @@ describe Moped::Cluster, "authentication", mongohq: :auth do
 
   describe "logging in with valid credentials" do
     it "logs in and processes commands" do
-      session.login *Support::MongoHQ.auth_credentials
+      session.login(*Support::MongoHQ.auth_credentials)
       session.command(ping: 1).should eq("ok" => 1)
     end
   end
@@ -326,7 +326,7 @@ describe Moped::Cluster, "authentication", mongohq: :auth do
 
   describe "logging in with valid credentials and then logging out" do
     before do
-      session.login *Support::MongoHQ.auth_credentials
+      session.login(*Support::MongoHQ.auth_credentials)
       session.command(ping: 1).should eq("ok" => 1)
     end
 
