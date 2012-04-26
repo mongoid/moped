@@ -9,7 +9,7 @@ module Support
     module Helpers
       def self.included(context)
         context.let :seeds do
-          @replica_set.nodes.map &:address
+          @replica_set.nodes.map(&:address)
         end
       end
     end
@@ -23,7 +23,7 @@ module Support
       end
 
       config.after :each, replica_set: true do
-        @replica_set.nodes.each &:restart
+        @replica_set.nodes.each(&:restart)
       end
 
       config.after :all, replica_set: true do
@@ -48,7 +48,7 @@ module Support
 
     # Start the mock replica set.
     def start
-      @nodes.each &:start
+      @nodes.each(&:start)
       @worker = Thread.start do
         Thread.abort_on_exception = true
         catch(:shutdown) do
@@ -73,7 +73,7 @@ module Support
       primary, *secondaries = @nodes.shuffle
 
       primary.promote
-      secondaries.each &:demote
+      secondaries.each(&:demote)
 
       return primary, secondaries
     end
@@ -81,7 +81,7 @@ module Support
     # Shut down the mock replica set.
     def stop
       @manager.shutdown
-      @nodes.each &:stop
+      @nodes.each(&:stop)
     end
 
     class Node
@@ -260,8 +260,8 @@ module Support
         throw :shutdown if @shutdown
 
         begin
-          servers = @servers.reject &:closed?
-          clients =  @clients.reject &:closed?
+          servers = @servers.reject(&:closed?)
+          clients =  @clients.reject(&:closed?)
           Moped.logger.debug "replica_set: selecting on connections"
           readable, _, errors = Kernel.select(servers + clients, nil, clients, @timeout)
         rescue IOError, Errno::EBADF, TypeError

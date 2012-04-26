@@ -329,7 +329,7 @@ describe Moped::Query do
 
       context "and no secondaries are available" do
         before do
-          @secondaries.each &:stop
+          @secondaries.each(&:stop)
         end
 
         it "queries the primary node" do

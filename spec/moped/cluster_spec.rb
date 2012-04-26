@@ -7,7 +7,7 @@ describe Moped::Cluster, replica_set: true do
 
   context "when no nodes are available" do
     before do
-      @replica_set.nodes.each &:stop
+      @replica_set.nodes.each(&:stop)
     end
 
     describe "#with_primary" do
@@ -96,7 +96,7 @@ describe Moped::Cluster, replica_set: true do
 
     context "and all secondaries are down" do
       before do
-        @secondaries.each &:stop
+        @secondaries.each(&:stop)
       end
 
       describe "#with_primary" do
@@ -187,7 +187,7 @@ describe Moped::Cluster, replica_set: true do
 
     context "and all secondaries are down" do
       before do
-        @secondaries.each &:stop
+        @secondaries.each(&:stop)
       end
 
       describe "#with_primary" do
@@ -217,7 +217,7 @@ describe Moped::Cluster, replica_set: true do
     context "and all secondaries are down" do
       before do
         replica_set.refresh
-        @secondaries.each &:stop
+        @secondaries.each(&:stop)
         replica_set.refresh
       end
 
@@ -232,7 +232,7 @@ describe Moped::Cluster, replica_set: true do
 
       context "when a secondary node comes back up" do
         before do
-          @secondaries.each &:restart
+          @secondaries.each(&:restart)
         end
 
         describe "#with_secondary" do
