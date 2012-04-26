@@ -38,7 +38,7 @@ describe Moped::Session do
       end
 
       it "does not modify the original session" do
-        other = session.with(database: "other")
+        session.with(database: "other")
         session.options[:database].should eq "moped_test"
       end
     end
