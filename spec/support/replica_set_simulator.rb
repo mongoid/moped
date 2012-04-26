@@ -96,6 +96,7 @@ module Support
 
         @host = Socket.gethostname
         @port = port
+        @hiccup_on_next_message = nil
       end
 
       def ==(other)
@@ -243,6 +244,7 @@ module Support
         @timeout = 0.1
         @servers = servers
         @clients = []
+        @shutdown = nil
       end
 
       def shutdown
