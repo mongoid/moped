@@ -46,14 +46,14 @@ module Moped
             refreshed_nodes << node unless refreshed_nodes.include?(node)
 
             # Now refresh any newly discovered peer nodes.
-            (node.peers - @nodes).each &refresh_node
+            (node.peers - @nodes).each(&refresh_node)
           rescue Errors::ConnectionFailure
             # We couldn't connect to the node, so don't do anything with it.
           end
         end
       end
 
-      nodes_to_refresh.each &refresh_node
+      nodes_to_refresh.each(&refresh_node)
 
       refreshed_nodes.to_a
     end
@@ -75,7 +75,7 @@ module Moped
       available.concat refresh(needs_refresh)
 
       # Now return all the nodes that are available.
-      available.reject &:down?
+      available.reject(&:down?)
     end
 
     # Yields the replica set's primary node to the provided block. This method
@@ -138,7 +138,7 @@ module Moped
     private
 
     def initialize_copy(_)
-      @nodes = @nodes.map &:dup
+      @nodes = @nodes.map(&:dup)
     end
 
   end

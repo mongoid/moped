@@ -4,9 +4,17 @@ module Moped
 
     private
 
-    attr_reader :database
-    attr_reader :collection_name
-    attr_reader :namespace
+    def database
+      @database
+    end
+
+    def collection_name
+      @collection_name
+    end
+
+    def namespace
+      @namespace
+    end
 
     def initialize(database, collection_name)
       @database = database

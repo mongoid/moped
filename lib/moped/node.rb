@@ -18,6 +18,10 @@ module Moped
       @resolved_address = "#{@ip_address}:#{@port}"
 
       @timeout = 5
+      @down_at = nil
+      @refreshed_at = nil
+      @primary = nil
+      @secondary = nil
     end
 
     def command(database, cmd, options = {})

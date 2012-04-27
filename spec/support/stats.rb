@@ -45,6 +45,7 @@ module Support
           _logging(operations, &block)
         end
       EOS
+      @stats = nil
     end
 
   end
