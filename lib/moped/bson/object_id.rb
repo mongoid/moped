@@ -3,6 +3,10 @@ require "socket"
 
 module Moped
   module BSON
+    def self.ObjectId(string)
+      ObjectId.from_string(string)
+    end
+
     class ObjectId
 
       # Formatting string for outputting an ObjectId.
@@ -46,6 +50,10 @@ module Moped
 
       def to_s
         @@string_format % data.unpack("C12")
+      end
+
+      def inspect
+        %Q{Moped::BSON::ObjectId('#{to_s}')}
       end
 
       # Return the UTC time at which this ObjectId was generated. This may
