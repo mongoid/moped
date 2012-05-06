@@ -177,6 +177,16 @@ describe Moped::Query do
         users.insert(documents)
         users.find(scope: scope).count.should eq 2
       end
+
+      it 'return the number of document with limit' do
+        users.insert(documents)
+        users.find(scope: scope).limit(1).count.should eq 1
+      end
+
+      it 'return the number of document with limit and offset' do
+        users.insert(documents)
+        users.find(scope: scope).limit(1).skip(4).count.should eq 0
+      end
     end
 
     describe "#update" do
