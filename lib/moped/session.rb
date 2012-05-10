@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 module Moped
 
   # A session in moped is root for all interactions with a MongoDB server or

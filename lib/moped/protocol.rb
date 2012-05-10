@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 module Moped #:nodoc:
 
   # The +Moped::Protocol+ namespace contains convenience classes for

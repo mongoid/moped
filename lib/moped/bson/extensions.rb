@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require "moped/bson/extensions/array"
 require "moped/bson/extensions/boolean"
 require "moped/bson/extensions/false_class"

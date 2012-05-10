@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 module Moped
 
   # The class for interacting with a MongoDB collection.

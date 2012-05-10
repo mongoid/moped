@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 module Moped
 
   # This module contains logic for easy access to objects that have a lifecycle
