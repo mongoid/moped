@@ -21,5 +21,22 @@ module Moped
     FLOAT_PACK = 'E'.freeze
 
     START_LENGTH = [0].pack(INT32_PACK).freeze
+
+    class << self
+
+      # Create a new object id from the provided string.
+      #
+      # @example Create a new object id.
+      #   Moped::BSON::ObjectId("4faf83c7dbf89b7b29000001")
+      #
+      # @param [ String ] string The string to use.
+      #
+      # @return [ ObjectId ] The object id.
+      #
+      # @since 1.0.0
+      def ObjectId(string)
+        ObjectId.from_string(string)
+      end
+    end
   end
 end
