@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require "moped/bson/extensions"
 
 require "moped/bson/binary"

@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 module Moped
   module Protocol
     # The Protocol class for querying a collection.

@@ -1,3 +1,8 @@
+# encoding: utf-8
+
+module Moped #:nodoc:
+end
+
 require "logger"
 require "stringio"
 require "monitor"

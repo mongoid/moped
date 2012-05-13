@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 module Moped
 
   # The +Query+ class encapsulates all of the logic related to building
