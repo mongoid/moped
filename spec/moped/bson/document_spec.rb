@@ -33,29 +33,8 @@ describe Moped::BSON::Document do
       Moped::BSON::Document.deserialize(StringIO.new(Moped::BSON::Document.serialize(doc))).should eq doc
     end
 
-    it "handles binary string values of utf-8 content" do
-      string = "europäischen"
-      doc = { "type" => string.encode('binary', 'binary') }
-      Moped::BSON::Document.deserialize(StringIO.new(Moped::BSON::Document.serialize(doc))).should eq \
-        Hash["type" => string]
-    end unless RUBY_PLATFORM =~ /java/
-
-    it "tries to encode non-utf8 data to utf-8" do
-      string = "gültig"
-      doc = { "type" => string.encode('iso-8859-1') }
-
-      Moped::BSON::Document.deserialize(StringIO.new(Moped::BSON::Document.serialize(doc))).should eq \
-        Hash["type" => string]
-    end
-
-    it "raises an exception for binary string values of non utf-8 content" do
-      lambda do
-        Moped::BSON::Document.serialize({ "type" => 255.chr })
-      end.should raise_exception(EncodingError)
-    end unless RUBY_PLATFORM =~ /java/
-
     it "handles utf-8 symbol values" do
-      doc = { "_id" => Moped::BSON::ObjectId.new, "type" => :"gültig" }
+      doc = { "_id" => Moped::BSON::ObjectId.new, "type" => "gültig".to_sym }
       Moped::BSON::Document.deserialize(StringIO.new(Moped::BSON::Document.serialize(doc))).should eq doc
     end
 
@@ -73,6 +52,27 @@ describe Moped::BSON::Document do
       doc = { "_id" => Moped::BSON::ObjectId.new, "code" => Moped::BSON::Code.new("// gültig", {}) }
       Moped::BSON::Document.deserialize(StringIO.new(Moped::BSON::Document.serialize(doc))).should eq doc
     end
+
+    it "tries to encode non-utf8 data to utf-8" do
+      string = "gültig"
+      doc = { "type" => string.encode('iso-8859-1') }
+
+      Moped::BSON::Document.deserialize(StringIO.new(Moped::BSON::Document.serialize(doc))).should eq \
+        Hash["type" => string]
+    end
+
+    it "handles binary string values of utf-8 content" do
+      string = "europäischen"
+      doc = { "type" => string.encode('binary', 'binary') }
+      Moped::BSON::Document.deserialize(StringIO.new(Moped::BSON::Document.serialize(doc))).should eq \
+        Hash["type" => string]
+    end unless RUBY_PLATFORM =~ /java/
+
+    it "raises an exception for binary string values of non utf-8 content" do
+      lambda do
+        Moped::BSON::Document.serialize({ "type" => 255.chr })
+      end.should raise_exception(EncodingError)
+    end unless RUBY_PLATFORM =~ /java/
   end
 
   context "complex document" do
