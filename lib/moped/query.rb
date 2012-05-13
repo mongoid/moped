@@ -146,7 +146,9 @@ module Moped
     def count
       result = collection.database.command(
         count: collection.name,
-        query: selector
+        query: selector,
+        limit: operation.limit,
+        skip: operation.skip
       )
 
       result["n"]
