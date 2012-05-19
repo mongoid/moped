@@ -1,5 +1,16 @@
+Moped [![Build Status](https://secure.travis-ci.org/mongoid/moped.png?branch=master&.png)](http://travis-ci.org/mongoid/moped)
+========
+
 Moped is a MongoDB driver for Ruby, which exposes a simple, elegant, and fast
 API.
+
+Compatibility
+-------------
+
+Moped is tested against MRI 1.9.2, 1.9.3, 2.0.0, and JRuby (1.9).
+
+Usage
+-----
 
 ```ruby
 session = Moped::Session.new %w[127.0.0.1:27017]
@@ -473,11 +484,3 @@ failover. We've decided that, for now, it's not worth making the replica set
 code thread-safe.
 
 **TL;DR**: use one `Moped::Session` instance per thread.
-
-# Compatibility
-
-Moped is tested against MRI 1.9.2, 1.9.3, 2.0.0, and JRuby (1.9).
-
-<img src="https://secure.travis-ci.org/mongoid/moped.png?branch=master&.png"/>
-
-[Build History](http://travis-ci.org/mongoid/moped)
