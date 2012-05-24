@@ -280,6 +280,8 @@ module Moped
       raise Errors::ConnectionFailure, "Timed out connection to Mongo on #{address}"
     rescue Errno::ECONNREFUSED
       raise Errors::ConnectionFailure, "Could not connect to Mongo on #{address}"
+    rescue Errno::ECONNRESET
+      raise Errors::ConnectionFailure, "Connection reset to Mongo on #{address}"
     end
 
     def process(operation, &callback)
