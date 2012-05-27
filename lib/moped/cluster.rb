@@ -1,15 +1,37 @@
 module Moped
 
+  # The cluster represents a cluster of MongoDB server nodes, either a single
+  # node, a replica set, or a mongos server.
   class Cluster
 
-    # @return [Array<String>] the seeds the replica set was initialized with
+    # @attribute [r] seeds The seeds the cluster was initialized with.
     attr_reader :seeds
 
-    # @option options :down_interval number of seconds to wait before attempting
-    # to reconnect to a down node. (30)
+    # Get the authentication details for the cluster.
     #
+    # @example Get the authentication details.
+    #   cluster.auth
+    #
+    # @return [ Hash ] the cached authentication credentials for this cluster.
+    #
+    # @since 1.0.0
+    def auth
+      @auth ||= {}
+    end
+
+    # Initialize the new cluster.
+    #
+    # @example Initialize the cluster.
+    #   Cluster.new([ "localhost:27017" ], down_interval: 20)
+    #
+    # @param [ Hash ] options The cluster options.
+    #
+    # @option options :down_interval number of seconds to wait before attempting
+    #   to reconnect to a down node. (30)
     # @option options :refresh_interval number of seconds to cache information
-    # about a node. (300)
+    #   about a node. (300)
+    #
+    # @since 1.0.0
     def initialize(hosts, options)
       @options = {
         down_interval: 30,
@@ -20,13 +42,45 @@ module Moped
       @nodes = hosts.map { |host| Node.new(host) }
     end
 
+    # Returns the list of available nodes, refreshing 1) any nodes which were
+    # down and ready to be checked again and 2) any nodes whose information is
+    # out of date.
+    #
+    # @example Get the available nodes.
+    #   cluster.nodes
+    #
+    # @return [ Array<Node> ] the list of available nodes.
+    #
+    # @since 1.0.0
+    def nodes
+      # Find the nodes that were down but are ready to be refreshed, or those
+      # with stale connection information.
+      needs_refresh, available = @nodes.partition do |node|
+        (node.down? && node.down_at < (Time.new - @options[:down_interval])) ||
+          node.needs_refresh?(Time.new - @options[:refresh_interval])
+      end
+
+      # Refresh those nodes.
+      available.concat refresh(needs_refresh)
+
+      # Now return all the nodes that are available.
+      available.reject(&:down?)
+    end
+
     # Refreshes information for each of the nodes provided. The node list
     # defaults to the list of all known nodes.
     #
     # If a node is successfully refreshed, any newly discovered peers will also
     # be refreshed.
     #
-    # @return [Array<Node>] the available nodes
+    # @example Refresh the nodes.
+    #   cluster.refresh
+    #
+    # @param [ Array<Node> ] nodes_to_refresh The nodes to refresh.
+    #
+    # @return [ Array<Node> ] the available nodes
+    #
+    # @since 1.0.0
     def refresh(nodes_to_refresh = @nodes)
       refreshed_nodes = []
       seen = {}
@@ -54,35 +108,26 @@ module Moped
       end
 
       nodes_to_refresh.each(&refresh_node)
-
       refreshed_nodes.to_a
-    end
-
-    # Returns the list of available nodes, refreshing 1) any nodes which were
-    # down and ready to be checked again and 2) any nodes whose information is
-    # out of date.
-    #
-    # @return [Array<Node>] the list of available nodes.
-    def nodes
-      # Find the nodes that were down but are ready to be refreshed, or those
-      # with stale connection information.
-      needs_refresh, available = @nodes.partition do |node|
-        (node.down? && node.down_at < (Time.new - @options[:down_interval])) ||
-          node.needs_refresh?(Time.new - @options[:refresh_interval])
-      end
-
-      # Refresh those nodes.
-      available.concat refresh(needs_refresh)
-
-      # Now return all the nodes that are available.
-      available.reject(&:down?)
     end
 
     # Yields the replica set's primary node to the provided block. This method
     # will retry the block in case of connection errors or replica set
     # reconfiguration.
     #
-    # @raises ConnectionFailure when no primary node can be found
+    # @example Yield the primary to the block.
+    #   cluster.with_primary do |node|
+    #     # ...
+    #   end
+    #
+    # @param [ true, false ] retry_on_failure Whether to retry if an error was
+    #   raised.
+    #
+    # @raises [ ConnectionFailure ] When no primary node can be found
+    #
+    # @return [ Object ] The result of the yield.
+    #
+    # @since 1.0.0
     def with_primary(retry_on_failure = true, &block)
       if node = nodes.find(&:primary?)
         begin
@@ -100,14 +145,29 @@ module Moped
         refresh
         with_primary(false, &block)
       else
-        raise Errors::ConnectionFailure, "Could not connect to a primary node for replica set #{inspect}"
+        raise(
+          Errors::ConnectionFailure,
+          "Could not connect to a primary node for replica set #{inspect}"
+        )
       end
     end
 
     # Yields a secondary node if available, otherwise the primary node. This
     # method will retry the block in case of connection errors.
     #
-    # @raises ConnectionError when no secondary or primary node can be found
+    # @example Yield the secondary to the block.
+    #   cluster.with_secondary do |node|
+    #     # ...
+    #   end
+    #
+    # @param [ true, false ] retry_on_failure Whether to retry if an error was
+    #   raised.
+    #
+    # @raises [ ConnectionFailure ] When no primary node can be found
+    #
+    # @return [ Object ] The result of the yield.
+    #
+    # @since 1.0.0
     def with_secondary(retry_on_failure = true, &block)
       available_nodes = nodes.shuffle!.partition(&:secondary?).flatten
 
@@ -126,13 +186,11 @@ module Moped
         refresh
         with_secondary(false, &block)
       else
-        raise Errors::ConnectionFailure, "Could not connect to any secondary or primary nodes for replica set #{inspect}"
+        raise(
+          Errors::ConnectionFailure,
+          "Could not connect to any secondary or primary nodes for replica set #{inspect}"
+        )
       end
-    end
-
-    # @return [Hash] the cached authentication credentials for this cluster.
-    def auth
-      @auth ||= {}
     end
 
     private
@@ -140,6 +198,5 @@ module Moped
     def initialize_copy(_)
       @nodes = @nodes.map(&:dup)
     end
-
   end
 end
