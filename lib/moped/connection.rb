@@ -1,9 +1,11 @@
 require "timeout"
 
 module Moped
-  class Connection
 
+  # @api private
+  class Connection
     class TCPSocket < ::TCPSocket
+
       def self.connect(host, port, timeout)
         Timeout::timeout(timeout) do
           new(host, port).tap do |sock|
