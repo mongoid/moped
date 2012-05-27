@@ -3,6 +3,8 @@ require "timeout"
 module Moped
 
   # This class contains behaviour of database socket connections.
+  #
+  # @api private
   class Connection
 
     # Is the connection alive?

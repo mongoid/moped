@@ -1,13 +1,61 @@
 module Moped
 
+  # Contains logic for cursor behaviour.
+  #
   # @api private
   class Cursor
-    attr_reader :session
 
-    attr_reader :query_op
-    attr_reader :get_more_op
-    attr_reader :kill_cursor_op
+    # @attribute [r] get_more_op The get more message.
+    # @attribute [r] kill_cursor_op The kill cursor message.
+    # @attribute [r] query_op The query message.
+    # @attribute [r] session The session.
+    attr_reader :get_more_op, :kill_cursor_op, :query_op, :session
 
+    # Iterate over the results of the query.
+    #
+    # @example Iterate over the results.
+    #   cursor.each do |doc|
+    #     #...
+    #   end
+    #
+    # @return [ Enumerator ] The cursor enum.
+    #
+    # @since 1.0.0
+    def each
+      documents = load_docs
+      documents.each { |doc| yield doc }
+      while more?
+        return kill if limited? && @limit <= 0
+        documents = get_more
+        documents.each { |doc| yield doc }
+      end
+    end
+
+    # Get more documents from the database for the cursor. Executes a get more
+    # command.
+    #
+    # @example Get more docs.
+    #   cursor.get_more
+    #
+    # @return [ Array<Hash> ] The next batch of documents.
+    #
+    # @since 1.0.0
+    def get_more
+      reply = @node.get_more @database, @collection, @cursor_id, @limit
+      @limit -= reply.count if limited?
+      @cursor_id = reply.cursor_id
+      reply.documents
+    end
+
+    # Initialize the new cursor.
+    #
+    # @example Create the new cursor.
+    #   Cursor.new(session, message)
+    #
+    # @param [ Session ] session The session.
+    # @param [ Message ] query_operation The query message.
+    #
+    # @since 1.0.0
     def initialize(session, query_operation)
       @session = session
 
@@ -28,52 +76,61 @@ module Moped
       }
     end
 
-    def each
-      documents = load
-      documents.each { |doc| yield doc }
-
-      while more?
-        return kill if limited? && @limit <= 0
-
-        documents = get_more
-        documents.each { |doc| yield doc }
-      end
+    # Kill the cursor.
+    #
+    # @example Kill the cursor.
+    #   cursor.kill
+    #
+    # @return [ Object ] The result of the kill cursors command.
+    #
+    # @since 1.0.0
+    def kill
+      @node.kill_cursors([ @cursor_id ])
     end
 
-    def load
-      consistency = session.consistency
-      @options[:flags] |= [:slave_ok] if consistency == :eventual
-
-      reply, @node = session.context.with_node do |node|
-        [node.query(@database, @collection, @selector, @options), node]
-      end
-
-      @limit -= reply.count if limited?
-      @cursor_id = reply.cursor_id
-
-      reply.documents
-    end
-
+    # Does the cursor have a limit provided in the query?
+    #
+    # @example Is the cursor limited?
+    #   cursor.limited?
+    #
+    # @return [ true, false ] If a limit has been provided over zero.
+    #
+    # @since 1.0.0
     def limited?
       @limited
     end
 
-    def more?
-      @cursor_id != 0
-    end
+    # Load the documents from the database.
+    #
+    # @example Load the documents.
+    #   cursor.load_docs
+    #
+    # @return [ Array<Hash> ] The documents.
+    #
+    # @since 1.0.0
+    def load_docs
+      consistency = session.consistency
+      @options[:flags] |= [:slave_ok] if consistency == :eventual
 
-    def get_more
-      reply = @node.get_more @database, @collection, @cursor_id, @limit
+      reply, @node = session.context.with_node do |node|
+        [ node.query(@database, @collection, @selector, @options), node ]
+      end
 
       @limit -= reply.count if limited?
       @cursor_id = reply.cursor_id
-
       reply.documents
     end
 
-    def kill
-      @node.kill_cursors [@cursor_id]
+    # Are there more documents to be returned from the database?
+    #
+    # @example Are there more documents?
+    #   cursor.more?
+    #
+    # @return [ true, false ] If there are more documents to load.
+    #
+    # @since 1.0.0
+    def more?
+      @cursor_id != 0
     end
   end
-
 end
