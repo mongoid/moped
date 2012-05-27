@@ -5,38 +5,76 @@ module Moped
     # source of information on error codes.
     ERROR_REFERENCE = "https://github.com/mongodb/mongo/blob/master/docs/errors.md"
 
+    # Exception raised when authentication fails.
+    class AuthenticationFailure < MongoError; end
+
     # Generic error class for exceptions related to connection failures.
     class ConnectionFailure < StandardError; end
 
-    # Tag applied to unhandled exceptions on a node.
-    module SocketError end
+    # Raised when providing an invalid string from an object id.
+    class InvalidObjectId < StandardError
+
+      # Create the new error.
+      #
+      # @example Create the new error.
+      #   InvalidObjectId.new("test")
+      #
+      # @param [ String ] string The provided id.
+      #
+      # @since 1.0.0
+      def initialize(string)
+        super("'#{string}' is not a valid object id.")
+      end
+    end
 
     # Generic error class for exceptions generated on the remote MongoDB
     # server.
     class MongoError < StandardError
-      # @return the command that generated the error
-      attr_reader :command
 
-      # @return [Hash] the details about the error
-      attr_reader :details
+      # @attribute [r] details The details about the error.
+      # @attribute [r] command The command that generated the error.
+      attr_reader :details, :command
 
       # Create a new operation failure exception.
       #
-      # @param command the command that generated the error
-      # @param [Hash] details the details about the error
+      # @example Create the new error.
+      #   MongoError.new(command, details)
+      #
+      # @param [ Object ] command The command that generated the error.
+      # @param [ Hash ] details The details about the error.
+      #
+      # @since 1.0.0
       def initialize(command, details)
-        @command = command
-        @details = details
-
-        super build_message
+        @command, @details = command, details
+        super(build_message)
       end
 
       private
 
+      # Build the error message.
+      #
+      # @api private
+      #
+      # @example Build the message.
+      #   error.build_message
+      #
+      # @return [ String ] The message.
+      #
+      # @since 1.0.0
       def build_message
         "The operation: #{command.inspect}\n#{error_message}"
       end
 
+      # Get the error message.
+      #
+      # @api private
+      #
+      # @example Get the error message.
+      #   error.error_message
+      #
+      # @return [ String ] The message.
+      #
+      # @since 1.0.0
       def error_message
         err = details["err"] || details["errmsg"] || details["$err"]
 
@@ -56,21 +94,13 @@ module Moped
     # Exception raised on invalid queries.
     class QueryFailure < MongoError; end
 
-    # Exception raised when authentication fails.
-    class AuthenticationFailure < MongoError; end
-
-    # Raised when providing an invalid string from an object id.
-    class InvalidObjectId < StandardError
-      def initialize(string)
-        super("'#{string}' is not a valid object id.")
-      end
-    end
-
     # @api private
     #
     # Internal exception raised by Node#ensure_primary and captured by
     # Cluster#with_primary.
     class ReplicaSetReconfigured < StandardError; end
 
+    # Tag applied to unhandled exceptions on a node.
+    module SocketError; end
   end
 end
