@@ -2,49 +2,57 @@ require "timeout"
 
 module Moped
 
-  # @api private
+  # This class contains behaviour of database socket connections.
   class Connection
-    class TCPSocket < ::TCPSocket
 
-      def self.connect(host, port, timeout)
-        Timeout::timeout(timeout) do
-          new(host, port).tap do |sock|
-            sock.set_encoding 'binary'
-          end
-        end
-      end
-
-      def alive?
-        if Kernel::select([self], nil, nil, 0)
-          !eof? rescue false
-        else
-          true
-        end
-      end
-
-      def write(*args)
-        raise Errors::ConnectionFailure, "Socket connection was closed by remote host" unless alive?
-        super
-      end
-    end
-
-    def initialize
-      @sock = nil
-      @request_id = 0
-    end
-
-    def connect(host, port, timeout)
-      @sock = TCPSocket.connect host, port, timeout
-    end
-
+    # Is the connection alive?
+    #
+    # @example Is the connection alive?
+    #   connection.alive?
+    #
+    # @return [ true, false ] If the connection is alive.
+    #
+    # @since 1.0.0
     def alive?
       connected? ? @sock.alive? : false
     end
 
+    # Connect to the server.
+    #
+    # @example Connect to the server.
+    #   connection.connect("127.0.0.1", 27017, 30)
+    #
+    # @param [ String ] host The host to connect to.
+    # @param [ Integer ] post The server port.
+    # @param [ Integer ] timeout The connection timeout.
+    #
+    # @return [ TCPSocket ] The socket.
+    #
+    # @since 1.0.0
+    def connect(host, port, timeout)
+      @sock = TCPSocket.connect host, port, timeout
+    end
+
+    # Is the connection connected?
+    #
+    # @example Is the connection connected?
+    #   connection.connected?
+    #
+    # @return [ true, false ] If the connection is connected.
+    #
+    # @since 1.0.0
     def connected?
       !!@sock
     end
 
+    # Disconnect from the server.
+    #
+    # @example Disconnect from the server.
+    #   connection.disconnect
+    #
+    # @return [ nil ] nil.
+    #
+    # @since 1.0.0
     def disconnect
       @sock.close
     rescue
@@ -52,26 +60,27 @@ module Moped
       @sock = nil
     end
 
-    def write(operations)
-      buf = ""
-
-      operations.each do |operation|
-        operation.request_id = (@request_id += 1)
-        operation.serialize(buf)
-      end
-
-      @sock.write buf
+    # Initialize the connection.
+    #
+    # @example Initialize the connection.
+    #   Connection.new
+    #
+    # @since 1.0.0
+    def initialize
+      @sock = nil
+      @request_id = 0
     end
 
-    def receive_replies(operations)
-      operations.map do |operation|
-        read if operation.is_a?(Protocol::Query) || operation.is_a?(Protocol::GetMore)
-      end
-    end
-
+    # Read from the connection.
+    #
+    # @example Read from the connection.
+    #   connection.read
+    #
+    # @return [ Hash ] The returned document.
+    #
+    # @since 1.0.0
     def read
       reply = Protocol::Reply.allocate
-
       reply.length,
         reply.request_id,
         reply.response_to,
@@ -90,8 +99,100 @@ module Moped
           BSON::Document.deserialize(buffer)
         end
       end
-
       reply
+    end
+
+    # Get the replies to the database operation.
+    #
+    # @example Get the replies.
+    #   connection.receive_replies(operations)
+    #
+    # @param [ Array<Message> ] operations The query or get more ops.
+    #
+    # @return [ Array<Hash> ] The returned deserialized documents.
+    #
+    # @since 1.0.0
+    def receive_replies(operations)
+      operations.map do |operation|
+        read if operation.is_a?(Protocol::Query) || operation.is_a?(Protocol::GetMore)
+      end
+    end
+
+    # Write to the connection.
+    #
+    # @example Write to the connection.
+    #   connection.write(data)
+    #
+    # @param [ Array<Message> ] operations The database operations.
+    #
+    # @return [ Integer ] The number of bytes written.
+    #
+    # @since 1.0.0
+    def write(operations)
+      buf = ""
+      operations.each do |operation|
+        operation.request_id = (@request_id += 1)
+        operation.serialize(buf)
+      end
+      @sock.write(buf)
+    end
+
+    # This is a wrapper around a tcp socket.
+    class TCPSocket < ::TCPSocket
+
+      # Is the socket connection alive?
+      #
+      # @example Is the socket alive?
+      #   socket.alive?
+      #
+      # @return [ true, false ] If the socket is alive.
+      #
+      # @since 1.0.0
+      def alive?
+        if Kernel::select([ self ], nil, nil, 0)
+          !eof? rescue false
+        else
+          true
+        end
+      end
+
+      # Write to the socket.
+      #
+      # @example Write to the socket.
+      #   socket.write(data)
+      #
+      # @param [ Object ] args The data to write.
+      #
+      # @return [ Integer ] The number of bytes written.
+      #
+      # @since 1.0.0
+      def write(*args)
+        raise Errors::ConnectionFailure, "Socket connection was closed by remote host" unless alive?
+        super
+      end
+
+      class << self
+
+        # Connect to the tcp server.
+        #
+        # @example Connect to the server.
+        #   TCPSocket.connect("127.0.0.1", 27017, 30)
+        #
+        # @param [ String ] host The host to connect to.
+        # @param [ Integer ] post The server port.
+        # @param [ Integer ] timeout The connection timeout.
+        #
+        # @return [ TCPSocket ] The socket.
+        #
+        # @since 1.0.0
+        def connect(host, port, timeout)
+          Timeout::timeout(timeout) do
+            new(host, port).tap do |sock|
+              sock.set_encoding('binary')
+            end
+          end
+        end
+      end
     end
   end
 end
