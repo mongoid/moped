@@ -142,14 +142,14 @@ module Moped
       result["values"]
     end
 
-    # @return [Numeric] the number of documents that match the selector.
+    # @return [Integer] the number of documents that match the selector.
     def count
       result = collection.database.command(
         count: collection.name,
         query: selector
       )
 
-      result["n"]
+      result["n"].to_i
     end
 
     # Update a single document matching the query's selector.

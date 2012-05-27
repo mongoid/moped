@@ -228,7 +228,11 @@ describe Moped::Query do
       end
 
       it "returns the number of matching document" do
-        users.find(scope: scope).count.should eq 2
+        users.find(scope: scope).count.should eq(2)
+      end
+
+      it "returns a fixnum" do
+        users.find(scope: scope).count.should be_a(Integer)
       end
     end
 
