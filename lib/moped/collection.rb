@@ -9,54 +9,77 @@ module Moped
   #   users.find.to_a # => [{ name: "John" }]
   class Collection
 
-    # @return [Database] the database this collection belongs to
-    attr_reader :database
-
-    # @return [String, Symbol] the collection's name
-    attr_reader :name
-
-    # @param [Database] database the database this collection belongs to
-    # @param [String, Symbol] name the collection's name
-    def initialize(database, name)
-      @database = database
-      @name     = name
-    end
-
-    # Access information about this collection's indexes.
-    #
-    # @return [Indexes]
-    def indexes
-      Indexes.new(database, name)
-    end
+    # @attribute [r] database The collection's database.
+    # @attribute [r] name The collection name.
+    attr_reader :database, :name
 
     # Drop the collection.
+    #
+    # @example Drop the collection.
+    #   collection.drop
+    #
+    # @return [ Hash ] The command information.
+    #
+    # @since 1.0.0
     def drop
-      database.command drop: name
+      database.command(drop: name)
     end
 
     # Build a query for this collection.
     #
-    # @param [Hash] selector the selector
-    # @return [Moped::Query]
+    # @example Build a query based on the provided selector.
+    #   collection.find(name: "Placebo")
+    #
+    # @param [ Hash ] selector The query selector.
+    #
+    # @return [ Query ] The generated query.
+    #
+    # @since 1.0.0
     def find(selector = {})
-      Query.new self, selector
+      Query.new(self, selector)
     end
-    alias where find
+    alias :where :find
+
+    # Access information about this collection's indexes.
+    #
+    # @example Get the index information.
+    #   collection.indexes
+    #
+    # @return [ Indexes ] The index information.
+    #
+    # @since 1.0.0
+    def indexes
+      Indexes.new(database, name)
+    end
+
+    # Initialize the new collection.
+    #
+    # @example Initialize the collection.
+    #   Collection.new(database, :artists)
+    #
+    # @param [ Database ] database The collection's database.
+    # @param [ String, Symbol] name The collection name.
+    #
+    # @since 1.0.0
+    def initialize(database, name)
+      @database, @name = database, name
+    end
 
     # Insert one or more documents into the collection.
     #
-    # @overload insert(document)
-    #   @example
-    #     db[:people].insert(name: "John")
-    #   @param [Hash] document the document to insert
+    # @example Insert a single document.
+    #   db[:people].insert(name: "John")
     #
-    # @overload insert(documents)
-    #   @example
-    #     db[:people].insert([{name: "John"}, {name: "Joe"}])
-    #   @param [Array<Hash>] documents the documents to insert
+    # @example Insert multiple documents in batch.
+    #   db[:people].insert([{name: "John"}, {name: "Joe"}])
+    #
+    # @param [ Hash, Array<Hash> ] documents The document(s) to insert.
+    #
+    # @return [ nil ] nil.
+    #
+    # @since 1.0.0
     def insert(documents)
-      documents = [documents] unless documents.is_a? Array
-
+      documents = [documents] unless documents.is_a?(Array)
       database.session.with(consistency: :strong) do |session|
         session.context.insert(database.name, name, documents)
       end
