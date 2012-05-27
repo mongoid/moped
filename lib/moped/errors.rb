@@ -5,9 +5,6 @@ module Moped
     # source of information on error codes.
     ERROR_REFERENCE = "https://github.com/mongodb/mongo/blob/master/docs/errors.md"
 
-    # Exception raised when authentication fails.
-    class AuthenticationFailure < MongoError; end
-
     # Generic error class for exceptions related to connection failures.
     class ConnectionFailure < StandardError; end
 
@@ -86,6 +83,9 @@ module Moped
         end
       end
     end
+
+    # Exception raised when authentication fails.
+    class AuthenticationFailure < MongoError; end
 
     # Exception class for exceptions generated as a direct result of an
     # operation, such as a failed insert or an invalid command.
