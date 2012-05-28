@@ -1,143 +1,111 @@
 module Moped
+
+  # Represents a client to a node in a server cluster.
+  #
+  # @api private
   class Node
 
-    attr_reader :address
-    attr_reader :resolved_address
-    attr_reader :ip_address
-    attr_reader :port
+    # @attribute [r] address The address of the node.
+    # @attribute [r] down_at The time the server node went down.
+    # @attribute [r] ip_address The node's ip.
+    # @attribute [r] peers Other peers in the replica set.
+    # @attribute [r] port The connection port.
+    # @attribute [r] resolved_address The host/port pair.
+    # @attribute [r] timeout The connection timeout.
+    attr_reader :address, :down_at, :ip_address, :peers, :port, :resolved_address, :timeout
 
-    attr_reader :peers
-    attr_reader :timeout
+    # Is this node equal to another?
+    #
+    # @example Is the node equal to another.
+    #   node == other
+    #
+    # @param [ Node ] other The other node.
+    #
+    # @return [ true, false ] If the addresses are equal.
+    #
+    # @since 1.0.0
+    def ==(other)
+      resolved_address == other.resolved_address
+    end
+    alias :eql? :==
 
-    def initialize(address)
-      @address = address
-
-      host, port = address.split(":")
-      @ip_address = ::Socket.getaddrinfo(host, nil, ::Socket::AF_INET, ::Socket::SOCK_STREAM).first[3]
-      @port = port.to_i
-      @resolved_address = "#{@ip_address}:#{@port}"
-
-      @timeout = 5
-      @down_at = nil
-      @refreshed_at = nil
-      @primary = nil
-      @secondary = nil
+    # Apply the authentication details to this node.
+    #
+    # @example Apply authentication.
+    #   node.apply_auth([ :db, "user", "pass" ])
+    #
+    # @param [ Array<String> ] credentials The db, username, and password.
+    #
+    # @return [ Node ] The authenticated node.
+    #
+    # @since 1.0.0
+    def apply_auth(credentials)
+      unless auth == credentials
+        logouts = auth.keys - credentials.keys
+        logouts.each { |database| logout(database) }
+        credentials.each do |database, (username, password)|
+          login(database, username, password) unless auth[database] == [username, password]
+        end
+      end
+      self
     end
 
+    # Execute a command against a database.
+    #
+    # @example Execute a command.
+    #   node.command(database, { ping: 1 })
+    #
+    # @param [ Database ] database The database to run the command on.
+    # @param [ Hash ] cmd The command to execute.
+    # @options [ Hash ] options The command options.
+    #
+    # @raise [ OperationFailure ] If the command failed.
+    #
+    # @return [ Hash ] The result of the command.
+    #
+    # @since 1.0.0
     def command(database, cmd, options = {})
       operation = Protocol::Command.new(database, cmd, options)
 
       process(operation) do |reply|
         result = reply.documents[0]
-
         raise Errors::OperationFailure.new(
           operation, result
         ) if result["ok"] != 1 || result["err"] || result["errmsg"]
-
         result
       end
     end
 
-    def kill_cursors(cursor_ids)
-      process Protocol::KillCursors.new(cursor_ids)
-    end
-
-    def get_more(database, collection, cursor_id, limit)
-      process Protocol::GetMore.new(database, collection, cursor_id, limit)
-    end
-
-    def remove(database, collection, selector, options = {})
-      process Protocol::Delete.new(database, collection, selector, options)
-    end
-
-    def update(database, collection, selector, change, options = {})
-      process Protocol::Update.new(database, collection, selector, change, options)
-    end
-
-    def insert(database, collection, documents)
-      process Protocol::Insert.new(database, collection, documents)
-    end
-
-    def query(database, collection, selector, options = {})
-      operation = Protocol::Query.new(database, collection, selector, options)
-
-      process operation do |reply|
-        if reply.flags.include? :query_failure
-          raise Errors::QueryFailure.new(operation, reply.documents.first)
-        end
-
-        reply
-      end
-    end
-
-    # @return [true/false] whether the node needs to be refreshed.
-    def needs_refresh?(time)
-      !@refreshed_at || @refreshed_at < time
-    end
-
-    def primary?
-      @primary
-    end
-
-    def secondary?
-      @secondary
-    end
-
-    # Refresh information about the node, such as it's status in the replica
-    # set and it's known peers.
+    # Is the node down?
     #
-    # Returns nothing.
-    # Raises Errors::ConnectionFailure if the node cannot be reached
-    # Raises Errors::ReplicaSetReconfigured if the node is no longer a primary node and
-    #   refresh was called within an +#ensure_primary+ block.
-    def refresh
-      info = command "admin", ismaster: 1
-
-      @refreshed_at = Time.now
-      primary = true if info["ismaster"]
-      secondary = true if info["secondary"]
-
-      peers = []
-      peers.push info["primary"] if info["primary"]
-      peers.concat info["hosts"] if info["hosts"]
-      peers.concat info["passives"] if info["passives"]
-      peers.concat info["arbiters"] if info["arbiters"]
-
-      @peers = peers.map { |peer| Node.new(peer) }
-      @primary, @secondary = primary, secondary
-
-      if !primary && Threaded.executing?(:ensure_primary)
-        raise Errors::ReplicaSetReconfigured, "#{inspect} is no longer the primary node."
-      end
-    end
-
-    attr_reader :down_at
-
+    # @example Is the node down?
+    #   node.down?
+    #
+    # @return [ Time, nil ] The time the node went down, or nil if up.
+    #
+    # @since 1.0.0
     def down?
       @down_at
-    end
-
-    # Set a flag on the node for the duration of provided block so that an
-    # exception is raised if the node is no longer the primary node.
-    #
-    # Returns nothing.
-    def ensure_primary
-      Threaded.begin :ensure_primary
-      yield
-    ensure
-      Threaded.end :ensure_primary
     end
 
     # Yields the block if a connection can be established, retrying when a
     # connection error is raised.
     #
-    # @raises ConnectionFailure when a connection cannot be established.
+    # @example Ensure we are connection.
+    #   node.ensure_connected do
+    #     #...
+    #   end
+    #
+    # @raises [ ConnectionFailure ] When a connection cannot be established.
+    #
+    # @return [ nil ] nil.
+    #
+    # @since 1.0.0
     def ensure_connected
       # Don't run the reconnection login if we're already inside an
       # +ensure_connected+ block.
-      return yield if Threaded.executing? :connection
-      Threaded.begin :connection
-
+      return yield if Threaded.executing?(:connection)
+      Threaded.begin(:connection)
       retry_on_failure = true
 
       begin
@@ -171,44 +139,261 @@ module Moped
         raise $!.extend(Errors::SocketError)
       end
     ensure
-      Threaded.end :connection
+      Threaded.end(:connection)
     end
 
-    def pipeline
-      Threaded.begin :pipeline
+    # Set a flag on the node for the duration of provided block so that an
+    # exception is raised if the node is no longer the primary node.
+    #
+    # @example Ensure this node is primary.
+    #   node.ensure_primary do
+    #     #...
+    #   end
+    #
+    # @return [ nil ] nil.
+    #
+    # @since 1.0.0
+    def ensure_primary
+      Threaded.begin(:ensure_primary)
+      yield
+    ensure
+      Threaded.end(:ensure_primary)
+    end
 
+    # Execute a get more operation on the node.
+    #
+    # @example Execute a get more.
+    #   node.get_more(database, collection, 12345, -1)
+    #
+    # @param [ Database ] database The database to get more from.
+    # @param [ Collection ] collection The collection to get more from.
+    # @param [ Integer ] cursor_id The id of the cursor on the server.
+    # @param [ Integer ] limit The number of documents to limit.
+    #
+    # @return [ Message ] The result of the operation.
+    #
+    # @since 1.0.0
+    def get_more(database, collection, cursor_id, limit)
+      process(Protocol::GetMore.new(database, collection, cursor_id, limit))
+    end
+
+    # Get the hash identifier for the node.
+    #
+    # @example Get the hash identifier.
+    #   node.hash
+    #
+    # @return [ Integer ] The hash identifier.
+    #
+    # @since 1.0.0
+    def hash
+      [ ip_address, port ].hash
+    end
+
+    # Creat the new node.
+    #
+    # @example Create the new node.
+    #   Node.new("127.0.0.1:27017")
+    #
+    # @param [ String ] address The location of the server node.
+    #
+    # @since 1.0.0
+    def initialize(address)
+      @address = address
+
+      host, port = address.split(":")
+      @ip_address = ::Socket.getaddrinfo(host, nil, ::Socket::AF_INET, ::Socket::SOCK_STREAM).first[3]
+      @port = port.to_i
+      @resolved_address = "#{@ip_address}:#{@port}"
+
+      @timeout = 5
+      @down_at = nil
+      @refreshed_at = nil
+      @primary = nil
+      @secondary = nil
+    end
+
+    # Insert documents into the database.
+    #
+    # @example Insert documents.
+    #   node.insert(database, collection, [{ name: "Tool" }])
+    #
+    # @param [ Database ] database The database to insert to.
+    # @param [ Collection ] collection The collection to insert to.
+    # @param [ Array<Hash> ] documents The documents to insert.
+    #
+    # @return [ Message ] The result of the operation.
+    #
+    # @since 1.0.0
+    def insert(database, collection, documents)
+      process(Protocol::Insert.new(database, collection, documents))
+    end
+
+    # Kill all provided cursors on the node.
+    #
+    # @example Kill all the provided cursors.
+    #   node.kill_cursors([ 12345 ])
+    #
+    # @param [ Array<Integer> ] cursor_ids The cursor ids.
+    #
+    # @return [ Message ] The result of the operation.
+    #
+    # @since 1.0.0
+    def kill_cursors(cursor_ids)
+      process(Protocol::KillCursors.new(cursor_ids))
+    end
+
+    # Does the node need to be refreshed?
+    #
+    # @example Does the node require refreshing?
+    #   node.needs_refresh?(time)
+    #
+    # @param [ Time ] time The next referesh time.
+    #
+    # @return [ true, false] Whether the node needs to be refreshed.
+    #
+    # @since 1.0.0
+    def needs_refresh?(time)
+      !@refreshed_at || @refreshed_at < time
+    end
+
+    # Execute a pipeline of commands, for example a safe mode persist.
+    #
+    # @example Execute a pipeline.
+    #   node.pipeline do
+    #     #...
+    #   end
+    #
+    # @return [ nil ] nil.
+    #
+    # @since 1.0.0
+    def pipeline
+      Threaded.begin(:pipeline)
       begin
         yield
       ensure
-        Threaded.end :pipeline
+        Threaded.end(:pipeline)
       end
-
-      flush unless Threaded.executing? :pipeline
+      flush unless Threaded.executing?(:pipeline)
     end
 
-    def apply_auth(credentials)
-      unless auth == credentials
-        logouts = auth.keys - credentials.keys
+    # Is the node the replica set primary?
+    #
+    # @example Is the node the primary?
+    #   node.primary?
+    #
+    # @return [ true, false ] If the node is the primary.
+    #
+    # @since 1.0.0
+    def primary?
+      @primary
+    end
 
-        logouts.each do |database|
-          logout database
-        end
+    # Execute a query on the node.
+    #
+    # @example Execute a query.
+    #   node.query(database, collection, { name: "Tool" })
+    #
+    # @param [ Database ] database The database to query from.
+    # @param [ Collection ] collection The collection to query from.
+    # @param [ Hash ] selector The query selector.
+    # @param [ Hash ] options The query options.
+    #
+    # @raise [ QueryFailure ] If the query had an error.
+    #
+    # @return [ Message ] The result of the operation.
+    #
+    # @since 1.0.0
+    def query(database, collection, selector, options = {})
+      operation = Protocol::Query.new(database, collection, selector, options)
 
-        credentials.each do |database, (username, password)|
-          login(database, username, password) unless auth[database] == [username, password]
+      process operation do |reply|
+        if reply.flags.include?(:query_failure)
+          raise Errors::QueryFailure.new(operation, reply.documents.first)
         end
+        reply
       end
-
-      self
     end
 
-    def ==(other)
-      resolved_address == other.resolved_address
-    end
-    alias eql? ==
+    # Refresh information about the node, such as it's status in the replica
+    # set and it's known peers.
+    #
+    # @example Refresh the node.
+    #   node.refresh
+    #
+    # @raise [ ConnectionFailure ] If the node cannot be reached.
 
-    def hash
-      [ip_address, port].hash
+    # @raise [ ReplicaSetReconfigured ] If the node is no longer a primary node and
+    #   refresh was called within an +#ensure_primary+ block.
+    #
+    # @return [ nil ] nil.
+    #
+    # @since 1.0.0
+    def refresh
+      info = command("admin", ismaster: 1)
+
+      @refreshed_at = Time.now
+      primary = true if info["ismaster"]
+      secondary = true if info["secondary"]
+
+      peers = []
+      peers.push(info["primary"]) if info["primary"]
+      peers.concat(info["hosts"]) if info["hosts"]
+      peers.concat(info["passives"]) if info["passives"]
+      peers.concat(info["arbiters"]) if info["arbiters"]
+
+      @peers = peers.map { |peer| Node.new(peer) }
+      @primary, @secondary = primary, secondary
+
+      if !primary && Threaded.executing?(:ensure_primary)
+        raise Errors::ReplicaSetReconfigured, "#{inspect} is no longer the primary node."
+      end
+    end
+
+    # Execute a remove command for the provided selector.
+    #
+    # @example Remove documents.
+    #   node.remove(database, collection, { name: "Tool" })
+    #
+    # @param [ Database ] database The database to remove from.
+    # @param [ Collection ] collection The collection to remove from.
+    # @param [ Hash ] selector The query selector.
+    # @param [ Hash ] options The remove options.
+    #
+    # @return [ Message ] The result of the operation.
+    #
+    # @since 1.0.0
+    def remove(database, collection, selector, options = {})
+      process(Protocol::Delete.new(database, collection, selector, options))
+    end
+
+    # Is the node a replica set secondary?
+    #
+    # @example Is the node a secondary?
+    #   node.secondary?
+    #
+    # @return [ true, false ] If the node is a secondary.
+    #
+    # @since 1.0.0
+    def secondary?
+      @secondary
+    end
+
+    # Execute an update command for the provided selector.
+    #
+    # @example Update documents.
+    #   node.update(database, collection, { name: "Tool" }, { likes: 1000 })
+    #
+    # @param [ Database ] database The database to update.
+    # @param [ Collection ] collection The collection to update.
+    # @param [ Hash ] selector The query selector.
+    # @param [ Hash ] change The updates.
+    # @param [ Hash ] options The update options.
+    #
+    # @return [ Message ] The result of the operation.
+    #
+    # @since 1.0.0
+    def update(database, collection, selector, change, options = {})
+      process(Protocol::Update.new(database, collection, selector, change, options))
     end
 
     private
