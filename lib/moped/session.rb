@@ -30,105 +30,10 @@ module Moped
   class Session
     extend Forwardable
 
-    # @return [Hash] this session's options
-    attr_reader :options
-
-    # @private
-    # @return [Cluster] this session's cluster
-    attr_reader :cluster
-
-    # @private
-    # @return [Context] this session's context
-    attr_reader :context
-
-    # @param [Array] seeds an of host:port pairs
-    # @param [Hash] options
-    # @option options [Boolean] :safe (false) ensure writes are persisted
-    # @option options [Hash] :safe ensure writes are persisted with the
-    #   specified safety level e.g., "fsync: true", or "w: 2, wtimeout: 5"
-    # @option options [Symbol, String] :database the database to use
-    # @option options [:strong, :eventual] :consistency (:eventual)
-    def initialize(seeds, options = {})
-      @cluster = Cluster.new(seeds, {})
-      @context = Context.new(self)
-      @options = options
-      @options[:consistency] ||= :eventual
-    end
-
-    # @return [Boolean] whether the current session requires safe operations.
-    def safe?
-      !!safety
-    end
-
-    # @return [:strong, :eventual] the session's consistency
-    def consistency
-      options[:consistency]
-    end
-
-    # Switch the session's current database.
-    #
-    # @example
-    #   session.use :moped
-    #   session[:people].find.one # => { :name => "John" }
-    #
-    # @param [String] database the database to use
-    def use(database)
-      options[:database] = database
-      set_current_database database
-    end
-
-    # Create a new session with +options+ reusing existing connections.
-    #
-    # @example Change safe mode
-    #   session.with(safe: { w: 2 })[:people].insert(name: "Joe")
-    #
-    # @example Change safe mode with block
-    #   session.with(safe: { w: 2 }) do |session|
-    #     session[:people].insert(name: "Joe")
-    #   end
-    #
-    # @example Temporarily change database
-    #   session.with(database: "admin") do |admin|
-    #     admin.command ismaster: 1
-    #   end
-    #
-    # @example Copy between databases
-    #   session.use "moped"
-    #   session.with(database: "backup") do |backup|
-    #     session[:people].each do |person|
-    #       backup[:people].insert person
-    #     end
-    #   end
-    #
-    # @yieldparam [Moped::Session] session the new session
-    # @return [Moped::Session, Object] the new session, or the value returned
-    #   by the block if provided.
-    def with(options = {})
-      session = dup
-      session.options.update options
-
-      if block_given?
-        yield session
-      else
-        session
-      end
-    end
-
-    # Create a new session with +options+ and use new socket connections.
-    #
-    # @see #with
-    # @yieldparam [Moped::Session] session the new session
-    # @return [Moped::Session] the new session
-    def new(options = {})
-      session = with(options)
-      session.instance_variable_set(:@cluster, cluster.dup)
-
-      if block_given?
-        yield session
-      else
-        session
-      end
-    end
+    # @attribute [r] cluster The session cluster.
+    # @attribute [r] context The session context.
+    # @attribute [r] options The session options.
+    attr_reader :cluster, :context, :options
 
     # @method [](collection)
     # Return +collection+ from the current database.
@@ -165,17 +70,164 @@ module Moped
     # @raise (see Moped::Database#login)
     delegate :logout => :current_database
 
-    # @return [Boolean, Hash] the safety level for this session
+    # Get the session's consistency.
+    #
+    # @example Get the session consistency.
+    #   session.consistency
+    #
+    # @return [ :strong, :eventual ] The session's consistency.
+    #
+    # @since 1.0.0
+    def consistency
+      options[:consistency]
+    end
+
+    # Initialize a new database session.
+    #
+    # @example Initialize a new session.
+    #   Session.new([ "localhost:27017" ])
+    #
+    # @param [ Array ] seeds an of host:port pairs
+    # @param [ Hash ] options
+    #
+    # @option options [ Boolean ] :safe (false) Ensure writes are persisted.
+    # @option options [ Hash ] :safe Ensure writes are persisted with the
+    #   specified safety level e.g., "fsync: true", or "w: 2, wtimeout: 5".
+    # @option options [ Symbol, String ] :database The database to use.
+    # @option options [ :strong, :eventual ] :consistency (:eventual).
+    #
+    # @since 1.0.0
+    def initialize(seeds, options = {})
+      @cluster = Cluster.new(seeds, {})
+      @context = Context.new(self)
+      @options = options
+      @options[:consistency] ||= :eventual
+    end
+
+    # Create a new session with +options+ and use new socket connections.
+    #
+    # @example Change safe mode
+    #   session.with(safe: { w: 2 })[:people].insert(name: "Joe")
+    #
+    # @example Change safe mode with block
+    #   session.with(safe: { w: 2 }) do |session|
+    #     session[:people].insert(name: "Joe")
+    #   end
+    #
+    # @example Temporarily change database
+    #   session.with(database: "admin") do |admin|
+    #     admin.command ismaster: 1
+    #   end
+    #
+    # @example Copy between databases
+    #   session.use "moped"
+    #   session.with(database: "backup") do |backup|
+    #     session[:people].each do |person|
+    #       backup[:people].insert person
+    #     end
+    #   end
+    #
+    # @param [ Hash ] options The options.
+    #
+    # @return [ Session ] The new session.
+    #
+    # @see #with
+    #
+    # @since 1.0.0
+    #
+    # @yieldparam [ Session ] session The new session.
+    def new(options = {})
+      session = with(options)
+      session.instance_variable_set(:@cluster, cluster.dup)
+      if block_given?
+        yield session
+      else
+        session
+      end
+    end
+
+    # Is the session operating in safe mode?
+    #
+    # @example Is the session operating in safe mode?
+    #   session.safe?
+    #
+    # @return [ true, false ] Whether the current session requires safe
+    #   operations.
+    #
+    # @since 1.0.0
+    def safe?
+      !!safety
+    end
+
+    # Get the safety level for the session.
+    #
+    # @example Get the safety level.
+    #   session.safety
+    #
+    # @return [ Boolean, Hash ] The safety level for this session.
+    #
+    # @since 1.0.0
     def safety
       safe = options[:safe]
-
       case safe
-      when false
-        false
-      when true
-        { safe: true }
+      when false then false
+      when true then { safe: true }
+      else safe
+      end
+    end
+
+    # Switch the session's current database.
+    #
+    # @example Switch the current database.
+    #   session.use :moped
+    #   session[:people].find.one # => { :name => "John" }
+    #
+    # @param [ String, Symbol ] database The database to use.
+    #
+    # @since 1.0.0
+    def use(database)
+      options[:database] = database
+      set_current_database database
+    end
+
+    # Create a new session with +options+ reusing existing connections.
+    #
+    # @example Change safe mode
+    #   session.with(safe: { w: 2 })[:people].insert(name: "Joe")
+    #
+    # @example Change safe mode with block
+    #   session.with(safe: { w: 2 }) do |session|
+    #     session[:people].insert(name: "Joe")
+    #   end
+    #
+    # @example Temporarily change database
+    #   session.with(database: "admin") do |admin|
+    #     admin.command ismaster: 1
+    #   end
+    #
+    # @example Copy between databases
+    #   session.use "moped"
+    #   session.with(database: "backup") do |backup|
+    #     session[:people].each do |person|
+    #       backup[:people].insert person
+    #     end
+    #   end
+    #
+    # @param [ Hash ] options The session options.
+    #
+    # @return [ Session, Object ] The new session, or the value returned
+    #   by the block if provided.
+    #
+    # @since 1.0.0
+    #
+    # @yieldparam [ Session ] session The new session.
+    def with(options = {})
+      session = dup
+      session.options.update(options)
+      if block_given?
+        yield session
       else
-        safe
+        session
       end
     end
 
@@ -191,10 +243,6 @@ module Moped
       end
     end
 
-    def set_current_database(database)
-      @current_database = Database.new(self, database)
-    end
-
     def initialize_copy(_)
       @context = Context.new(self)
       @options = @options.dup
@@ -202,6 +250,10 @@ module Moped
       if defined? @current_database
         remove_instance_variable :@current_database
       end
+    end
+
+    def set_current_database(database)
+      @current_database = Database.new(self, database)
     end
   end
 end
