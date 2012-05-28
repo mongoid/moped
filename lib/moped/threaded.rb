@@ -9,22 +9,58 @@ module Moped
   module Threaded
     extend self
 
-    # Begin a thread-local stack for +name+.
+    # Begin entry into a named thread local stack.
+    #
+    # @example Begin entry into the stack.
+    #   Threaded.begin(:create)
+    #
+    # @param [ String ] name The name of the stack.
+    #
+    # @return [ true ] True.
+    #
+    # @since 1.0.0
     def begin(name)
-      stack(name).push true
+      stack(name).push(true)
     end
 
-    # @return [Boolean] whether the stack is being executed
+    # Are in the middle of executing the named stack
+    #
+    # @example Are we in the stack execution?
+    #   Threaded.executing?(:create)
+    #
+    # @param [ Symbol ] name The name of the stack.
+    #
+    # @return [ true ] If the stack is being executed.
+    #
+    # @since 1.0.0
     def executing?(name)
       !stack(name).empty?
     end
 
-    # End the thread-local stack for +name+.
+    # Exit from a named thread local stack.
+    #
+    # @example Exit from the stack.
+    #   Threaded.end(:create)
+    #
+    # @param [ Symbol ] name The name of the stack
+    #
+    # @return [ true ] True.
+    #
+    # @since 1.0.0
     def end(name)
       stack(name).pop
     end
 
-    # @return [Array] a named, thread-local stack.
+    # Get the named stack.
+    #
+    # @example Get a stack by name
+    #   Threaded.stack(:create)
+    #
+    # @param [ Symbol ] name The name of the stack
+    #
+    # @return [ Array ] The stack.
+    #
+    # @since 1.0.0
     def stack(name)
       Thread.current["[moped]:#{name}-stack"] ||= []
     end
