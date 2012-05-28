@@ -19,56 +19,65 @@ module Moped
   class Query
     include Enumerable
 
-    # @return [Collection] the query's collection
-    attr_reader :collection
+    # @attribute [r] collection The collection to execute the query on.
+    # @attribute [r] operation The query operation.
+    # @attribute [r] selector The query selector.
+    attr_reader :collection, :operation, :selector
 
-    # @return [Hash] the query's selector
-    attr_reader :selector
-
-    # @api private
-    attr_reader :operation
-
-    # @param [Collection] collection the query's collection
-    # @param [Hash] selector the query's selector
-    def initialize(collection, selector)
-      @collection = collection
-      @selector = selector
-
-      @operation = Protocol::Query.new(
-        collection.database.name,
-        collection.name,
-        selector
+    # Get the count of matching documents in the query.
+    #
+    # @example Get the count.
+    #   db[:people].find.count
+    #
+    # @return [ Integer ] The number of documents that match the selector.
+    #
+    # @since 1.0.0
+    def count
+      result = collection.database.command(
+        count: collection.name,
+        query: selector
       )
+      result["n"].to_i
     end
 
-    # Set the query's limit.
+    # Get the distinct values in the collection for the provided key.
     #
-    # @param [Numeric] limit
-    # @return [Query] self
-    def limit(limit)
-      operation.limit = limit
-      self
+    # @example Get the distinct values.
+    #   db[:people].find.distinct(:name)
+    #
+    # @param [ Symbol, String ] key The name of the field.
+    #
+    # @return [ Array<Object ] The distinct values.
+    #
+    # @since 1.0.0
+    def distinct(key)
+      result = collection.database.command(
+        distinct: collection.name,
+        key: key.to_s,
+        query: selector
+      )
+      result["values"]
     end
 
-    # Set the number of documents to skip.
+    # Iterate through documents matching the query's selector.
     #
-    # @param [Numeric] skip
-    # @return [Query] self
-    def skip(skip)
-      operation.skip = skip
-      self
-    end
-
-    # Set the sort order for the query.
+    # @example Iterate over the matching documents.
+    #   db[:people].find.each do |doc|
+    #     #...
+    #   end
     #
-    # @example
-    #   db[:people].find.sort(name: 1, age: -1).one
+    # @return [ Enumerator ] The enumerator.
     #
-    # @param [Hash] sort
-    # @return [Query] self
-    def sort(sort)
-      operation.selector = { "$query" => selector, "$orderby" => sort }
-      self
+    # @since 1.0.0
+    #
+    # @yieldparam [ Hash ] document each matching document
+    def each
+      cursor = Cursor.new(session, operation)
+      cursor.to_enum.tap do |enum|
+        enum.each do |document|
+          yield document
+        end if block_given?
+      end
     end
 
     # Explain the current query.
@@ -77,6 +86,8 @@ module Moped
     #   db[:people].find.explain
     #
     # @return [ Hash ] The explain document.
+    #
+    # @since 1.0.0
     def explain
       operation.selector = {
         "$query" => selector,
@@ -85,19 +96,14 @@ module Moped
       } and first
     end
 
-    # Set the fields to return from the query.
+    # Get the first matching document.
     #
-    # @example
-    #   db[:people].find.select(name: 1).one # => { name: "John" }
+    # @example Get the first matching document.
+    #   db[:people].find.first
     #
-    # @param [Hash] select
-    # @return [Query] self
-    def select(select)
-      operation.fields = select
-      self
-    end
-
-    # @return [Hash] the first document that matches the selector.
+    # @return [ Hash ] The first document that matches the selector.
+    #
+    # @since 1.0.0
     def first
       reply = session.context.query(
         operation.database,
@@ -110,113 +116,177 @@ module Moped
       )
       reply.documents.first
     end
-    alias one first
+    alias :one :first
 
-    # Iterate through documents matching the query's selector.
+    # Initialize the query.
     #
-    # @yieldparam [Hash] document each matching document
-    def each
-      cursor = Cursor.new(session, operation)
-      cursor.to_enum.tap do |enum|
-        enum.each do |document|
-          yield document
-        end if block_given?
+    # @example Initialize the query.
+    #   Query.new(collection, selector)
+    #
+    # @param [ Collection ] collection The query's collection.
+    # @param [ Hash ] selector The query's selector.
+    #
+    # @since 1.0.0
+    def initialize(collection, selector)
+      @collection, @selector = collection, selector
+      @operation = Protocol::Query.new(
+        collection.database.name,
+        collection.name,
+        selector
+      )
+    end
+
+    # Set the query's limit.
+    #
+    # @example Set the limit.
+    #   db[:people].find.limit(20)
+    #
+    # @param [ Integer ] limit The number of documents to limit.
+    #
+    # @return [ Query ] self
+    #
+    # @since 1.0.0
+    def limit(limit)
+      operation.limit = limit
+      self
+    end
+
+    # Remove a single document matching the query's selector.
+    #
+    # @example Remove a single document.
+    #   db[:people].find(name: "John").remove
+    #
+    # @return [ Hash, nil ] If in safe mode the last error result.
+    #
+    # @since 1.0.0
+    def remove
+      session.with(consistency: :strong) do |session|
+        session.context.remove(
+          operation.database,
+          operation.collection,
+          operation.selector,
+          flags: [ :remove_first ]
+        )
       end
     end
 
-    # Get the distinct values in the collection for the provided key.
+    # Remove multiple documents matching the query's selector.
     #
-    # @example Get the distinct values.
-    #   query.distinct(:name)
+    # @example Remove all matching documents.
+    #   db[:people].find(name: "John").remove_all
     #
-    # @param [ Symbol, String ] key The name of the field.
+    # @return [ Hash, nil ] If in safe mode the last error result.
     #
-    # @return [ Array<Object ] The distinct values.
-    def distinct(key)
-      result = collection.database.command(
-        distinct: collection.name,
-        key: key.to_s,
-        query: selector
-      )
-
-      result["values"]
+    # @since 1.0.0
+    def remove_all
+      session.with(consistency: :strong) do |session|
+        session.context.remove(
+          operation.database,
+          operation.collection,
+          operation.selector
+        )
+      end
     end
 
-    # @return [Integer] the number of documents that match the selector.
-    def count
-      result = collection.database.command(
-        count: collection.name,
-        query: selector
-      )
+    # Set the fields to include or exclude from the query.
+    #
+    # @example Select the fields to include or exclude.
+    #   db[:people].find.select(name: 1).one # => { name: "John" }
+    #
+    # @param [ Hash ] select The inclusions or exclusions.
+    #
+    # @return [ Query ] self
+    #
+    # @since 1.0.0
+    def select(select)
+      operation.fields = select
+      self
+    end
 
-      result["n"].to_i
+    # Set the number of documents to skip.
+    #
+    # @example Set the number to skip.
+    #   db[:people].find.skip(20)
+    #
+    # @param [ Integer ] skip The number of documents to skip.
+    #
+    # @return [ Query ] self
+    #
+    # @since 1.0.0
+    def skip(skip)
+      operation.skip = skip
+      self
+    end
+
+    # Set the sort order for the query.
+    #
+    # @example Set the sort order.
+    #   db[:people].find.sort(name: 1, age: -1).one
+    #
+    # @param [ Hash ] sort The order as key/(1/-1) pairs.
+    #
+    # @return [ Query ] self
+    #
+    # @since 1.0.0
+    def sort(sort)
+      operation.selector = { "$query" => selector, "$orderby" => sort }
+      self
     end
 
     # Update a single document matching the query's selector.
     #
-    # @example
+    # @example Update the first matching document.
     #   db[:people].find(_id: 1).update(name: "John")
     #
-    # @param [Hash] change the changes to make to the document
-    # @param [Array] flags an array of operation flags. Valid values are:
+    # @param [ Hash ] change The changes to make to the document
+    # @param [ Array ] flags An array of operation flags. Valid values are:
     #   +:multi+ and +:upsert+
+    #
+    # @return [ Hash, nil ] If in safe mode the last error result.
+    #
+    # @since 1.0.0
     def update(change, flags = nil)
       session.with(consistency: :strong) do |session|
-        session.context.update operation.database,
+        session.context.update(
+          operation.database,
           operation.collection,
           operation.selector,
           change,
           flags: flags
+        )
       end
     end
 
     # Update multiple documents matching the query's selector.
     #
-    # @example
+    # @example Update multiple documents.
     #   db[:people].find(name: "John").update_all(name: "Mary")
     #
-    # @param [Hash] change the changes to make to the documents
+    # @param [ Hash ] change The changes to make to the documents
+    #
+    # @return [ Hash, nil ] If in safe mode the last error result.
+    #
+    # @since 1.0.0
     def update_all(change)
-      update change, [:multi]
+      update(change, [ :multi ])
     end
 
     # Update an existing document with +change+, otherwise create one.
     #
-    # @example
+    # @example Upsert the changes.
     #   db[:people].find.entries # => { name: "John" }
     #   db[:people].find(name: "John").upsert(name: "James")
     #   db[:people].find.entries # => { name: "James" }
     #   db[:people].find(name: "John").upsert(name: "Mary")
     #   db[:people].find.entries # => [{ name: "James" }, { name: "Mary" }]
     #
-    # @param [Hash] change the changes to make to the the document
+    # @param [ Hash ] change The changes to make to the the document.
+    #
+    # @return [ Hash, nil ] If in safe mode the last error result.
+    #
+    # @since 1.0.0
     def upsert(change)
-      update change, [:upsert]
-    end
-
-    # Remove a single document matching the query's selector.
-    #
-    # @example
-    #   db[:people].find(name: "John").remove
-    def remove
-      session.with(consistency: :strong) do |session|
-        session.context.remove operation.database,
-          operation.collection,
-          operation.selector,
-          flags: [:remove_first]
-      end
-    end
-
-    # Remove multiple documents matching the query's selector.
-    #
-    # @example
-    #   db[:people].find(name: "John").remove_all
-    def remove_all
-      session.with(consistency: :strong) do |session|
-        session.context.remove operation.database,
-          operation.collection,
-          operation.selector
-      end
+      update(change, [ :upsert ])
     end
 
     private

@@ -520,6 +520,5 @@ module Moped
         logger.debug indent + last.log_inspect + runtime
       end
     end
-
   end
 end
