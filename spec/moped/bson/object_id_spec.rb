@@ -123,4 +123,12 @@ describe Moped::BSON::ObjectId do
 
   end
 
+  describe "#to_json" do
+
+    it "returns a json representation of the id" do
+      Moped::BSON::ObjectId.from_data(bytes).to_json.should eq('{"$oid": "4e4d66343b39b68407000001"}')
+    end
+
+  end
+
 end

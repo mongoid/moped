@@ -48,6 +48,10 @@ module Moped
         @@string_format % data.unpack("C12")
       end
 
+      def to_json(*args)
+        "{\"$oid\": \"#{to_s}\"}"
+      end
+
       # Return the UTC time at which this ObjectId was generated. This may
       # be used instread of a created_at timestamp since this information
       # is always encoded in the object id.
