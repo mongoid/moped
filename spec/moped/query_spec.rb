@@ -27,11 +27,35 @@ describe Moped::Query do
     
     describe "#and_modify" do
       
+      context "when a sort exists" do
+        before do
+          users.insert(documents)
+          @modified_doc = users.find.sort(_id: -1).and_modify(:scope => 'new_scope')
+        end
+        
+        it "updates the document specified by the sort" do
+          @modified_doc["_id"].should eq(documents[1]["_id"])
+          @modified_doc["scope"].should eq('new_scope')
+        end
+      end
+      
+      context "when a selection has been made" do
+        before do
+          users.insert(documents)
+          @modified_doc = users.find(:_id => documents.first["_id"]).select(scope: 1, _id: 0).and_modify(:scope => 'new_scope')
+        end
+        
+        it "the selected fields are returned" do
+          @modified_doc["scope"].should eq('new_scope')
+          @modified_doc["_id"].should be_nil
+        end
+      end
+      
       context "default behavior" do
         before do
           users.insert(documents)
           @first_document_id = documents.first["_id"]
-          @modified_doc = users.find(:_id => @first_document_id).and_modify(:scope => 'new_scope')["value"]
+          @modified_doc = users.find(:_id => @first_document_id).and_modify(:scope => 'new_scope')
         end
       
         it "updates the selected document" do
@@ -43,21 +67,36 @@ describe Moped::Query do
         end
       end
       
-      context "with upsert" do
+      context "with upsert option" do
         before do
           users.find.remove_all
         end
         
         it "upserts a document when none is found" do
           missing_key = Moped::BSON::ObjectId.new
-          puts "missing_key: #{missing_key}"
-          modified_doc = users.find(:_id => missing_key).and_modify({ :scope => 'new_scope' }, :upsert => true)["value"]
+          modified_doc = users.find(:_id => missing_key).and_modify({ :scope => 'new_scope' }, :upsert => true)
           
           modified_doc["_id"].should eq(missing_key)
           modified_doc["scope"].should eq('new_scope')
           
           new_doc = users.find(:_id => missing_key).first
           new_doc["scope"].should eq('new_scope')
+        end
+      end
+      
+      context "with new option" do
+        before do
+          users.insert(documents)
+          @first_document_id = documents.first["_id"]
+          @modified_doc = users.find(:_id => @first_document_id).and_modify({:scope => 'new_scope'}, :new => false)
+        end
+        
+        it "updates the selected document" do
+          users.find(:_id => @first_document_id).first["scope"].should eq('new_scope')
+        end
+      
+        it "returns the document pre-modification" do
+          @modified_doc["scope"].should eq(scope)
         end
       end
     end

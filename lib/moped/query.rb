@@ -292,8 +292,11 @@ module Moped
     # Update an existing document with +change+ and return it
     #
     # @example
-    #  db[:people].find(name: "John").and_modify(name: "Jon") # => [{ name: "Jon" }]
-    #  db[:people].find(name: "John").and_modify(name: "Jon", :new => false) # => [{ name: "John" }]
+    #  db[:people].find(name: "John").and_modify(name: "Jon") # => [{ _id: objectId, name: "Jon" }]
+    #  db[:people].find(name: "John").and_modify(name: "Jon", :new => false) # => [{ _id: objectId, name: "John" }]
+    #  db[:people].find(name: "John").and_modify(name: "Jon", :upsert => true) # => [{ _id: objectId, name: "Jon" }]
+    #  db[:people].find.sort(_id: -1).and_modify(name: "Jon") # => [{ _id: objectId, name: "Jon" }]
+    #  db[:people].find(name: "John").select(name: 0).and_modify(name: "Jon") # => [{ _id: objectId }]
     #
     # @param [ Hash ] change The changes to make to the document
     # @param [ Hash ] options The options
@@ -302,6 +305,7 @@ module Moped
     #   rather than the modified document
     # @option options :upsert set to true if you want to create the document,
     #   if it does not already exist
+    #
     def and_modify(change, options = {})
       options = {
         :"new" => true,
@@ -315,10 +319,11 @@ module Moped
         :"new" => options[:new],
         upsert: options[:upsert]
       }
-      cmd[:sort] = selector["$orderby"] if selector["$orderby"]
-      puts "running command: #{cmd.inspect}"
+      cmd[:sort] = operation.selector["$orderby"] if operation.selector["$orderby"]
+      cmd[:fields] = operation.fields if operation.fields
+      
       result = collection.database.command(cmd)
-      result
+      result["value"] if result
     end
 
     private
