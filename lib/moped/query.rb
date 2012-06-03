@@ -301,11 +301,10 @@ module Moped
     # @param [ Hash ] change The changes to make to the document
     # @param [ Hash ] options The options
     # 
-    # @option options :new set to false if you want to return the original document, 
-    #   rather than the modified document
-    # @option options :upsert set to true if you want to create the document,
-    #   if it does not already exist
+    # @option options :new set to false if you want to return the original document
+    # @option options :upsert set to true if you want to upsert
     #
+    # @return [ Hash ] The document
     def and_modify(change, options = {})
       options = {
         :"new" => true,
