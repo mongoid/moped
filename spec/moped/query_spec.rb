@@ -24,6 +24,43 @@ describe Moped::Query do
         users.find("age" => { "$in" => nil }).first
       }.to raise_exception(Moped::Errors::QueryFailure)
     end
+    
+    describe "#and_modify" do
+      
+      context "default behavior" do
+        before do
+          users.insert(documents)
+          @first_document_id = documents.first["_id"]
+          @modified_doc = users.find(:_id => @first_document_id).and_modify(:scope => 'new_scope')["value"]
+        end
+      
+        it "updates the selected document" do
+          users.find(:_id => @first_document_id).first["scope"].should eq('new_scope')
+        end
+      
+        it "returns the modified document" do
+          @modified_doc["scope"].should eq('new_scope')
+        end
+      end
+      
+      context "with upsert" do
+        before do
+          users.find.remove_all
+        end
+        
+        it "upserts a document when none is found" do
+          missing_key = Moped::BSON::ObjectId.new
+          puts "missing_key: #{missing_key}"
+          modified_doc = users.find(:_id => missing_key).and_modify({ :scope => 'new_scope' }, :upsert => true)["value"]
+          
+          modified_doc["_id"].should eq(missing_key)
+          modified_doc["scope"].should eq('new_scope')
+          
+          new_doc = users.find(:_id => missing_key).first
+          new_doc["scope"].should eq('new_scope')
+        end
+      end
+    end
 
     describe "#limit" do
 

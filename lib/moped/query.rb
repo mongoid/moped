@@ -288,6 +288,38 @@ module Moped
     def upsert(change)
       update(change, [ :upsert ])
     end
+    
+    # Update an existing document with +change+ and return it
+    #
+    # @example
+    #  db[:people].find(name: "John").and_modify(name: "Jon") # => [{ name: "Jon" }]
+    #  db[:people].find(name: "John").and_modify(name: "Jon", :new => false) # => [{ name: "John" }]
+    #
+    # @param [ Hash ] change The changes to make to the document
+    # @param [ Hash ] options The options
+    # 
+    # @option options :new set to false if you want to return the original document, 
+    #   rather than the modified document
+    # @option options :upsert set to true if you want to create the document,
+    #   if it does not already exist
+    def and_modify(change, options = {})
+      options = {
+        :"new" => true,
+        upsert: false
+      }.merge!(options)
+      
+      cmd = {
+        findAndModify: collection.name,
+        query: selector,
+        update: change.merge(selector),
+        :"new" => options[:new],
+        upsert: options[:upsert]
+      }
+      cmd[:sort] = selector["$orderby"] if selector["$orderby"]
+      puts "running command: #{cmd.inspect}"
+      result = collection.database.command(cmd)
+      result
+    end
 
     private
 
