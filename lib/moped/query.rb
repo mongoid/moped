@@ -314,18 +314,28 @@ module Moped
       cmd = {
         findAndModify: collection.name,
         query: selector,
-        update: change.merge(selector),
         :"new" => options[:new],
         upsert: options[:upsert]
       }
       cmd[:sort] = operation.selector["$orderby"] if operation.selector["$orderby"]
       cmd[:fields] = operation.fields if operation.fields
+      cmd[:update] = check_for_modifiers(change)
       
       result = collection.database.command(cmd)
       result["value"] if result
     end
 
     private
+    
+    def check_for_modifiers change
+      keys = change.keys
+      modifier = keys.detect { |key| key.to_s.start_with?("$") }
+      if modifier && keys.size == 1
+        { modifier => change[modifier] }
+      else
+        change.merge(selector)
+      end
+    end
 
     def session
       collection.database.session

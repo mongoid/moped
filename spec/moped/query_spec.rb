@@ -82,6 +82,17 @@ describe Moped::Query do
           new_doc = users.find(:_id => missing_key).first
           new_doc["scope"].should eq('new_scope')
         end
+        
+        it "upserts with a modifier" do
+          missing_key = Moped::BSON::ObjectId.new
+          modified_doc = users.find(:_id => missing_key).and_modify({"$inc" => {:seq => 1}}, :upsert => true)
+          
+          modified_doc["_id"].should eq(missing_key)
+          modified_doc["seq"].should == 1
+          
+          new_doc = users.find(:_id => missing_key).first
+          new_doc["seq"].should == 1
+        end
       end
       
       context "with new option" do
@@ -545,5 +556,6 @@ describe Moped::Query do
         query.flags.should_not include :slave_ok
       end
     end
+    
   end
 end
