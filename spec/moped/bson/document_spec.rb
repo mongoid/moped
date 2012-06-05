@@ -28,8 +28,14 @@ describe Moped::BSON::Document do
   end
 
   context "utf8 data" do
+
     it "handles utf-8 string values" do
       doc = { "_id" => Moped::BSON::ObjectId.new, "type" => "gültig" }
+      Moped::BSON::Document.deserialize(StringIO.new(Moped::BSON::Document.serialize(doc))).should eq doc
+    end
+
+    it "handles utf-8 regexp values" do
+      doc = { "_id" => Moped::BSON::ObjectId.new, "type" => /^gültig/ }
       Moped::BSON::Document.deserialize(StringIO.new(Moped::BSON::Document.serialize(doc))).should eq doc
     end
 

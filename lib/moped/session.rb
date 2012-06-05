@@ -40,7 +40,7 @@ module Moped
     #
     # @param (see Moped::Database#[])
     # @return (see Moped::Database#[])
-    delegate :"[]" => :current_database
+    delegate :[] => :current_database
 
     # @method command(command)
     # Run +command+ on the current database.
