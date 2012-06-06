@@ -17,7 +17,7 @@ session = Moped::Session.new %w[127.0.0.1:27017]
 session.use "echo_test"
 
 session.with(safe: true) do |safe|
-  safe[:artists].insert(name: "Syd Vicious"
+  safe[:artists].insert(name: "Syd Vicious")
 end
 
 session[:artists].find(name: "Syd Vicious").
