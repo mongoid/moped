@@ -42,6 +42,20 @@ module Moped
     # @return (see Moped::Database#[])
     delegate :[] => :current_database
 
+    # @method collection_names
+    # Return non system collection name from the current database.
+    #
+    # @param (see Moped::Database#collection_names)
+    # @return (see Moped::Database#collection_names)
+    delegate :collection_names => :current_database
+
+    # @method collections
+    # Return non system collection name from the current database.
+    #
+    # @param (see Moped::Database#collections)
+    # @return (see Moped::Database#collections)
+    delegate :collections => :current_database
+
     # @method command(command)
     # Run +command+ on the current database.
     #
