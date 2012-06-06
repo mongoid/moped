@@ -484,3 +484,4 @@ failover. We've decided that, for now, it's not worth making the replica set
 code thread-safe.
 
 **TL;DR**: use one `Moped::Session` instance per thread.
+ 
