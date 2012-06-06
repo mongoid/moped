@@ -36,4 +36,34 @@ describe Moped::Collection do
       session[:users].find(scope: scope).entries.should eq documents
     end
   end
+
+  describe "#collection_names" do
+    before do
+      session.drop
+      session.command create: "users"
+      session.command create: "comments"
+    end
+
+    it "returns the name of all non system collections" do
+      collection_names = session.collection_names
+      collection_names.should be_instance_of(Array)
+      collection_names.sort.should eq %w[ users comments ].sort
+    end
+  end
+
+  describe "#collections" do
+    before do
+      session.drop
+      session.command create: "users"
+      session.command create: "comments"
+    end
+
+    it "returns the name of all non system collections" do
+      collections = session.collections
+      collections.should be_instance_of(Array)
+      collections.each do |collection|
+        collection.should be_instance_of(Moped::Collection)
+      end
+    end
+  end
 end

@@ -96,5 +96,27 @@ module Moped
     def [](collection)
       Collection.new(self, collection)
     end
+
+    # Get all non-system collections from the database
+    #
+    # @example
+    #   database.collections
+    #
+    # @since 1.0.0
+    def collections
+      collection_names.map{|name| Collection.new(self, name)}
+    end
+
+    # Get all non-system collection names from the database
+    #
+    # @example
+    #   database.collection_names
+    #
+    # @since 1.0.0
+    def collection_names
+      Collection.new(self, "system.namespaces").
+        find(name: { "$not" => /system|\$/ }).to_a.
+          map{|collection| collection["name"].split(".", 2).last}
+    end
   end
 end
