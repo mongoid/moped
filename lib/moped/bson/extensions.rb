@@ -5,6 +5,7 @@ require "moped/bson/extensions/float"
 require "moped/bson/extensions/hash"
 require "moped/bson/extensions/integer"
 require "moped/bson/extensions/nil_class"
+require "moped/bson/extensions/object"
 require "moped/bson/extensions/regexp"
 require "moped/bson/extensions/string"
 require "moped/bson/extensions/symbol"
@@ -49,6 +50,11 @@ module Moped
       class ::NilClass
         extend  BSON::Extensions::NilClass::ClassMethods
         include BSON::Extensions::NilClass
+      end
+
+      # @private
+      class ::Object
+        include BSON::Extensions::Object
       end
 
       # @private

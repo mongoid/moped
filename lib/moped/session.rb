@@ -182,12 +182,7 @@ module Moped
     #
     # @since 1.0.0
     def safety
-      safe = options[:safe]
-      case safe
-      when false then false
-      when true then { safe: true }
-      else safe
-      end
+      options[:safe].__safe_options__
     end
 
     # Switch the session's current database.

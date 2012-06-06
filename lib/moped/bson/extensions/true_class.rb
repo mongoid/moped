@@ -9,6 +9,10 @@ module Moped
           io << NULL_BYTE
           io << Types::TRUE
         end
+
+        def __safe_options__
+          { safe: true }
+        end
       end
     end
   end

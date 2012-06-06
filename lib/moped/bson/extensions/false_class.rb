@@ -9,6 +9,10 @@ module Moped
           io << NULL_BYTE
           io << NULL_BYTE
         end
+
+        def __safe_options__
+          false
+        end
       end
     end
   end
