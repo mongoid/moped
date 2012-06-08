@@ -65,6 +65,30 @@ describe Moped::Query do
       end
     end
 
+    describe "#hint" do
+
+      let(:documents) do
+        [
+          { "_id" => Moped::BSON::ObjectId.new, "scope" => scope, "n" => 0 },
+          { "_id" => Moped::BSON::ObjectId.new, "scope" => scope, "n" => 1 }
+        ]
+      end
+
+      before do
+        users.insert(documents)
+      end
+
+      it "works transparently when specifying an existing index" do
+        users.find(scope: scope).hint(_id: 1).to_a.should eq documents
+      end
+      
+      it "raises an error when hinting an invalid index" do
+        expect {
+          users.find(scope: scope).hint(scope: 1).to_a
+        }.to raise_error(Moped::Errors::QueryFailure, %r{failed with error 10113: "bad hint"})
+      end
+    end
+
     describe "#distinct" do
 
       let(:documents) do
