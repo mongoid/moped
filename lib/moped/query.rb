@@ -233,6 +233,12 @@ module Moped
       self
     end
 
+    def hint(hint)
+      operation.selector = {"$query" => selector} unless operation.selector['$query']
+      operation.selector['$hint'] = hint
+      self
+    end
+
     # Update a single document matching the query's selector.
     #
     # @example Update the first matching document.
