@@ -28,61 +28,88 @@ module Moped
   #   session.with(database: "admin").login("admin", "s3cr3t")
   #
   class Session
-    extend Forwardable
 
     # @attribute [r] cluster The session cluster.
     # @attribute [r] context The session context.
     # @attribute [r] options The session options.
     attr_reader :cluster, :context, :options
 
-    # @method [](collection)
     # Return +collection+ from the current database.
     #
     # @param (see Moped::Database#[])
+    #
     # @return (see Moped::Database#[])
-    delegate :[] => :current_database
+    #
+    # @since 1.0.0
+    def [](name)
+      current_database[name]
+    end
 
-    # @method collection_names
     # Return non system collection name from the current database.
     #
     # @param (see Moped::Database#collection_names)
+    #
     # @return (see Moped::Database#collection_names)
-    delegate :collection_names => :current_database
+    #
+    # @since 1.0.0
+    def collection_names
+      current_database.collection_names
+    end
 
-    # @method collections
     # Return non system collection name from the current database.
     #
     # @param (see Moped::Database#collections)
+    #
     # @return (see Moped::Database#collections)
-    delegate :collections => :current_database
+    #
+    # @since 1.0.0
+    def collections
+      current_database.collections
+    end
 
-    # @method command(command)
     # Run +command+ on the current database.
     #
     # @param (see Moped::Database#command)
+    #
     # @return (see Moped::Database#command)
-    delegate :command => :current_database
+    #
+    # @since 1.0.0
+    def command(op)
+      current_database.command(op)
+    end
 
-    # @method drop
     # Drop the current database.
     #
     # @param (see Moped::Database#drop)
+    #
     # @return (see Moped::Database#drop)
-    delegate :drop => :current_database
+    #
+    # @since 1.0.0
+    def drop
+      current_database.drop
+    end
 
-    # @method login(username, password)
     # Log in with +username+ and +password+ on the current database.
     #
     # @param (see Moped::Database#login)
+    #
     # @raise (see Moped::Database#login)
-    delegate :login => :current_database
+    #
+    # @since 1.0.0
+    def login(username, password)
+      current_database.login(username, password)
+    end
 
-    # @method logout
     # Log out from the current database.
     #
     # @param (see Moped::Database#logout)
+    #
     # @raise (see Moped::Database#login)
-    delegate :logout => :current_database
+    #
+    # @since 1.0.0
+    def logout
+      current_database.logout
+    end
 
     # Get the session's consistency.
     #

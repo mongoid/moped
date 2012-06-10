@@ -1,7 +1,6 @@
 require "logger"
 require "stringio"
 require "monitor"
-require "forwardable"
 
 require "moped/bson"
 require "moped/cluster"
