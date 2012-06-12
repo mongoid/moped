@@ -8,14 +8,26 @@ describe Moped::Collection do
   let(:scope) { object_id }
 
   describe "#drop" do
-    before do
-      session.drop
-      session.command create: "users"
+    context "when collection exists" do
+      before do
+        session.drop
+        session.command create: "users"
+      end
+
+      it "drops the collection" do
+        result = session[:users].drop
+        result["ns"].should eq "moped_test.users"
+      end
     end
 
-    it "drops the collection" do
-      result = session[:users].drop
-      result["ns"].should eq "moped_test.users"
+    context "when collection doesn't exist" do
+      before do
+        session.drop
+      end
+
+      it "works" do
+        session[:users].drop.should be_false
+      end
     end
   end
 
