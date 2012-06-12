@@ -22,7 +22,11 @@ module Moped
     #
     # @since 1.0.0
     def drop
-      database.command(drop: name)
+      begin
+        database.command(drop: name)
+      rescue Moped::Errors::OperationFailure => e
+        false
+      end
     end
 
     # Build a query for this collection.
