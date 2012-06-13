@@ -294,8 +294,54 @@ module Moped
     def upsert(change)
       update(change, [ :upsert ])
     end
+    
+    # Update an existing document with +change+ and return it
+    #
+    # @example
+    #  db[:people].find(name: "John").modify(name: "Jon") # => [{ _id: objectId, name: "Jon" }]
+    #  db[:people].find(name: "John").modify(name: "Jon", :new => false) # => [{ _id: objectId, name: "John" }]
+    #  db[:people].find(name: "John").modify(name: "Jon", :upsert => true) # => [{ _id: objectId, name: "Jon" }]
+    #  db[:people].find.sort(_id: -1).modify(name: "Jon") # => [{ _id: objectId, name: "Jon" }]
+    #  db[:people].find(name: "John").select(name: 0).modify(name: "Jon") # => [{ _id: objectId }]
+    #
+    # @param [ Hash ] change The changes to make to the document
+    # @param [ Hash ] options The options
+    # 
+    # @option options :new set to false if you want to return the original document
+    # @option options :upsert set to true if you want to upsert
+    #
+    # @return [ Hash ] The document
+    def modify(change, options = {})
+      options = {
+        :"new" => true,
+        upsert: false
+      }.merge!(options)
+      
+      cmd = {
+        findAndModify: collection.name,
+        query: selector,
+        :"new" => options[:new],
+        upsert: options[:upsert]
+      }
+      cmd[:sort] = operation.selector["$orderby"] if operation.selector["$orderby"]
+      cmd[:fields] = operation.fields if operation.fields
+      cmd[:update] = check_for_modifiers(change)
+      
+      result = collection.database.command(cmd)
+      result["value"] if result
+    end
 
     private
+    
+    def check_for_modifiers change
+      keys = change.keys
+      modifier = keys.detect { |key| key.to_s.start_with?("$") }
+      if modifier && keys.size == 1
+        { modifier => change[modifier] }
+      else
+        change.merge(selector)
+      end
+    end
 
     def session
       collection.database.session
