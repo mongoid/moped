@@ -292,11 +292,11 @@ module Moped
     # Update an existing document with +change+ and return it
     #
     # @example
-    #  db[:people].find(name: "John").and_modify(name: "Jon") # => [{ _id: objectId, name: "Jon" }]
-    #  db[:people].find(name: "John").and_modify(name: "Jon", :new => false) # => [{ _id: objectId, name: "John" }]
-    #  db[:people].find(name: "John").and_modify(name: "Jon", :upsert => true) # => [{ _id: objectId, name: "Jon" }]
-    #  db[:people].find.sort(_id: -1).and_modify(name: "Jon") # => [{ _id: objectId, name: "Jon" }]
-    #  db[:people].find(name: "John").select(name: 0).and_modify(name: "Jon") # => [{ _id: objectId }]
+    #  db[:people].find(name: "John").modify(name: "Jon") # => [{ _id: objectId, name: "Jon" }]
+    #  db[:people].find(name: "John").modify(name: "Jon", :new => false) # => [{ _id: objectId, name: "John" }]
+    #  db[:people].find(name: "John").modify(name: "Jon", :upsert => true) # => [{ _id: objectId, name: "Jon" }]
+    #  db[:people].find.sort(_id: -1).modify(name: "Jon") # => [{ _id: objectId, name: "Jon" }]
+    #  db[:people].find(name: "John").select(name: 0).modify(name: "Jon") # => [{ _id: objectId }]
     #
     # @param [ Hash ] change The changes to make to the document
     # @param [ Hash ] options The options
@@ -305,7 +305,7 @@ module Moped
     # @option options :upsert set to true if you want to upsert
     #
     # @return [ Hash ] The document
-    def and_modify(change, options = {})
+    def modify(change, options = {})
       options = {
         :"new" => true,
         upsert: false

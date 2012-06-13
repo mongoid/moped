@@ -25,12 +25,12 @@ describe Moped::Query do
       }.to raise_exception(Moped::Errors::QueryFailure)
     end
     
-    describe "#and_modify" do
+    describe "#modify" do
       
       context "when a sort exists" do
         before do
           users.insert(documents)
-          @modified_doc = users.find.sort(_id: -1).and_modify(:scope => 'new_scope')
+          @modified_doc = users.find.sort(_id: -1).modify(:scope => 'new_scope')
         end
         
         it "updates the document specified by the sort" do
@@ -42,7 +42,7 @@ describe Moped::Query do
       context "when a selection has been made" do
         before do
           users.insert(documents)
-          @modified_doc = users.find(:_id => documents.first["_id"]).select(scope: 1, _id: 0).and_modify(:scope => 'new_scope')
+          @modified_doc = users.find(:_id => documents.first["_id"]).select(scope: 1, _id: 0).modify(:scope => 'new_scope')
         end
         
         it "the selected fields are returned" do
@@ -55,7 +55,7 @@ describe Moped::Query do
         before do
           users.insert(documents)
           @first_document_id = documents.first["_id"]
-          @modified_doc = users.find(:_id => @first_document_id).and_modify(:scope => 'new_scope')
+          @modified_doc = users.find(:_id => @first_document_id).modify(:scope => 'new_scope')
         end
       
         it "updates the selected document" do
@@ -74,7 +74,7 @@ describe Moped::Query do
         
         it "upserts a document when none is found" do
           missing_key = Moped::BSON::ObjectId.new
-          modified_doc = users.find(:_id => missing_key).and_modify({ :scope => 'new_scope' }, :upsert => true)
+          modified_doc = users.find(:_id => missing_key).modify({ :scope => 'new_scope' }, :upsert => true)
           
           modified_doc["_id"].should eq(missing_key)
           modified_doc["scope"].should eq('new_scope')
@@ -85,7 +85,7 @@ describe Moped::Query do
         
         it "upserts with a modifier" do
           missing_key = Moped::BSON::ObjectId.new
-          modified_doc = users.find(:_id => missing_key).and_modify({"$inc" => {:seq => 1}}, :upsert => true)
+          modified_doc = users.find(:_id => missing_key).modify({"$inc" => {:seq => 1}}, :upsert => true)
           
           modified_doc["_id"].should eq(missing_key)
           modified_doc["seq"].should == 1
@@ -99,7 +99,7 @@ describe Moped::Query do
         before do
           users.insert(documents)
           @first_document_id = documents.first["_id"]
-          @modified_doc = users.find(:_id => @first_document_id).and_modify({:scope => 'new_scope'}, :new => false)
+          @modified_doc = users.find(:_id => @first_document_id).modify({:scope => 'new_scope'}, :new => false)
         end
         
         it "updates the selected document" do
