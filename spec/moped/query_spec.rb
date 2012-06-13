@@ -2,6 +2,179 @@ require "spec_helper"
 
 describe Moped::Query do
 
+  shared_examples_for "Modify" do
+
+    before do
+      users.find.remove_all
+    end
+
+    let(:one) do
+      Moped::BSON::ObjectId.new
+    end
+
+    let(:two) do
+      Moped::BSON::ObjectId.new
+    end
+
+    let(:doc_one) do
+      { "_id" => one, "name" => "Placebo" }
+    end
+
+    let(:doc_two) do
+      { "_id" => two, "name" => "Underworld" }
+    end
+
+    describe "#modify" do
+
+      before do
+        users.insert([ doc_one, doc_two ])
+      end
+
+      context "when the selector matches" do
+
+        context "when providing no options" do
+
+          let!(:result) do
+            users.find(_id: one).modify({ "$set" => { name: "Tool" }})
+          end
+
+          it "returns the first matching document" do
+            result.should eq(doc_one)
+          end
+
+          it "updates the document in the database" do
+            users.find(_id: one).first["name"].should eq("Tool")
+          end
+        end
+
+        context "when providing options" do
+
+          context "when providing new: true" do
+
+            let!(:result) do
+              users.find(_id: one).modify({ "$set" => { name: "Tool" }}, new: true)
+            end
+
+            it "returns the updated document" do
+              result["name"].should eq("Tool")
+            end
+
+            it "updates the document in the database" do
+              users.find(_id: one).first["name"].should eq("Tool")
+            end
+          end
+
+          context "when providing new: false" do
+
+            let!(:result) do
+              users.find(_id: one).modify({ "$set" => { name: "Tool" }}, new: false)
+            end
+
+            it "returns the first matching document" do
+              result.should eq(doc_one)
+            end
+
+            it "updates the document in the database" do
+              users.find(_id: one).first["name"].should eq("Tool")
+            end
+          end
+
+          context "when providing remove: true" do
+
+            let!(:result) do
+              users.find(_id: one).modify({ "$set" => { name: "Tool" }}, remove: true)
+            end
+
+            it "returns the first matching document" do
+              result.should eq(doc_one)
+            end
+
+            it "removes the document from the database" do
+              users.find(_id: one).first.should be_nil
+            end
+          end
+
+          context "when providing remove: false" do
+
+            let!(:result) do
+              users.find(_id: one).modify({ "$set" => { name: "Tool" }}, remove: false)
+            end
+
+            it "returns the first matching document" do
+              result.should eq(doc_one)
+            end
+
+            it "removes the document from the database" do
+              users.find(_id: one).first["name"].should eq("Tool")
+            end
+          end
+
+          context "when providing upsert: true" do
+
+            context "when not providing new: true" do
+
+              let!(:result) do
+                users.find(likes: 1).modify({ "$set" => { name: "Tool" }}, upsert: true)
+              end
+
+              it "returns an empty hash" do
+                result.should be_empty
+              end
+
+              it "inserts the document in the database" do
+                users.find(likes: 1).first["name"].should eq("Tool")
+              end
+            end
+
+            context "when providing new: true" do
+
+              let!(:result) do
+                users.find(likes: 1).
+                  modify({ "$set" => { name: "Tool" }}, upsert: true, new: true)
+              end
+
+              it "returns the new document" do
+                result["name"].should eq("Tool")
+              end
+
+              it "inserts the document in the database" do
+                users.find(likes: 1).first["name"].should eq("Tool")
+              end
+            end
+          end
+
+          context "when providing upsert: false" do
+
+            let!(:result) do
+              users.find(likes: 1).modify({ "$set" => { name: "Tool" }}, remove: false)
+            end
+
+            it "returns the nil" do
+              result.should be_nil
+            end
+
+            it "does not insert into the database" do
+              users.find(likes: 1).first.should be_nil
+            end
+          end
+        end
+      end
+
+      context "when the selector does not match anything" do
+
+        let(:result) do
+          users.
+            find(_id: Moped::BSON::ObjectId.new).
+            modify("$set" => { name: "Underworld" })
+        end
+
+        it "returns nil" do
+          result.should be_nil
+        end
+      end
+    end
+  end
+
   shared_examples_for "Query" do
 
     let!(:scope) do
@@ -23,93 +196,6 @@ describe Moped::Query do
       expect {
         users.find("age" => { "$in" => nil }).first
       }.to raise_exception(Moped::Errors::QueryFailure)
-    end
-    
-    describe "#modify" do
-      
-      context "when a sort exists" do
-        before do
-          users.insert(documents)
-          @modified_doc = users.find.sort(_id: -1).modify(:scope => 'new_scope')
-        end
-        
-        it "updates the document specified by the sort" do
-          @modified_doc["_id"].should eq(documents[1]["_id"])
-          @modified_doc["scope"].should eq('new_scope')
-        end
-      end
-      
-      context "when a selection has been made" do
-        before do
-          users.insert(documents)
-          @modified_doc = users.find(:_id => documents.first["_id"]).select(scope: 1, _id: 0).modify(:scope => 'new_scope')
-        end
-        
-        it "the selected fields are returned" do
-          @modified_doc["scope"].should eq('new_scope')
-          @modified_doc["_id"].should be_nil
-        end
-      end
-      
-      context "default behavior" do
-        before do
-          users.insert(documents)
-          @first_document_id = documents.first["_id"]
-          @modified_doc = users.find(:_id => @first_document_id).modify(:scope => 'new_scope')
-        end
-      
-        it "updates the selected document" do
-          users.find(:_id => @first_document_id).first["scope"].should eq('new_scope')
-        end
-      
-        it "returns the modified document" do
-          @modified_doc["scope"].should eq('new_scope')
-        end
-      end
-      
-      context "with upsert option" do
-        before do
-          users.find.remove_all
-        end
-        
-        it "upserts a document when none is found" do
-          missing_key = Moped::BSON::ObjectId.new
-          modified_doc = users.find(:_id => missing_key).modify({ :scope => 'new_scope' }, :upsert => true)
-          
-          modified_doc["_id"].should eq(missing_key)
-          modified_doc["scope"].should eq('new_scope')
-          
-          new_doc = users.find(:_id => missing_key).first
-          new_doc["scope"].should eq('new_scope')
-        end
-        
-        it "upserts with a modifier" do
-          missing_key = Moped::BSON::ObjectId.new
-          modified_doc = users.find(:_id => missing_key).modify({"$inc" => {:seq => 1}}, :upsert => true)
-          
-          modified_doc["_id"].should eq(missing_key)
-          modified_doc["seq"].should == 1
-          
-          new_doc = users.find(:_id => missing_key).first
-          new_doc["seq"].should == 1
-        end
-      end
-      
-      context "with new option" do
-        before do
-          users.insert(documents)
-          @first_document_id = documents.first["_id"]
-          @modified_doc = users.find(:_id => @first_document_id).modify({:scope => 'new_scope'}, :new => false)
-        end
-        
-        it "updates the selected document" do
-          users.find(:_id => @first_document_id).first["scope"].should eq('new_scope')
-        end
-      
-        it "returns the document pre-modification" do
-          @modified_doc["scope"].should eq(scope)
-        end
-      end
     end
 
     describe "#limit" do
@@ -168,7 +254,7 @@ describe Moped::Query do
       it "works transparently when specifying an existing index" do
         users.find(scope: scope).hint(_id: 1).to_a.should eq documents
       end
-      
+
       it "raises an error when hinting an invalid index" do
         expect {
           users.find(scope: scope).hint(scope: 1).to_a
@@ -436,6 +522,7 @@ describe Moped::Query do
       :primary
     end
 
+    include_examples "Modify"
     include_examples "Query"
 
     describe "#each" do
@@ -514,6 +601,7 @@ describe Moped::Query do
       :primary
     end
 
+    include_examples "Modify"
     include_examples "Query"
   end
 
@@ -580,6 +668,5 @@ describe Moped::Query do
         query.flags.should_not include :slave_ok
       end
     end
-    
   end
 end

@@ -118,6 +118,22 @@ module Moped
     end
     alias :one :first
 
+    # Apply an index hint to the query.
+    #
+    # @example Apply an index hint.
+    #   db[:people].find.hint("$natural" => 1)
+    #
+    # @param [ Hash ] hint The index hint.
+    #
+    # @return [ Query ] self
+    #
+    # @since 1.0.0
+    def hint(hint)
+      operation.selector = { "$query" => selector } unless operation.selector["$query"]
+      operation.selector["$hint"] = hint
+      self
+    end
+
     # Initialize the query.
     #
     # @example Initialize the query.
@@ -149,6 +165,45 @@ module Moped
     def limit(limit)
       operation.limit = limit
       self
+    end
+
+    # Execute a $findAndModify on the query.
+    #
+    # @example Find and modify a document, returning the original.
+    #   db[:bands].find.modify({ "$inc" => { likes: 1 }})
+    #
+    # @example Find and modify a document, returning the updated document.
+    #   db[:bands].find.modify({ "$inc" => { likes: 1 }}, new: true)
+    #
+    # @example Find and return a document, removing it from the database.
+    #   db[:bands].find.modify({}, remove: true)
+    #
+    # @example Find and return a document, upserting if no match found.
+    #   db[:bands].find.modify({}, upsert: true, new: true)
+    #
+    # @param [ Hash ] change The changes to make to the document.
+    # @param [ Hash ] options The options.
+    #
+    # @option options :new Set to true if you want to return the updated document.
+    # @option options :remove Set to true if the document should be deleted.
+    # @option options :upsert Set to true if you want to upsert
+    #
+    # @return [ Hash ] The document.
+    #
+    # @since 1.0.0
+    def modify(change, options = {})
+      command = {
+        findAndModify: collection.name,
+        query: selector
+      }.merge(options)
+
+      command[:sort] = operation.selector["$orderby"] if operation.selector["$orderby"]
+      command[:fields] = operation.fields if operation.fields
+      command[:update] = change unless options[:remove]
+
+      session.with(consistency: :strong) do |sess|
+        sess.command(command)["value"]
+      end
     end
 
     # Remove a single document matching the query's selector.
@@ -233,12 +288,6 @@ module Moped
       self
     end
 
-    def hint(hint)
-      operation.selector = {"$query" => selector} unless operation.selector['$query']
-      operation.selector['$hint'] = hint
-      self
-    end
-
     # Update a single document matching the query's selector.
     #
     # @example Update the first matching document.
@@ -294,54 +343,8 @@ module Moped
     def upsert(change)
       update(change, [ :upsert ])
     end
-    
-    # Update an existing document with +change+ and return it
-    #
-    # @example
-    #  db[:people].find(name: "John").modify(name: "Jon") # => [{ _id: objectId, name: "Jon" }]
-    #  db[:people].find(name: "John").modify(name: "Jon", :new => false) # => [{ _id: objectId, name: "John" }]
-    #  db[:people].find(name: "John").modify(name: "Jon", :upsert => true) # => [{ _id: objectId, name: "Jon" }]
-    #  db[:people].find.sort(_id: -1).modify(name: "Jon") # => [{ _id: objectId, name: "Jon" }]
-    #  db[:people].find(name: "John").select(name: 0).modify(name: "Jon") # => [{ _id: objectId }]
-    #
-    # @param [ Hash ] change The changes to make to the document
-    # @param [ Hash ] options The options
-    # 
-    # @option options :new set to false if you want to return the original document
-    # @option options :upsert set to true if you want to upsert
-    #
-    # @return [ Hash ] The document
-    def modify(change, options = {})
-      options = {
-        :"new" => true,
-        upsert: false
-      }.merge!(options)
-      
-      cmd = {
-        findAndModify: collection.name,
-        query: selector,
-        :"new" => options[:new],
-        upsert: options[:upsert]
-      }
-      cmd[:sort] = operation.selector["$orderby"] if operation.selector["$orderby"]
-      cmd[:fields] = operation.fields if operation.fields
-      cmd[:update] = check_for_modifiers(change)
-      
-      result = collection.database.command(cmd)
-      result["value"] if result
-    end
 
     private
-    
-    def check_for_modifiers change
-      keys = change.keys
-      modifier = keys.detect { |key| key.to_s.start_with?("$") }
-      if modifier && keys.size == 1
-        { modifier => change[modifier] }
-      else
-        change.merge(selector)
-      end
-    end
 
     def session
       collection.database.session
