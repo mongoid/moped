@@ -502,7 +502,7 @@ module Moped
       instrument_start = (logger = Moped.logger) && logger.debug? && Time.new
       yield
     ensure
-      log_operations(logger, operations, Time.new - instrument_start) if instrument_start && !$!
+      log_operations(logger, operations, Time.new - instrument_start) if instrument_start
     end
 
     def log_operations(logger, ops, duration)
