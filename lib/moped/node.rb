@@ -508,7 +508,7 @@ module Moped
     def log_operations(logger, ops, duration)
       prefix  = "  MOPED: #{address} "
       indent  = " "*prefix.length
-      runtime = (" (%.1fms)" % duration)
+      runtime = (" (%.4fms)" % duration)
 
       if ops.length == 1
         logger.debug prefix + ops.first.log_inspect + runtime
