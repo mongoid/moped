@@ -5,7 +5,7 @@ module Moped
       module Time
         module ClassMethods
           def __bson_load__(io)
-            at(io.read(8).unpack(INT64_PACK)[0]/1000.0)
+            at(io.read(8).unpack(INT64_PACK)[0]/1000.0).utc
           end
         end
 
