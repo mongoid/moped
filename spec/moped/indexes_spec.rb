@@ -10,7 +10,10 @@ describe Moped::Indexes do
   end
 
   before do
-    indexes.drop
+    begin
+      indexes.drop
+    rescue Exception
+    end
   end
 
   describe "#create" do
