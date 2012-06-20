@@ -115,8 +115,10 @@ module Moped
     # @since 1.0.0
     def collection_names
       Collection.new(self, "system.namespaces").
-        find(name: { "$not" => /system|\$/ }).to_a.
-          map{|collection| collection["name"].split(".", 2).last}
+        find(name: { "$not" => /system|\$/ }).
+        map do |doc|
+          doc["name"].sub(/^#{name}./, '')
+        end
     end
   end
 end
