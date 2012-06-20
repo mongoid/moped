@@ -12,8 +12,7 @@ module Moped
 
         def __bson_dump__(io, key)
           io << Types::FLOAT
-          io << key
-          io << NULL_BYTE
+          io << key.to_bson_cstring
           io << [self].pack(FLOAT_PACK)
         end
 

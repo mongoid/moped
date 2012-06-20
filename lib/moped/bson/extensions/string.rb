@@ -11,14 +11,30 @@ module Moped
 
         def __bson_dump__(io, key)
           io << Types::STRING
-          io << key
-          io << NULL_BYTE
+          io << key.to_bson_cstring
 
-          data = Extensions.force_binary(self)
+          data = to_utf8_binary
 
           io << [ data.bytesize + 1 ].pack(INT32_PACK)
           io << data
           io << NULL_BYTE
+        end
+
+        def to_bson_cstring
+          if include? NULL_BYTE
+            raise EncodingError, "#{inspect} cannot be converted to a BSON " \
+              "cstring because it contains a null byte"
+          end
+
+          to_utf8_binary << NULL_BYTE
+        end
+
+        def to_utf8_binary
+          encode(UTF8_ENCODING).force_encoding(BINARY_ENCODING)
+        rescue EncodingError
+          data = dup.force_encoding(UTF8_ENCODING)
+          raise unless data.valid_encoding?
+          data.force_encoding(BINARY_ENCODING)
         end
       end
     end

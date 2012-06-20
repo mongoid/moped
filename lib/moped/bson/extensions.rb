@@ -86,19 +86,6 @@ module Moped
         extend  BSON::Extensions::Boolean::ClassMethods
         include BSON::Extensions::TrueClass
       end
-
-      def force_binary(value)
-        begin
-          data = value.encode('utf-8')
-        rescue EncodingError
-          data = value.dup
-          data.force_encoding('utf-8')
-          raise unless data.valid_encoding?
-        end
-        data.force_encoding('binary')
-        data
-      end
-      module_function :force_binary
     end
   end
 end

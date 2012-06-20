@@ -32,14 +32,15 @@ module Moped
       def __bson_dump__(io, key)
         if scoped?
           io << Types::CODE_WITH_SCOPE
-          io << key
-          io << NULL_BYTE
+          io << key.to_bson_cstring
 
           code_start = io.length
 
           io << START_LENGTH
-          io << [code.bytesize+1].pack(INT32_PACK)
-          io << code.encode('utf-8').force_encoding('binary')
+
+          data = code.to_utf8_binary
+          io << [data.bytesize+1].pack(INT32_PACK)
+          io << data
           io << NULL_BYTE
 
           scope.__bson_dump__(io)
@@ -48,10 +49,11 @@ module Moped
 
         else
           io << Types::CODE
-          io << key
-          io << NULL_BYTE
-          io << [code.bytesize+1].pack(INT32_PACK)
-          io << code.encode('utf-8').force_encoding('binary')
+          io << key.to_bson_cstring
+
+          data = code.to_utf8_binary
+          io << [data.bytesize+1].pack(INT32_PACK)
+          io << data
           io << NULL_BYTE
         end
       end

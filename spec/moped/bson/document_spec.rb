@@ -74,6 +74,12 @@ describe Moped::BSON::Document do
         Hash["type" => string]
     end unless RUBY_PLATFORM =~ /java/
 
+    it "raises an exception for keys with null bytes" do
+      lambda do
+        Moped::BSON::Document.serialize("key\x00" => "value")
+      end.should raise_exception(EncodingError)
+    end
+
     it "raises an exception for binary string values of non utf-8 content" do
       lambda do
         Moped::BSON::Document.serialize({ "type" => 255.chr })

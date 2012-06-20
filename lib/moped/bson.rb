@@ -22,6 +22,9 @@ module Moped
 
     START_LENGTH = [0].pack(INT32_PACK).freeze
 
+    BINARY_ENCODING = Encoding.find 'binary'
+    UTF8_ENCODING   = Encoding.find 'utf-8'
+
     class << self
 
       # Create a new object id from the provided string.

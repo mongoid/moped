@@ -24,13 +24,9 @@ module Moped
 
         def __bson_dump__(io, key)
           io << Types::REGEX
-          io << key
-          io << NULL_BYTE
+          io << key.to_bson_cstring
 
-          data = Extensions.force_binary(source)
-
-          io << data
-          io << NULL_BYTE
+          io << source.to_bson_cstring
 
           io << 'i'  if (options & ::Regexp::IGNORECASE) != 0
           io << 'ms' if (options & ::Regexp::MULTILINE) != 0

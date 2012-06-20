@@ -24,8 +24,7 @@ module Moped
         def __bson_dump__(io = "", key = nil)
           if key
             io << Types::HASH
-            io << key
-            io << NULL_BYTE
+            io << key.to_bson_cstring
           end
 
           start = io.length

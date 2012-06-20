@@ -11,8 +11,7 @@ module Moped
 
         def __bson_dump__(io, key)
           io << Types::NULL
-          io << key
-          io << NULL_BYTE
+          io << key.to_bson_cstring
         end
       end
     end
