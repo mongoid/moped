@@ -224,7 +224,7 @@ describe Moped::BSON::Document do
   context "utc date time" do
     it_behaves_like "a serializable bson document" do
       let(:raw) { "\x13\x00\x00\x00\tdate\x00\x19\xD6\xA7\xDC1\x01\x00\x00\x00" }
-      let(:doc) { {"date" => Time.at(1313667012.121).utc } }
+      let(:doc) { {"date" => Time.at(1313667012, 121000).utc } }
     end
   end
 
