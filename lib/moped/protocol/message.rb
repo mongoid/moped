@@ -283,6 +283,19 @@ module Moped
 
       end
 
+      # Default implementation for a message is to do nothing when receiving
+      # replies.
+      #
+      # @example Receive replies.
+      #   message.receive_replies(connection)
+      #
+      # @param [ Connection ] connection The connection.
+      #
+      # @since 1.0.0
+      #
+      # @return [ nil ] nil.
+      def receive_replies(connection); end
+
       # Serializes the message and all of its fields to a new buffer or to the
       # provided buffer.
       #

@@ -72,8 +72,21 @@ module Moped
 
       def log_inspect
         type = "GET_MORE"
-
         "%-12s database=%s collection=%s limit=%s cursor_id=%s" % [type, database, collection, limit, cursor_id]
+      end
+
+      # Receive replies to the message.
+      #
+      # @example Receive replies.
+      #   message.receive_replies(connection)
+      #
+      # @param [ Connection ] connection The connection.
+      #
+      # @return [ Protocol::Reply ] The reply.
+      #
+      # @since 1.0.0
+      def receive_replies(connection)
+        connection.read
       end
     end
   end

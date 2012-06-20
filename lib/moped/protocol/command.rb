@@ -18,11 +18,8 @@ module Moped
 
       def log_inspect
         type = "COMMAND"
-
         "%-12s database=%s command=%s" % [type, database, selector.inspect]
       end
-
     end
-
   end
 end

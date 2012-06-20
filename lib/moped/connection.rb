@@ -116,7 +116,7 @@ module Moped
     # @since 1.0.0
     def receive_replies(operations)
       operations.map do |operation|
-        read if operation.is_a?(Protocol::Query) || operation.is_a?(Protocol::GetMore)
+        operation.receive_replies(self)
       end
     end
 

@@ -111,7 +111,6 @@ module Moped
 
       def log_inspect
         type = "QUERY"
-
         fields = []
         fields << ["%-12s", type]
         fields << ["database=%s", database]
@@ -121,12 +120,23 @@ module Moped
         fields << ["limit=%s", limit.inspect]
         fields << ["skip=%s", skip.inspect]
         fields << ["fields=%s", self.fields.inspect]
-
         f, v = fields.transpose
-
         f.join(" ") % v
       end
 
+      # Receive replies to the message.
+      #
+      # @example Receive replies.
+      #   message.receive_replies(connection)
+      #
+      # @param [ Connection ] connection The connection.
+      #
+      # @return [ Protocol::Reply ] The reply.
+      #
+      # @since 1.0.0
+      def receive_replies(connection)
+        connection.read
+      end
     end
   end
 end
