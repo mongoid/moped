@@ -65,11 +65,11 @@ module Moped
         # reply from.
         # @return [Reply] the deserialized reply
         def deserialize(buffer)
-          allocate.tap do |reply|
-            fields.each do |field|
-              reply.__send__ :"deserialize_#{field}", buffer
-            end
+          reply = allocate
+          fields.each do |field|
+            reply.__send__ :"deserialize_#{field}", buffer
           end
+          reply
         end
       end
 

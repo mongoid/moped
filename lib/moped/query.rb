@@ -73,11 +73,11 @@ module Moped
     # @yieldparam [ Hash ] document each matching document
     def each
       cursor = Cursor.new(session, operation)
-      cursor.to_enum.tap do |enum|
-        enum.each do |document|
-          yield document
-        end if block_given?
-      end
+      enum = cursor.to_enum
+      enum.each do |document|
+        yield document
+      end if block_given?
+      enum
     end
 
     # Explain the current query.

@@ -302,17 +302,16 @@ module Moped
       # @param [String] buffer a buffer to serialize to
       # @return [String] the result of serliazing this message
       def serialize(buffer = "")
-        buffer.tap do
-          start = buffer.length
+        start = buffer.length
 
-          self.class.fields.each do |field|
-            __send__ :"serialize_#{field}", buffer
-          end
-
-          self.length = buffer.length - start
-
-          buffer[start, 4] = serialize_length("")
+        self.class.fields.each do |field|
+          __send__ :"serialize_#{field}", buffer
         end
+
+        self.length = buffer.length - start
+
+        buffer[start, 4] = serialize_length("")
+        buffer
       end
 
       alias to_s serialize

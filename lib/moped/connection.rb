@@ -189,9 +189,9 @@ module Moped
         # @since 1.0.0
         def connect(host, port, timeout)
           Timeout::timeout(timeout) do
-            new(host, port).tap do |sock|
-              sock.set_encoding('binary')
-            end
+            sock = new(host, port)
+            sock.set_encoding('binary')
+            sock
           end
         end
       end

@@ -37,9 +37,9 @@ module Moped
     #
     # @since 1.0.0
     def default_logger
-      Logger.new(STDOUT).tap do |logger|
-        logger.level = Logger::INFO
-      end
+      logger = Logger.new(STDOUT)
+      logger.level = Logger::INFO
+      logger
     end
 
     # Set the logger.
