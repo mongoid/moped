@@ -28,9 +28,18 @@ describe Moped::BSON::Document do
   end
 
   context "utf8 data" do
+    it "handles utf-8 keys" do
+      doc = { "_id" => Moped::BSON::ObjectId.new, "gültig" => "type" }
+      Moped::BSON::Document.deserialize(StringIO.new(Moped::BSON::Document.serialize(doc))).should eq doc
+    end
 
     it "handles utf-8 string values" do
       doc = { "_id" => Moped::BSON::ObjectId.new, "type" => "gültig" }
+      Moped::BSON::Document.deserialize(StringIO.new(Moped::BSON::Document.serialize(doc))).should eq doc
+    end
+
+    it "handles utf-8 keys and values" do
+      doc = { "_id" => Moped::BSON::ObjectId.new, "gültig" => "gültig" }
       Moped::BSON::Document.deserialize(StringIO.new(Moped::BSON::Document.serialize(doc))).should eq doc
     end
 
@@ -85,6 +94,23 @@ describe Moped::BSON::Document do
         Moped::BSON::Document.serialize({ "type" => 255.chr })
       end.should raise_exception(EncodingError)
     end unless RUBY_PLATFORM =~ /java/
+
+    context "with a non-utf8 internal encoding" do
+      around do |example|
+        original, Encoding.default_internal = Encoding.default_internal, 'iso-8859-1'
+        example.run
+        Encoding.default_internal = original
+      end
+
+      it "returns data in the user's internal encoding" do
+        string = "R\xE9sum\xE9".force_encoding('iso-8859-1')
+
+        doc = { "string" => string }
+        Moped::BSON::Document.deserialize(StringIO.new(Moped::BSON::Document.serialize(doc))).should eq \
+          Hash["string" => string]
+      end
+    end
+
   end
 
   context "complex document" do

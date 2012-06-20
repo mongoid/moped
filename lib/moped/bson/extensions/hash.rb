@@ -10,7 +10,7 @@ module Moped
             io.read 4
 
             while (buf = io.readbyte) != 0
-              key = io.gets(NULL_BYTE).chop!
+              key = io.gets(NULL_BYTE).from_utf8_binary.chop!
 
               if native_class = Types::MAP[buf]
                 doc[key] = native_class.__bson_load__(io)

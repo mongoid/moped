@@ -5,7 +5,7 @@ module Moped
       module String
         module ClassMethods
           def __bson_load__(io)
-            io.read(*io.read(4).unpack(INT32_PACK)).chop!.force_encoding('utf-8')
+            io.read(*io.read(4).unpack(INT32_PACK)).from_utf8_binary.chop!
           end
         end
 
@@ -35,6 +35,10 @@ module Moped
           data = dup.force_encoding(UTF8_ENCODING)
           raise unless data.valid_encoding?
           data.force_encoding(BINARY_ENCODING)
+        end
+
+        def from_utf8_binary
+          force_encoding(UTF8_ENCODING).encode!
         end
       end
     end

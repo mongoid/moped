@@ -5,7 +5,7 @@ module Moped
       module Regexp
         module ClassMethods
           def __bson_load__(io)
-            source = io.gets(NULL_BYTE).chop!.force_encoding('utf-8')
+            source = io.gets(NULL_BYTE).from_utf8_binary.chop!
             options = 0
             while (option = io.getbyte) != 0
               case option

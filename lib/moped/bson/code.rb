@@ -24,7 +24,7 @@ module Moped
 
       class << self
         def __bson_load__(io)
-          code = io.read(*io.read(4).unpack(INT32_PACK)).chop!.force_encoding('utf-8')
+          code = io.read(*io.read(4).unpack(INT32_PACK)).from_utf8_binary.chop!
           new code
         end
       end
