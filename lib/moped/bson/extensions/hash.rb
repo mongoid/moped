@@ -27,7 +27,7 @@ module Moped
             io << key.to_bson_cstring
           end
 
-          start = io.length
+          start = io.bytesize
 
           # write dummy length
           io << START_LENGTH
@@ -37,7 +37,7 @@ module Moped
           end
           io << EOD
 
-          stop = io.length
+          stop = io.bytesize
           io[start, 4] = [stop - start].pack INT32_PACK
 
           io

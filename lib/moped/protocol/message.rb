@@ -276,11 +276,11 @@ module Moped
         def finalize
           class_eval <<-EOS, __FILE__, __LINE__ + 1
             def serialize(buffer = "")
-              start = buffer.length
+              start = buffer.bytesize
 
               #{fields.map { |f| "serialize_#{f}(buffer)" }.join("\n")}
 
-              self.length = buffer.length - start
+              self.length = buffer.bytesize - start
               buffer[start, 4] = serialize_length ""
               buffer
             end

@@ -34,7 +34,7 @@ module Moped
           io << Types::CODE_WITH_SCOPE
           io << key.to_bson_cstring
 
-          code_start = io.length
+          code_start = io.bytesize
 
           io << START_LENGTH
 

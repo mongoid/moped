@@ -48,19 +48,19 @@ module Moped
         io << NULL_BYTE
 
         if type == :old
-          io << [data.length + 4].pack(INT32_PACK)
+          io << [data.bytesize + 4].pack(INT32_PACK)
           io << SUBTYPE_MAP[type]
-          io << [data.length].pack(INT32_PACK)
+          io << [data.bytesize].pack(INT32_PACK)
           io << data
         else
-          io << [data.length].pack(INT32_PACK)
+          io << [data.bytesize].pack(INT32_PACK)
           io << SUBTYPE_MAP[type]
           io << data
         end
       end
 
       def inspect
-        "#<#{self.class.name} type=#{type.inspect} length=#{data.length}>"
+        "#<#{self.class.name} type=#{type.inspect} length=#{data.bytesize}>"
       end
 
     end
