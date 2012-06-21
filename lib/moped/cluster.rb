@@ -53,11 +53,14 @@ module Moped
     #
     # @since 1.0.0
     def nodes
+      current_time = Time.new
+      down_boundary = current_time - @options[:down_interval]
+      refresh_boundary = current_time - @options[:refresh_interval]
+
       # Find the nodes that were down but are ready to be refreshed, or those
       # with stale connection information.
       needs_refresh, available = @nodes.partition do |node|
-        (node.down? && node.down_at < (Time.new - @options[:down_interval])) ||
-          node.needs_refresh?(Time.new - @options[:refresh_interval])
+        (node.down? && node.down_at < down_boundary) || node.needs_refresh?(refresh_boundary)
       end
 
       # Refresh those nodes.
