@@ -51,6 +51,8 @@ module Moped
       # @return [Array] the returned documents
       document :documents, type: :array
 
+      finalize
+
       class << self
 
         # Consumes a buffer, returning the deserialized Reply message.

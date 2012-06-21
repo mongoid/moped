@@ -46,6 +46,8 @@ module Moped
       # @return [Array<Hash>] the documents to insert
       document :documents, type: :array
 
+      finalize
+
       undef op_code
       # @return [Number] OP_INSERT operation code (2002)
       def op_code

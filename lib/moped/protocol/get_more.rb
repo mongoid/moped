@@ -43,6 +43,8 @@ module Moped
       # @return [Number] the id of the cursor to get more documents from
       int64    :cursor_id
 
+      finalize
+
       undef op_code
       # @return [Number] OP_GETMORE operation code (2005)
       def op_code

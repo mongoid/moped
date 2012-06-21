@@ -56,6 +56,8 @@ module Moped
       # @return [Hash] the updates to apply
       document :update
 
+      finalize
+
       undef op_code
       # @return [Number] OP_UPDATE operation code (2001)
       def op_code

@@ -359,6 +359,7 @@ describe Moped::Protocol::Message do
         include Moped::Protocol::Message
         int32    :length
         flags    :flags, remove_single: 2 ** 0
+        finalize
       end
     end
 
@@ -378,6 +379,7 @@ describe Moped::Protocol::Message do
         cstring  :collection
         flags    :flags, remove_single: 2 ** 0
         document :selector
+        finalize
       end
     end
 

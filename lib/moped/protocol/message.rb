@@ -70,11 +70,6 @@ module Moped
           @fields ||= []
         end
 
-        # @return [Array] the fields defined for this message
-        def serializers
-          @serializers ||= []
-        end
-
         # Declare a null terminated string field.
         #
         # @example
@@ -94,7 +89,6 @@ module Moped
           RUBY
 
           fields << name
-          serializers << :"serialize_#{name}"
         end
 
         # Declare a BSON Document field.
@@ -145,7 +139,6 @@ module Moped
           end
 
           fields << name
-          serializers << :"serialize_#{name}"
         end
 
         # Declare a flag field (32 bit signed integer)
@@ -197,7 +190,6 @@ module Moped
           RUBY
 
           fields << name
-          serializers << :"serialize_#{name}"
         end
 
         # Declare a 32 bit signed integer field.
@@ -226,7 +218,6 @@ module Moped
           RUBY
 
           fields << name
-          serializers << :"serialize_#{name}"
         end
 
         # Declare a 64 bit signed integer field.
@@ -278,7 +269,23 @@ module Moped
           end
 
           fields << name
-          serializers << :"serialize_#{name}"
+        end
+
+        # Declares the message class as complete, and defines its serialization
+        # method from the declared fields.
+        def finalize
+          class_eval <<-EOS, __FILE__, __LINE__ + 1
+            def serialize(buffer = "")
+              start = buffer.length
+
+              #{fields.map { |f| "serialize_#{f}(buffer)" }.join("\n")}
+
+              self.length = buffer.length - start
+              buffer[start, 4] = serialize_length ""
+              buffer
+            end
+            alias to_s serialize
+          EOS
         end
 
         private
@@ -289,7 +296,6 @@ module Moped
           super
 
           subclass.fields.replace fields
-          subclass.serializers.replace serializers
         end
 
       end
@@ -313,18 +319,8 @@ module Moped
       # @param [String] buffer a buffer to serialize to
       # @return [String] the result of serliazing this message
       def serialize(buffer = "")
-        start = buffer.length
-
-        self.class.serializers.each do |serializer|
-          __send__ serializer, buffer
-        end
-
-        self.length = buffer.length - start
-
-        buffer[start, 4] = serialize_length("")
-        buffer
+        raise NotImplementedError, "This method is generated after calling #finalize on a message class"
       end
-
       alias to_s serialize
 
       # @return [String] the nicely formatted version of the message

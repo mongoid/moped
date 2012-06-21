@@ -45,6 +45,8 @@ module Moped
       # @return [Hash] the query to use when deleting documents
       document :selector
 
+      finalize
+
       # @return [String, Symbol] the database to delete from
       attr_reader :database
 
