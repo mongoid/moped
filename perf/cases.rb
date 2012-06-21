@@ -79,3 +79,9 @@ profile "Insert and find one (1000x, 5 threads)" do
     end
   end.each &:join
 end
+
+profile "Ask for all collection names, 1000x" do
+  1_000.times do
+    session.collection_names
+  end
+end
