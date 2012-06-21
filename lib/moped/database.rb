@@ -18,6 +18,64 @@ module Moped
     # @attribute [r] session The session.
     attr_reader :name, :session
 
+    # Get a collection by the provided name.
+    #
+    # @example Get a collection.
+    #   session[:users]
+    #
+    # @param [ Symbol, String ] collection The collection name.
+    #
+    # @return [ Collection ] An instance of the collection.
+    #
+    # @since 1.0.0
+    def [](collection)
+      Collection.new(self, collection)
+    end
+
+    # Get all non-system collections from the database.
+    #
+    # @example Get all the collections.
+    #   database.collections
+    #
+    # @return [ Array<Collection> ] All the collections.
+    #
+    # @since 1.0.0
+    def collections
+      collection_names.map{|name| Collection.new(self, name)}
+    end
+
+    # Get all non-system collection names from the database, this excludes
+    # indexes.
+    #
+    # @example Get all the collection names.
+    #   database.collection_names
+    #
+    # @return [ Array<String> ] The names of all collections.
+    #
+    # @since 1.0.0
+    def collection_names
+      namespaces = Collection.new(self, "system.namespaces").find(name: { "$not" => /system|\$/ })
+      namespaces.map do |doc|
+        _name = doc["name"]
+        _name[name.length + 1, _name.length]
+      end
+    end
+
+    # Run +command+ on the database.
+    #
+    # @example Run a command.
+    #   db.command(ismaster: 1)
+    #   # => { "master" => true, hosts: [] }
+    #
+    # @param [ Hash ] command The command to run.
+    #
+    # @return [ Hash ] the result of the command.
+    #
+    # @since 1.0.0
+    def command(command)
+      session.context.command name, command
+    end
+
     # Drop the database.
     #
     # @example Drop the database.
@@ -66,59 +124,6 @@ module Moped
     # @since 1.0.0
     def logout
       session.context.logout(name)
-    end
-
-    # Run +command+ on the database.
-    #
-    # @example Run a command.
-    #   db.command(ismaster: 1)
-    #   # => { "master" => true, hosts: [] }
-    #
-    # @param [ Hash ] command The command to run.
-    #
-    # @return [ Hash ] the result of the command.
-    #
-    # @since 1.0.0
-    def command(command)
-      session.context.command name, command
-    end
-
-    # Get a collection by the provided name.
-    #
-    # @example Get a collection.
-    #   session[:users]
-    #
-    # @param [ Symbol, String ] collection The collection name.
-    #
-    # @return [ Collection ] An instance of the collection.
-    #
-    # @since 1.0.0
-    def [](collection)
-      Collection.new(self, collection)
-    end
-
-    # Get all non-system collections from the database
-    #
-    # @example
-    #   database.collections
-    #
-    # @since 1.0.0
-    def collections
-      collection_names.map{|name| Collection.new(self, name)}
-    end
-
-    # Get all non-system collection names from the database
-    #
-    # @example
-    #   database.collection_names
-    #
-    # @since 1.0.0
-    def collection_names
-      namespaces = Collection.new(self, "system.namespaces").find(name: { "$not" => /system|\$/ })
-      namespaces.map do |doc|
-        _name = doc["name"]
-        _name[name.length + 1, _name.length]
-      end
     end
   end
 end
