@@ -70,6 +70,11 @@ module Moped
           @fields ||= []
         end
 
+        # @return [Array] the fields defined for this message
+        def serializers
+          @serializers ||= []
+        end
+
         # Declare a null terminated string field.
         #
         # @example
@@ -89,6 +94,7 @@ module Moped
           RUBY
 
           fields << name
+          serializers << :"serialize_#{name}"
         end
 
         # Declare a BSON Document field.
@@ -139,6 +145,7 @@ module Moped
           end
 
           fields << name
+          serializers << :"serialize_#{name}"
         end
 
         # Declare a flag field (32 bit signed integer)
@@ -190,6 +197,7 @@ module Moped
           RUBY
 
           fields << name
+          serializers << :"serialize_#{name}"
         end
 
         # Declare a 32 bit signed integer field.
@@ -218,6 +226,7 @@ module Moped
           RUBY
 
           fields << name
+          serializers << :"serialize_#{name}"
         end
 
         # Declare a 64 bit signed integer field.
@@ -269,6 +278,7 @@ module Moped
           end
 
           fields << name
+          serializers << :"serialize_#{name}"
         end
 
         private
@@ -279,6 +289,7 @@ module Moped
           super
 
           subclass.fields.replace fields
+          subclass.serializers.replace serializers
         end
 
       end
@@ -304,8 +315,8 @@ module Moped
       def serialize(buffer = "")
         start = buffer.length
 
-        self.class.fields.each do |field|
-          __send__ :"serialize_#{field}", buffer
+        self.class.serializers.each do |serializer|
+          __send__ serializer, buffer
         end
 
         self.length = buffer.length - start
