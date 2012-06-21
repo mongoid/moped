@@ -13,7 +13,7 @@ module Moped
         def __bson_dump__(io, key)
           io << Types::TIME
           io << key.to_bson_cstring
-          io << [to_f * 1000].pack(INT64_PACK)
+          io << [(to_i * 1000) + (usec / 1000)].pack(INT64_PACK)
         end
       end
     end
