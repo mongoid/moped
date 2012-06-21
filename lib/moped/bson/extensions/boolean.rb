@@ -5,7 +5,7 @@ module Moped
       module Boolean
         module ClassMethods
           def __bson_load__(io)
-            io.getbyte == 1
+            io.readbyte == 1
           end
         end
       end
