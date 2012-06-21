@@ -27,9 +27,13 @@ module Moped
           # write dummy length
           io << START_LENGTH
 
-          each_with_index do |value, index|
-            value.__bson_dump__(io, index.to_s)
+          index, length = 0, self.length
+
+          while index < length
+            slice(index).__bson_dump__(io, index.to_s)
+            index += 1
           end
+
           io << EOD
 
           stop = io.bytesize
