@@ -186,7 +186,7 @@ module Moped
     #
     # @since 1.0.0
     def hash
-      [ ip_address, port ].hash
+      resolved_address.hash
     end
 
     # Creat the new node.
@@ -511,7 +511,7 @@ module Moped
     end
 
     def log_operations(logger, ops, duration)
-      prefix  = "  MOPED: #{address} "
+      prefix  = "  MOPED: #{resolved_address} "
       indent  = " "*prefix.length
       runtime = (" (%.4fms)" % duration)
 
