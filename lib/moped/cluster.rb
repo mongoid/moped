@@ -196,6 +196,10 @@ module Moped
       end
     end
 
+    def inspect
+      "<#{self.class.name} nodes=#{@nodes.inspect}>"
+    end
+
     private
 
     def initialize_copy(_)

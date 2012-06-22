@@ -396,6 +396,11 @@ module Moped
       process(Protocol::Update.new(database, collection, selector, change, options))
     end
 
+    def inspect
+      "<#{self.class.name} resolved_address=#{@resolved_address.inspect}>"
+    end
+
+
     private
 
     def auth
