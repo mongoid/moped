@@ -5,6 +5,42 @@ describe Moped::BSON::ObjectId do
     [78, 77, 102, 52, 59, 57, 182, 132, 7, 0, 0, 1].pack("C12")
   end
 
+  describe "unmarshalling" do
+    let(:marshal_data) do
+      Marshal.dump(Moped::BSON::ObjectId.from_data(bytes))
+    end
+
+    it "does not attempt to repair the id" do
+      id = Marshal.load(marshal_data)
+      id.should_receive(:repair!).never
+      id.data
+    end
+
+    context "when the object id was marshalled before a custom marshal strategy was added" do
+      let(:marshal_data) do
+        "\x04\bo:\x1AMoped::BSON::ObjectId\x06:\n@data\"\x11NMf4;9\xB6\x84\a\x00\x00\x01"
+      end
+
+      it "repairs the object id" do
+        id = Marshal.load(marshal_data)
+        id.should_receive :repair!
+        id.data
+      end
+    end
+
+    context "when the object id was marshalled in the mongo-ruby-driver format" do
+      let(:marshal_data) do
+        "\x04\bo:\x1AMoped::BSON::ObjectId\x06:\n@data[\x11iSiRiki9i@i>i\x01\xB6i\x01\x84i\fi\x00i\x00i\x06"
+      end
+
+      it "repairs the object id" do
+        id = Marshal.load(marshal_data)
+        id.should_receive :repair!
+        id.data
+      end
+    end
+  end
+
   describe ".from_string" do
 
     context "when the string is valid" do
@@ -129,6 +165,32 @@ describe Moped::BSON::ObjectId do
       Moped::BSON::ObjectId.from_data(bytes).to_json.should eq('{"$oid": "4e4d66343b39b68407000001"}')
     end
 
+  end
+
+  describe "#repair!" do
+    let(:id) { Moped::BSON::ObjectId.allocate }
+
+    context "when the data is a 12-element array" do
+      it "sets the id's data to the byte string" do
+        id.send(:repair!, bytes.unpack("C*"))
+        id.data.should eq bytes
+      end
+    end
+
+    context "when the data is a 12-element byte string" do
+      it "sets the id's data to the byte string" do
+        id.send(:repair!, bytes)
+        id.data.should eq bytes
+      end
+    end
+
+    context "when the data is in another format" do
+      it "raises a type error" do
+        lambda do
+          id.send(:repair!, bytes.unpack("C11"))
+        end.should raise_exception(TypeError)
+      end
+    end
   end
 
 end
