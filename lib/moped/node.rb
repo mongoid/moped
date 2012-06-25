@@ -288,6 +288,30 @@ module Moped
       @primary
     end
 
+    # Is the node an arbiter?
+    #
+    # @example Is the node an arbiter?
+    #   node.arbiter?
+    #
+    # @return [ true, false ] If the node is an arbiter.
+    #
+    # @since 1.0.0
+    def arbiter?
+      @arbiter
+    end
+
+    # Is the node passive?
+    #
+    # @example Is the node passive?
+    #   node.passive?
+    #
+    # @return [ true, false ] If the node is passive.
+    #
+    # @since 1.0.0
+    def passive?
+      @passive
+    end
+
     # Execute a query on the node.
     #
     # @example Execute a query.
@@ -343,6 +367,8 @@ module Moped
 
       @peers = peers.map { |peer| Node.new(peer) }
       @primary, @secondary = primary, secondary
+      @arbiter = info["arbiterOnly"]
+      @passive = info["passive"]
 
       if !primary && Threaded.executing?(:ensure_primary)
         raise Errors::ReplicaSetReconfigured, "#{inspect} is no longer the primary node."

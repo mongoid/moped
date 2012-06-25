@@ -44,7 +44,7 @@ module Moped
 
     # Returns the list of available nodes, refreshing 1) any nodes which were
     # down and ready to be checked again and 2) any nodes whose information is
-    # out of date.
+    # out of date. Arbiter nodes are not returned.
     #
     # @example Get the available nodes.
     #   cluster.nodes
@@ -66,8 +66,9 @@ module Moped
       # Refresh those nodes.
       available.concat refresh(needs_refresh)
 
-      # Now return all the nodes that are available.
-      available.reject(&:down?)
+      # Now return all the nodes that are available and participating in the
+      # replica set.
+      available.reject { |node| node.down? || node.arbiter? }
     end
 
     # Refreshes information for each of the nodes provided. The node list
