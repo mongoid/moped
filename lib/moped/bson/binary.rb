@@ -63,6 +63,10 @@ module Moped
         "#<#{self.class.name} type=#{type.inspect} length=#{data.bytesize}>"
       end
 
+      def to_s
+        data.to_s
+      end
+
     end
   end
 end
