@@ -66,7 +66,6 @@ module Moped
       def to_s
         data.to_s
       end
-
     end
   end
 end

@@ -52,6 +52,10 @@ module Moped
         @@string_format % data.unpack("C12")
       end
 
+      def inspect
+        to_s.inspect
+      end
+
       def to_json(*args)
         "{\"$oid\": \"#{to_s}\"}"
       end
