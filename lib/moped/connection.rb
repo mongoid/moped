@@ -90,7 +90,7 @@ module Moped
         reply.flags,
         reply.cursor_id,
         reply.offset,
-        reply.count = @sock.read(36).unpack('l5<q<l2<')
+        reply.count = @sock.read(36).unpack('l<5q<l<2')
 
       if reply.count == 0
         reply.documents = []
