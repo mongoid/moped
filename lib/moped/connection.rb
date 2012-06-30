@@ -7,8 +7,6 @@ module Moped
   # @api private
   class Connection
 
-    DIRECTIVE = one_nine_two? ? 'l5<q<l2<' : 'l<5q<l<2'
-
     # Is the connection alive?
     #
     # @example Is the connection alive?
@@ -92,7 +90,7 @@ module Moped
         reply.flags,
         reply.cursor_id,
         reply.offset,
-        reply.count = @sock.read(36).unpack(DIRECTIVE)
+        reply.count = @sock.read(36).unpack('l<5q<l<2')
 
       if reply.count == 0
         reply.documents = []
