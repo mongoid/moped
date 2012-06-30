@@ -13,7 +13,7 @@ Project Tracking
 Compatibility
 -------------
 
-Moped is tested against MRI 1.9.3, 2.0.0, and JRuby (1.9).
+Moped is tested against MRI 1.9.2, 1.9.3, 2.0.0, and JRuby (1.9).
 
 Documentation
 -------------
