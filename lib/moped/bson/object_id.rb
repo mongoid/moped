@@ -16,7 +16,7 @@ module Moped
         end
 
         def legal?(str)
-          !!str.match(/\A\h{24}\Z/i)
+          /\A\h{24}\Z/ === str
         end
 
         def from_data(data)
