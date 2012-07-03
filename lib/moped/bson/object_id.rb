@@ -5,15 +5,10 @@ module Moped
   module BSON
     class ObjectId
 
-      # Formatting string for outputting an ObjectId.
-      @@string_format = ("%02x" * 12).freeze
-
       class << self
         def from_string(string)
           raise Errors::InvalidObjectId.new(string) unless legal?(string)
-          data = []
-          12.times { |i| data << string[i*2, 2].to_i(16) }
-          from_data data.pack("C12")
+          from_data [string].pack("H*")
         end
 
         def from_time(time)
@@ -49,7 +44,7 @@ module Moped
       end
 
       def to_s
-        @@string_format % data.unpack("C12")
+        data.unpack("H*")[0]
       end
 
       def inspect
