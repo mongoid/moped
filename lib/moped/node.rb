@@ -531,13 +531,13 @@ module Moped
       instrument_start = (logger = Moped.logger) && logger.debug? && Time.new
       yield
     ensure
-      log_operations(logger, operations, Time.new - instrument_start) if instrument_start
+      log_operations(logger, operations, 1000 * (Time.new.to_f - instrument_start.to_f)) if instrument_start
     end
 
-    def log_operations(logger, ops, duration)
+    def log_operations(logger, ops, duration_ms)
       prefix  = "  MOPED: #{resolved_address} "
       indent  = " "*prefix.length
-      runtime = (" (%.4fms)" % duration)
+      runtime = (" (%.4fms)" % duration_ms)
 
       if ops.length == 1
         logger.debug prefix + ops.first.log_inspect + runtime
