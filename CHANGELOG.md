@@ -1,8 +1,17 @@
 # Overview
 
-## 1.1.0 (branch: master)
+## 1.1.1
 
-### New Features
+### Resolved Issues
+
+* mongoid/mongoid\#2175 Fixed sorting by object ids.
+
+## 1.1.0
+
+### Resolved Issues
+
+* \#29 Fixed endian directives order. Moped will now work properly on
+  all architectures. This removes support for MRI 1.9.2. (Miguel Herranz)
 
 ### Resolved Issues
 
