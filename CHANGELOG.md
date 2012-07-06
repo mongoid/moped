@@ -1,5 +1,16 @@
 # Overview
 
+## 1.2.0
+
+### New Features
+
+* \#33 Added `Session#databases` and `Session#database_names` as a convenience
+  for getting all database information for the server.
+
+        session = Moped::Session.new([ "localhost:27017" ])
+        session.database_names #=> [ "moped_test" ]
+        session.databases #=> { "databases" => [{ "name" => "moped_test" }]}
+
 ## 1.1.1
 
 ### Resolved Issues

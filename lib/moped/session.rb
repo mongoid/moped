@@ -78,6 +78,36 @@ module Moped
       current_database.command(op)
     end
 
+    # Get a list of all the database names for the session.
+    #
+    # @example Get all the database names.
+    #   session.database_names
+    #
+    # @note This requires admin access on your server.
+    #
+    # @return [ Array<String>] All the database names.
+    #
+    # @since 1.2.0
+    def database_names
+      databases["databases"].map { |database| database["name"] }
+    end
+
+    # Get information on all databases for the session. This includes the name,
+    # size on disk, and if it is empty or not.
+    #
+    # @example Get all the database information.
+    #   session.databases
+    #
+    # @note This requires admin access on your server.
+    #
+    # @return [ Hash ] The hash of database information, under the "databases"
+    #   key.
+    #
+    # @since 1.2.0
+    def databases
+      with(database: :admin).command(listDatabases: 1)
+    end
+
     # Drop the current database.
     #
     # @param (see Moped::Database#drop)
