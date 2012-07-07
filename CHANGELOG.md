@@ -28,6 +28,8 @@
 
 ## 1.0.1
 
+* mongoid/mongoid\#2175 Fixed sorting by object ids.
+
 * \#28 `BSON::Binary` and `BSON::ObjectId` now have readable `to_s` and
   `inspect` methods. (Ara Howard)
 
