@@ -16,6 +16,7 @@ task :release => :build do
   system "git tag -a v#{Moped::VERSION} -m 'Tagging #{Moped::VERSION}'"
   system "git push --tags"
   system "gem push moped-#{Moped::VERSION}.gem"
+  system "rm moped-#{Moped::VERSION}.gem"
 end
 
 RSpec::Core::RakeTask.new(:spec) do |spec|
