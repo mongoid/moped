@@ -44,6 +44,10 @@ module Moped
       end
       alias eql? ==
 
+      def <=>(other)
+        data <=> other.data
+      end
+
       def hash
         data.hash
       end
