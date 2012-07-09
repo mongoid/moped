@@ -9,6 +9,7 @@ Project Tracking
 
 * [Mongoid Google Group](http://groups.google.com/group/mongoid)
 * [Moped Website and Documentation](http://mongoid.org/en/moped/)
+* [Moped Code Climate](https://codeclimate.com/github/mongoid/moped)
 
 Compatibility
 -------------
