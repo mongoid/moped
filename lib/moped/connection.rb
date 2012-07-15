@@ -191,6 +191,7 @@ module Moped
           Timeout::timeout(timeout) do
             sock = new(host, port)
             sock.set_encoding('binary')
+            sock.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, 1)
             sock
           end
         end
