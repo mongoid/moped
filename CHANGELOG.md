@@ -1,5 +1,9 @@
 # Overview
 
+## 1.1.2
+
+* \#37 Use `TCP_NODELAY` for socket options. (Nicolas Viennot)
+
 ## 1.1.1
 
 ### Resolved Issues
