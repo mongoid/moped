@@ -1,8 +1,26 @@
 require "spec_helper"
 
 describe Moped::Cluster, replica_set: true do
+
   let(:replica_set) do
     Moped::Cluster.new(seeds, {})
+  end
+
+  describe "#disconnect" do
+
+    let!(:disconnected) do
+      replica_set.disconnect
+    end
+
+    it "disconnects from all the nodes in the cluster" do
+      replica_set.nodes.each do |node|
+        node.should_not be_connected
+      end
+    end
+
+    it "returns true" do
+      disconnected.should be_true
+    end
   end
 
   context "when no nodes are available" do

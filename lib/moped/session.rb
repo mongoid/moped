@@ -108,6 +108,17 @@ module Moped
       with(database: :admin).command(listDatabases: 1)
     end
 
+    # Disconnects all nodes in the session's cluster. This should only be used
+    # in cases # where you know you're not going to use the cluster on the
+    # thread anymore and need to force the connections to close.
+    #
+    # @return [ true ] True if the disconnect succeeded.
+    #
+    # @since 1.2.0
+    def disconnect
+      cluster.disconnect
+    end
+
     # Drop the current database.
     #
     # @param (see Moped::Database#drop)

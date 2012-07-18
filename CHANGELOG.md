@@ -4,6 +4,11 @@
 
 ### New Features
 
+* mongoid/mongoid\#2210 Added `Session#disconnect` which will disconnect all
+  nodes in the cluster from their respective database servers. Useful for cases
+  where a large number of database connections are being created on separate
+  threads and need to be explicitly closed after their work is completed.
+
 * \#33 Added `Session#databases` and `Session#database_names` as a convenience
   for getting all database information for the server.
 

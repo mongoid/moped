@@ -9,6 +9,20 @@ describe Moped::Node, replica_set: true do
     Moped::Node.new(replica_set_node.address)
   end
 
+  describe "#disconnect" do
+
+    context "when the node is running" do
+
+      before do
+        node.disconnect
+      end
+
+      it "disconnects from the server" do
+        node.should_not be_connected
+      end
+    end
+  end
+
   describe "#ensure_connected" do
     context "when node is running" do
       it "processes the block" do

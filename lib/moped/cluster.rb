@@ -19,6 +19,17 @@ module Moped
       @auth ||= {}
     end
 
+    # Disconnects all nodes in the cluster. This should only be used in cases
+    # where you know you're not going to use the cluster on the thread anymore
+    # and need to force the connections to close.
+    #
+    # @return [ true ] True if the disconnect succeeded.
+    #
+    # @since 1.2.0
+    def disconnect
+      nodes.each { |node| node.disconnect } and true
+    end
+
     # Initialize the new cluster.
     #
     # @example Initialize the cluster.

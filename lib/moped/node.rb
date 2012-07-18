@@ -76,6 +76,16 @@ module Moped
       end
     end
 
+    # Force the node to disconnect from the server.
+    #
+    # @return [ nil ] nil.
+    #
+    # @since 1.2.0
+    def disconnect
+      auth.clear
+      connection.disconnect
+    end
+
     # Is the node down?
     #
     # @example Is the node down?
@@ -462,11 +472,6 @@ module Moped
 
     def connection
       @connection ||= Connection.new
-    end
-
-    def disconnect
-      auth.clear
-      connection.disconnect
     end
 
     def connected?

@@ -36,6 +36,23 @@ describe Moped::Session do
     end
   end
 
+  describe "#disconnect" do
+
+    let!(:disconnected) do
+      session.disconnect
+    end
+
+    it "disconnects from the cluster" do
+      session.cluster.nodes.each do |node|
+        node.should_not be_connected
+      end
+    end
+
+    it "returns true" do
+      disconnected.should be_true
+    end
+  end
+
   describe "#drop" do
 
     it "drops the current database" do
