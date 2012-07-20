@@ -16,7 +16,15 @@
         session.database_names #=> [ "moped_test" ]
         session.databases #=> { "databases" => [{ "name" => "moped_test" }]}
 
+## 1.1.3
+
+### Resolved Issues
+
+* Queries now can be duped/cloned and be initialized properly.
+
 ## 1.1.2
+
+### Resolved Issues
 
 * \#37 Use `TCP_NODELAY` for socket options. (Nicolas Viennot)
 
