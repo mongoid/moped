@@ -2,6 +2,36 @@ require "spec_helper"
 
 describe Moped::Query do
 
+  [ :clone, :dup ].each do |method|
+
+    describe "##{method}" do
+
+      let(:session) do
+        Moped::Session.new([ "127.0.0.1:27017" ], database: "moped_test")
+      end
+
+      let(:users) do
+        session[:users]
+      end
+
+      let(:query) do
+        users.find.select(_id: 1)
+      end
+
+      let!(:copied) do
+        query.send(method)
+      end
+
+      it "dups the operation" do
+        copied.operation.should_not equal(query.operation)
+      end
+
+      it "dups the selector" do
+        copied.selector.should_not equal(query.selector)
+      end
+    end
+  end
+
   shared_examples_for "Modify" do
 
     before do
