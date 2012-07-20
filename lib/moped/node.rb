@@ -495,12 +495,6 @@ module Moped
     def connect
       connection.connect ip_address, port, timeout
       @down_at = nil
-    rescue Timeout::Error
-      raise Errors::ConnectionFailure, "Timed out connection to Mongo on #{address}"
-    rescue Errno::ECONNREFUSED
-      raise Errors::ConnectionFailure, "Could not connect to Mongo on #{address}"
-    rescue Errno::ECONNRESET
-      raise Errors::ConnectionFailure, "Connection reset to Mongo on #{address}"
     end
 
     def process(operation, &callback)

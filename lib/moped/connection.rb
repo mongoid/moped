@@ -141,6 +141,7 @@ module Moped
 
     # This is a wrapper around a tcp socket.
     class TCPSocket < ::TCPSocket
+      attr_reader :host, :port
 
       # Is the socket connection alive?
       #
@@ -158,6 +159,26 @@ module Moped
         end
       end
 
+      def handle_socket_errors
+        yield
+      rescue Timeout::Error
+        raise Errors::ConnectionFailure, "Timed out connection to Mongo on #{host}:#{port}"
+      rescue Errno::ECONNREFUSED
+        raise Errors::ConnectionFailure, "Could not connect to Mongo on #{host}:#{port}"
+      rescue Errno::ECONNRESET
+        raise Errors::ConnectionFailure, "Connection reset to Mongo on #{host}:#{port}"
+      end
+
+      def initialize(host, port)
+        @host = host
+        @port = port
+        handle_socket_errors { super }
+      end
+
+      def read(*args)
+        handle_socket_errors { super }
+      end
+
       # Write to the socket.
       #
       # @example Write to the socket.
@@ -170,7 +191,7 @@ module Moped
       # @since 1.0.0
       def write(*args)
         raise Errors::ConnectionFailure, "Socket connection was closed by remote host" unless alive?
-        super
+        handle_socket_errors { super }
       end
 
       class << self
