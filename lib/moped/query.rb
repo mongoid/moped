@@ -346,6 +346,11 @@ module Moped
 
     private
 
+    def initialize_copy(other)
+      @operation = other.operation.dup
+      @selector = other.selector.dup
+    end
+
     def session
       collection.database.session
     end
