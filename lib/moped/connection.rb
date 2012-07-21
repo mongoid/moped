@@ -159,23 +159,28 @@ module Moped
         end
       end
 
-      def handle_socket_errors
-        yield
-      rescue Timeout::Error
-        raise Errors::ConnectionFailure, "Timed out connection to Mongo on #{host}:#{port}"
-      rescue Errno::ECONNREFUSED
-        raise Errors::ConnectionFailure, "Could not connect to Mongo on #{host}:#{port}"
-      rescue Errno::ECONNRESET
-        raise Errors::ConnectionFailure, "Connection reset to Mongo on #{host}:#{port}"
-      end
-
-      def initialize(host, port)
-        @host = host
-        @port = port
+      # Initialize the new TCPSocket.
+      #
+      # @example Initialize the socket.
+      #   TCPSocket.new("127.0.0.1", 27017)
+      #
+      # @param [ String ] host The host.
+      # @param [ Integer ] port The port.
+      #
+      # @since 1.2.0
+      def initialize(host, port, *args)
+        @host, @port = host, port
         handle_socket_errors { super }
       end
 
-      def read(*args)
+      # Read from the TCP socket.
+      #
+      # @param [ Integer ] length The length to read.
+      #
+      # @return [ Object ] The data.
+      #
+      # @since 1.2.0
+      def read(length)
         handle_socket_errors { super }
       end
 
@@ -192,6 +197,18 @@ module Moped
       def write(*args)
         raise Errors::ConnectionFailure, "Socket connection was closed by remote host" unless alive?
         handle_socket_errors { super }
+      end
+
+      private
+
+      def handle_socket_errors
+        yield
+      rescue Timeout::Error
+        raise Errors::ConnectionFailure, "Timed out connection to Mongo on #{host}:#{port}"
+      rescue Errno::ECONNREFUSED
+        raise Errors::ConnectionFailure, "Could not connect to Mongo on #{host}:#{port}"
+      rescue Errno::ECONNRESET
+        raise Errors::ConnectionFailure, "Connection reset to Mongo on #{host}:#{port}"
       end
 
       class << self
