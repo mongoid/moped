@@ -10,7 +10,6 @@
 
 * Queries now can be duped/cloned and be initialized properly.
 
->>>>>>> 9861fad... Update changelog
 ## 1.1.2
 
 * \#37 Use `TCP_NODELAY` for socket options. (Nicolas Viennot)
