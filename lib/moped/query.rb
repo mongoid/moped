@@ -92,8 +92,9 @@ module Moped
       operation.selector = {
         "$query" => selector,
         "$orderby" => operation.selector.fetch("$orderby", {}),
-        "$explain" => true
-      } and first
+        "$explain" => true,
+        "$limit" => operation.selector.fetch("$limit", 1).abs * -1
+      } and each.next
     end
 
     # Get the first matching document.
