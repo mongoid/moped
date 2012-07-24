@@ -16,7 +16,7 @@
         session.database_names #=> [ "moped_test" ]
         session.databases #=> { "databases" => [{ "name" => "moped_test" }]}
 
-## 1.1.4 (branch: 1.1.0-stable)
+## 1.1.4
 
 * \#44 Fixed order of parameters for loading timestamps. (Ralf Kistner)
 
