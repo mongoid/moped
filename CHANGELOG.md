@@ -4,6 +4,8 @@
 
 * \#44 Fixed order of parameters for loading timestamps. (Ralf Kistner)
 
+* \#40 Fix explain to return correct number of scanned documents and time.
+
 ## 1.1.3
 
 ### Resolved Issues

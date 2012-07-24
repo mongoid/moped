@@ -349,10 +349,18 @@ describe Moped::Query do
 
       context "when a sort exists" do
 
-        let(:stats) do
-          Support::Stats.collect do
-            users.find(scope: scope).sort(_id: 1).explain
+        before do
+          2.times do |n|
+            users.insert({ likes: n })
           end
+        end
+
+        let(:explain) do
+          users.find(likes: { "$exists" => false }).sort(_id: 1).explain
+        end
+
+        let(:stats) do
+          Support::Stats.collect { explain }
         end
 
         let(:operation) do
@@ -361,19 +369,36 @@ describe Moped::Query do
 
         it "updates to a mongo advanced selector" do
           operation.selector.should eq(
-            "$query" => { scope: scope },
+            "$query" => { likes: { "$exists" => false }},
             "$explain" => true,
-            "$orderby" => { _id: 1 }
+            "$orderby" => { _id: 1 },
+            "$limit" => -1
           )
+        end
+
+        it "scans more than one document" do
+          explain["nscanned"].should eq(2)
+        end
+
+        it "scans more than one object" do
+          explain["nscannedObjects"].should eq(2)
         end
       end
 
       context "when no sort exists" do
 
-        let(:stats) do
-          Support::Stats.collect do
-            users.find(scope: scope).explain
+        before do
+          2.times do |n|
+            users.insert({ likes: n })
           end
+        end
+
+        let(:explain) do
+          users.find(created_at: { "$exists" => false }).explain
+        end
+
+        let(:stats) do
+          Support::Stats.collect { explain }
         end
 
         let(:operation) do
@@ -382,10 +407,19 @@ describe Moped::Query do
 
         it "updates to a mongo advanced selector" do
           operation.selector.should eq(
-            "$query" => { scope: scope },
+            "$query" => { created_at: { "$exists" => false }},
+            "$orderby" => {},
             "$explain" => true,
-            "$orderby" => {}
+            "$limit" => -1
           )
+        end
+
+        it "scans more than one document" do
+          explain["nscanned"].should eq(2)
+        end
+
+        it "scans more than one object" do
+          explain["nscannedObjects"].should eq(2)
         end
       end
     end
