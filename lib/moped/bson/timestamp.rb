@@ -3,7 +3,7 @@ module Moped
     class Timestamp < Struct.new(:seconds, :increment)
       class << self
         def __bson_load__(io)
-          new(*io.read(8).unpack('l2'))
+          new(*io.read(8).unpack('l2').reverse)
         end
       end
 

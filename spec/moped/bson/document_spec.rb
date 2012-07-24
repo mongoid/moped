@@ -292,8 +292,8 @@ describe Moped::BSON::Document do
 
   context "timestamp" do
     it_behaves_like "a serializable bson document" do
-      let(:raw) { "\x10\x00\x00\x00\x11n\x00d\x00\x00\x00d\x00\x00\x00\x00" }
-      let(:doc) { {"n" => Moped::BSON::Timestamp.new(100, 100)} }
+      let(:raw) { "\x10\x00\x00\x00\x11n\x00e\x00\x00\x00d\x00\x00\x00\x00" }
+      let(:doc) { {"n" => Moped::BSON::Timestamp.new(100, 101)} }
     end
   end
 
