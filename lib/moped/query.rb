@@ -94,7 +94,7 @@ module Moped
         "$orderby" => operation.selector.fetch("$orderby", {}),
         "$explain" => true,
         "$limit" => operation.selector.fetch("$limit", 1).abs * -1
-      } and each.next
+      } and each { |doc| return doc }
     end
 
     # Get the first matching document.
