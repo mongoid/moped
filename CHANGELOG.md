@@ -1,5 +1,16 @@
 # Overview
 
+## 1.1.4 (branch: 1.1.0-stable)
+
+* \#44 Fixed order of parameters for loading timestamps. (Ralf Kistner)
+
+## 1.1.3
+
+### Resolved Issues
+
+* Queries now can be duped/cloned and be initialized properly.
+
+>>>>>>> 9861fad... Update changelog
 ## 1.1.2
 
 * \#37 Use `TCP_NODELAY` for socket options. (Nicolas Viennot)
