@@ -13,7 +13,7 @@ module Moped
         end
 
         def from_time(time)
-          from_data @@generator.generate(time.to_i)
+          from_data [time.to_i].pack("Nx8")
         end
 
         def legal?(str)
