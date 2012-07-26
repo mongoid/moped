@@ -43,6 +43,7 @@ module Moped
     # @since 1.0.0
     def initialize(session, name)
       @session, @name = session, name
+      raise NameError, "#{ @name.inspect } is not a valid mongo database name." if @name =~ %r/[\s\.]/iomx
     end
 
     # Log in with +username+ and +password+ on the current database.
