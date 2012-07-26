@@ -4,6 +4,7 @@ require "socket"
 module Moped
   module BSON
     class ObjectId
+      include Comparable
 
       class << self
         def from_string(string)
