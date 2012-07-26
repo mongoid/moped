@@ -103,10 +103,15 @@ describe Moped::BSON::ObjectId do
 
   end
 
-  describe "#from_time" do
+  describe ".from_time" do
     it "sets the generation time" do
       time = Time.at((Time.now.utc - 64800).to_i).utc
       Moped::BSON::ObjectId.from_time(time).generation_time.should == time
+    end
+
+    it "does not include process or sequence information" do
+      id = Moped::BSON::ObjectId.from_time(Time.now)
+      id.to_s.should =~ /\A\h{8}0{16}\Z/
     end
   end
 
