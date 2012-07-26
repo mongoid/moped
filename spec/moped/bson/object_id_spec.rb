@@ -6,7 +6,7 @@ describe Moped::BSON::ObjectId do
     [78, 77, 102, 52, 59, 57, 182, 132, 7, 0, 0, 1].pack("C12")
   end
 
-  describe "#<=>" do
+  describe "ordering" do
 
     let(:first) do
       described_class.from_time(Time.new(2012, 1, 1))
@@ -16,18 +16,12 @@ describe Moped::BSON::ObjectId do
       described_class.from_time(Time.new(2012, 1, 30))
     end
 
-    context "when comparing first with last" do
-
-      it "returns -1" do
-        (first <=> last).should eq(-1)
-      end
+    specify "first is less than last" do
+      first.should be < last
     end
 
-    context "when comparing last with first" do
-
-      it "returns 1" do
-        (first <=> last).should eq(-1)
-      end
+    specify "last is greater than first" do
+      last.should be > first
     end
   end
 
