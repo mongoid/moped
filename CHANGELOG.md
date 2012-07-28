@@ -1,6 +1,15 @@
 # Overview
 
+## 1.1.6 (branch: 1.1.0-stable)
+
+* \#41 `ObjectId.from_time` now only includes the timestamp, no machine or
+  process information.
+
+### Resolved Issues
+
 ## 1.1.5
+
+### Resolved Issues
 
 * \#44 Fixed order of parameters for loading timestamps. (Ralf Kistner)
 
