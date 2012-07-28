@@ -4,6 +4,9 @@
 
 ### New Features
 
+* mongoid/mongoid\#2251 Allow `continue_on_error` option to be provided to
+  inserts.
+
 * mongoid/mongoid\#2210 Added `Session#disconnect` which will disconnect all
   nodes in the cluster from their respective database servers. Useful for cases
   where a large number of database connections are being created on separate
@@ -18,13 +21,10 @@
 
 ## 1.1.6 (branch: 1.1.0-stable)
 
-* mongoid/mongoid\#2251 Allow `continue_on_error` option to be provided to
-  inserts.
+### Resolved Issues
 
 * \#41 `ObjectId.from_time` now only includes the timestamp, no machine or
   process information.
-
-### Resolved Issues
 
 ## 1.1.5
 
