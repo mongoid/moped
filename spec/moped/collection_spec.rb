@@ -64,7 +64,7 @@ describe Moped::Collection do
       end
 
       before do
-        session[:users].insert(documents, continue_on_error: true)
+        session[:users].insert(documents, [ :continue_on_error ])
       end
 
       it "inserts all valid documents" do
