@@ -18,6 +18,9 @@
 
 ## 1.1.6 (branch: 1.1.0-stable)
 
+* mongoid/mongoid\#2251 Allow `continue_on_error` option to be provided to
+  inserts.
+
 * \#41 `ObjectId.from_time` now only includes the timestamp, no machine or
   process information.
 

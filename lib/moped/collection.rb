@@ -78,15 +78,24 @@ module Moped
     #   db[:people].insert([{name: "John"}, {name: "Joe"}])
     #
     # @param [ Hash, Array<Hash> ] documents The document(s) to insert.
+    # @param [ Hash ] options The insert options.
+    #
+    # @option options [Array] :continue_on_error Whether to continue on error.
     #
     # @return [ nil ] nil.
     #
     # @since 1.0.0
-    def insert(documents)
+    def insert(documents, options = {})
       documents = [documents] unless documents.is_a?(Array)
       database.session.with(consistency: :strong) do |session|
-        session.context.insert(database.name, name, documents)
+        session.context.insert(database.name, name, documents, convert(options))
       end
+    end
+
+    private
+
+    def convert(options)
+      options[:continue_on_error] ?  { flags: [ :continue_on_error ] } : options
     end
   end
 end

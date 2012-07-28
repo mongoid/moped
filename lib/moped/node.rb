@@ -234,8 +234,8 @@ module Moped
     # @return [ Message ] The result of the operation.
     #
     # @since 1.0.0
-    def insert(database, collection, documents)
-      process(Protocol::Insert.new(database, collection, documents))
+    def insert(database, collection, documents, options = {})
+      process(Protocol::Insert.new(database, collection, documents, options))
     end
 
     # Kill all provided cursors on the node.

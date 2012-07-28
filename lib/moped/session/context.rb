@@ -52,15 +52,15 @@ module Moped
         end
       end
 
-      def insert(database, collection, documents)
+      def insert(database, collection, documents, options = {})
         with_node do |node|
           if safe?
             node.pipeline do
-              node.insert(database, collection, documents)
+              node.insert(database, collection, documents, options)
               node.command("admin", { getlasterror: 1 }.merge(safety))
             end
           else
-            node.insert(database, collection, documents)
+            node.insert(database, collection, documents, options)
           end
         end
       end

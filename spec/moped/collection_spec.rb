@@ -32,6 +32,7 @@ describe Moped::Collection do
   end
 
   describe "#insert" do
+
     it "inserts a single document" do
       document = { "_id" => Moped::BSON::ObjectId.new, "scope" => scope }
       session[:users].insert(document)
@@ -46,6 +47,29 @@ describe Moped::Collection do
 
       session[:users].insert(documents)
       session[:users].find(scope: scope).entries.should eq documents
+    end
+
+    context "when continuing on error" do
+
+      let(:bson_id) do
+        Moped::BSON::ObjectId.new
+      end
+
+      let(:documents) do
+        documents = [
+          { "_id" => bson_id, "scope" => scope },
+          { "_id" => bson_id, "scope" => scope },
+          { "_id" => Moped::BSON::ObjectId.new, "scope" => scope }
+        ]
+      end
+
+      before do
+        session[:users].insert(documents, continue_on_error: true)
+      end
+
+      it "inserts all valid documents" do
+        session[:users].find(scope: scope).count.should eq(2)
+      end
     end
   end
 
