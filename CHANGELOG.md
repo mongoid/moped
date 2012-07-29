@@ -23,6 +23,9 @@
 
 ### Resolved Issues
 
+* \#45 When providing database names with invalid characters in them, Moped
+  will now raise an `InvalidDatabaseName` error.
+
 * \#41 `ObjectId.from_time` now only includes the timestamp, no machine or
   process information.
 

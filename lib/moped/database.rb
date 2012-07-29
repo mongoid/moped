@@ -100,6 +100,11 @@ module Moped
     #
     # @since 1.0.0
     def initialize(session, name)
+      if match = name.match(/\.|\s|\$|\\|\/|\x00/)
+        raise Errors::InvalidDatabaseName.new(
+          "Database names may not contain the character '#{match[0]}'."
+        )
+      end
       @session, @name = session, name
     end
 
