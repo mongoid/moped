@@ -8,6 +8,9 @@ module Moped
     # Generic error class for exceptions related to connection failures.
     class ConnectionFailure < StandardError; end
 
+    # Raised when a database name is invalid.
+    class InvalidDatabaseName < StandardError; end
+
     # Raised when providing an invalid string from an object id.
     class InvalidObjectId < StandardError
 
