@@ -19,7 +19,7 @@
         session.database_names #=> [ "moped_test" ]
         session.databases #=> { "databases" => [{ "name" => "moped_test" }]}
 
-## 1.1.6 (branch: 1.1.0-stable)
+## 1.1.6
 
 ### Resolved Issues
 
