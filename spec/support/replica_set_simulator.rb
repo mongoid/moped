@@ -199,6 +199,7 @@ module Support
       # Proxies a single message from client to the mongo connection.
       def proxy(client, mongo)
         if @hiccup_on_next_message
+          @hiccup_on_next_message = false
           return hiccup
         end
 
