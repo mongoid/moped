@@ -77,6 +77,21 @@ describe Moped::Node, replica_set: true do
         end.should raise_exception(Moped::Errors::SocketError)
       end
     end
-  end
 
+    context "when the socket gets disconnected in the middle of a send" do
+      before do
+        Moped::Node.__send__(:public, :connection)
+      end
+
+      it "reconnects the socket" do
+        node.connection.stub(:connected?).and_return(true)
+        node.connection.instance_variable_set(:@sock, nil)
+        lambda do
+          node.ensure_connected do
+            node.command("admin", ping: 1)
+          end
+        end.should_not raise_exception
+      end
+    end
+  end
 end
