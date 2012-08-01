@@ -471,7 +471,7 @@ module Moped
     end
 
     def connection
-      @connection ||= Connection.new
+      @connection ||= Connection.new(ip_address, port, timeout)
     end
 
     def connected?
@@ -493,7 +493,7 @@ module Moped
     # Raises Moped::ConnectionError if the connection times out.
     # Raises Moped::ConnectionError if the server is unavailable.
     def connect
-      connection.connect ip_address, port, timeout
+      connection.connect
       @down_at = nil
     end
 
