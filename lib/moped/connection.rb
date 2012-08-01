@@ -148,11 +148,13 @@ module Moped
     end
 
     private
+
     def create_connection
       @sock = TCPSocket.connect @host, @port, @timeout
     end
 
-    # Yields a connected socket to the calling back. It will attempt to reconnect the socket if it is not connected.
+    # Yields a connected socket to the calling back. It will attempt to reconnect
+    # the socket if it is not connected.
     #
     # @example Write to the connection.
     #   with_connection do |socket|
