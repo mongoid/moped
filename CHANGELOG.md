@@ -8,6 +8,9 @@
 
 ### Resolved Issues
 
+* \#50 Fixed connection issues when connection is disconnected mid call.
+  (Jonathan Hyman)
+
 ## 1.2.0
 
 ### New Features
