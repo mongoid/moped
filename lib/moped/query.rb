@@ -202,9 +202,14 @@ module Moped
       command[:fields] = operation.fields if operation.fields
       command[:update] = change unless options[:remove]
 
-      session.with(consistency: :strong) do |sess|
+      result = session.with(consistency: :strong) do |sess|
         sess.command(command)["value"]
       end
+
+      # Keeping moped compatibility with mongodb >= 2.2.0-rc0
+      return [] if options[:upsert] and not result
+
+      result
     end
 
     # Remove a single document matching the query's selector.
