@@ -340,8 +340,6 @@ module Support
           server.to_io && server.to_io.addr[1] == port
         end
       end
-
     end
-
   end
 end
