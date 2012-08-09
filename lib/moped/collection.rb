@@ -91,5 +91,25 @@ module Moped
         session.context.insert(database.name, name, documents, flags: flags || [])
       end
     end
+
+    # Call aggregate function over the collection
+    #
+    # @param [ Hash, Array<Hash> ] documents representing the aggregate function to execute
+    #
+    # @return [ Hash ] containing the result of aggregation
+    #
+    # @since 1.3.0
+    def aggregate(pipeline)
+      pipeline = [ pipeline ] unless pipeline.is_a?(Array)
+      command = {
+        aggregate: name.to_s,
+        pipeline: pipeline
+      }
+
+      database.session.with(consistency: :strong) do |sess|
+        sess.command(command)["result"]
+      end
+    end
+
   end
 end

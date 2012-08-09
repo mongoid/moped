@@ -102,4 +102,47 @@ describe Moped::Collection do
       end
     end
   end
+
+  describe "#aggregate" do
+    let(:documents) do
+      [
+        { _id: "10001", city: "NEW YORK", pop: 18913, state: "NY"},
+        { _id: "10002", city: "NEW YORK", pop: 84143, state: "NY"},
+        { _id: "89101", city: "LAS VEGAS", pop: 40270, state: "NV"},
+        { _id: "89102", city: "LAS VEGAS", pop: 48070, state: "NV"}
+      ]
+    end
+
+    before do
+      session[:zips].insert(documents)
+    end
+
+    context "with one group operation" do
+      let(:result) do
+        session[:zips].aggregate({ "$group" => { "_id" => "$city", "totalpop" => { "$sum" => "$pop" } }})
+      end
+
+      it "returns a grouped result" do
+        result.size.should eq(2)
+      end
+
+      it "returns a grouped result with sum" do
+        result.first["totalpop"].should_not be_nil
+      end
+    end
+
+    context "with more than one operation" do
+      let(:result) do
+        session[:zips].aggregate([{ "$group" => { "_id" => "$city", "totalpop" => { "$sum" => "$pop" } }}, { "$match" => { "totalpop" => { "$gte" => 100000} } }])
+      end
+
+      it "returns an aggregated result" do
+        result.size.should eq(1)
+      end
+
+      it "returns an aggregated result with grouped and matched documents" do
+        result.first["totalpop"].should eq(18913 + 84143)
+      end
+    end
+  end
 end
