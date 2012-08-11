@@ -94,6 +94,8 @@ module Moped
 
     # Call aggregate function over the collection
     #
+    # @example Execute an aggregation.
+    #
     # @param [ Hash, Array<Hash> ] documents representing the aggregate function to execute
     #
     # @return [ Hash ] containing the result of aggregation
@@ -101,15 +103,10 @@ module Moped
     # @since 1.3.0
     def aggregate(pipeline)
       pipeline = [ pipeline ] unless pipeline.is_a?(Array)
-      command = {
-        aggregate: name.to_s,
-        pipeline: pipeline
-      }
-
+      command = { aggregate: name.to_s, pipeline: pipeline }
       database.session.with(consistency: :strong) do |sess|
         sess.command(command)["result"]
       end
     end
-
   end
 end

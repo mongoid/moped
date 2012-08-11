@@ -105,6 +105,7 @@ describe Moped::Collection do
   end
 
   describe "#aggregate" do
+
     let(:documents) do
       [
         { _id: "10001", city: "NEW YORK", pop: 18913, state: "NY"},
@@ -119,8 +120,14 @@ describe Moped::Collection do
     end
 
     context "with one group operation" do
+
       let(:result) do
-        session[:zips].aggregate({ "$group" => { "_id" => "$city", "totalpop" => { "$sum" => "$pop" } }})
+        session[:zips].aggregate({
+          "$group" => {
+            "_id" => "$city",
+            "totalpop" => { "$sum" => "$pop" }
+          }
+        })
       end
 
       it "returns a grouped result" do
@@ -133,8 +140,17 @@ describe Moped::Collection do
     end
 
     context "with more than one operation" do
+
       let(:result) do
-        session[:zips].aggregate([{ "$group" => { "_id" => "$city", "totalpop" => { "$sum" => "$pop" } }}, { "$match" => { "totalpop" => { "$gte" => 100000} } }])
+        session[:zips].aggregate([
+          { "$group" =>
+            {
+              "_id" => "$city",
+              "totalpop" => { "$sum" => "$pop" }
+            }
+          },
+          { "$match" => { "totalpop" => { "$gte" => 100000 }}}
+        ])
       end
 
       it "returns an aggregated result" do
