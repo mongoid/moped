@@ -54,10 +54,12 @@ module Moped
 
       def insert(database, collection, documents, options = {})
         with_node do |node|
-          if safe?
+          raise [safe?, options[:safe]].inspect
+          if safe? || options[:safe]
+            raise "here"
             node.pipeline do
               node.insert(database, collection, documents, options)
-              node.command("admin", { getlasterror: 1 }.merge(safety))
+              node.command(database, { getlasterror: 1 }.merge(safety))
             end
           else
             node.insert(database, collection, documents, options)
@@ -70,7 +72,7 @@ module Moped
           if safe?
             node.pipeline do
               node.update(database, collection, selector, change, options)
-              node.command("admin", { getlasterror: 1 }.merge(safety))
+              node.command(database, { getlasterror: 1 }.merge(safety))
             end
           else
             node.update(database, collection, selector, change, options)
@@ -83,7 +85,7 @@ module Moped
           if safe?
             node.pipeline do
               node.remove(database, collection, selector, options)
-              node.command("admin", { getlasterror: 1 }.merge(safety))
+              node.command(database, { getlasterror: 1 }.merge(safety))
             end
           else
             node.remove(database, collection, selector, options)
