@@ -1,5 +1,6 @@
 require "timeout"
 require "moped/sockets/tcp"
+require "moped/sockets/ssl"
 
 module Moped
 
@@ -28,7 +29,11 @@ module Moped
     #
     # @since 1.0.0
     def connect
-      @sock = Sockets::TCP.connect @host, @port, @timeout
+      @sock = if !!@options[:ssl]
+        Sockets::SSL.connect @host, @port, @timeout
+      else
+        Sockets::TCP.connect @host, @port, @timeout
+      end
     end
 
     # Is the connection connected?
@@ -66,13 +71,15 @@ module Moped
     # @param [ String ] host The host to connect to.
     # @param [ Integer ] post The server port.
     # @param [ Integer ] timeout The connection timeout.
+    # @param [ Hash ] options Options for the connection.
     # @since 1.0.0
-    def initialize(host, port, timeout)
+    def initialize(host, port, timeout, options = {})
       @sock = nil
       @request_id = 0
       @host = host
       @port = port
       @timeout = timeout
+      @options = options
     end
 
     # Read from the connection.
