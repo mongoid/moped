@@ -177,10 +177,11 @@ module Moped
     #   specified safety level e.g., "fsync: true", or "w: 2, wtimeout: 5".
     # @option options [ Symbol, String ] :database The database to use.
     # @option options [ :strong, :eventual ] :consistency (:eventual).
+    # @option options [ Boolean ] :ssl Connect using SSL.
     #
     # @since 1.0.0
     def initialize(seeds, options = {})
-      @cluster = Cluster.new(seeds, {})
+      @cluster = Cluster.new(seeds, options)
       @context = Context.new(self)
       @options = options
       @options[:consistency] ||= :eventual

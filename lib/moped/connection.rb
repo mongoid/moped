@@ -72,6 +72,8 @@ module Moped
     # @param [ Integer ] post The server port.
     # @param [ Integer ] timeout The connection timeout.
     # @param [ Hash ] options Options for the connection.
+    #
+    # @option options [ Boolean ] :ssl Connect using SSL
     # @since 1.0.0
     def initialize(host, port, timeout, options = {})
       @sock = nil

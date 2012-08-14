@@ -12,7 +12,8 @@ module Moped
     # @attribute [r] port The connection port.
     # @attribute [r] resolved_address The host/port pair.
     # @attribute [r] timeout The connection timeout.
-    attr_reader :address, :down_at, :ip_address, :peers, :port, :resolved_address, :timeout
+    # @attribute [r] options Additional options for the node (ssl).
+    attr_reader :address, :down_at, :ip_address, :peers, :port, :resolved_address, :timeout, :options
 
     # Is this node equal to another?
     #
@@ -205,10 +206,12 @@ module Moped
     #   Node.new("127.0.0.1:27017")
     #
     # @param [ String ] address The location of the server node.
+    # @param [ Hash ] options Additional options for the node (ssl)
     #
     # @since 1.0.0
-    def initialize(address)
+    def initialize(address, options = {})
       @address = address
+      @options = options
 
       host, port = address.split(":")
       @ip_address = ::Socket.getaddrinfo(host, nil, ::Socket::AF_INET, ::Socket::SOCK_STREAM).first[3]
@@ -471,7 +474,7 @@ module Moped
     end
 
     def connection
-      @connection ||= Connection.new(ip_address, port, timeout)
+      @connection ||= Connection.new(ip_address, port, timeout, options)
     end
 
     def connected?

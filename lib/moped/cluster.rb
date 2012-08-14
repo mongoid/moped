@@ -44,13 +44,13 @@ module Moped
     #
     # @since 1.0.0
     def initialize(hosts, options)
+      @seeds = hosts
+      @nodes = hosts.map { |host| Node.new(host, options) }
+      
       @options = {
         down_interval: 30,
         refresh_interval: 300
       }.merge(options)
-
-      @seeds = hosts
-      @nodes = hosts.map { |host| Node.new(host) }
     end
 
     # Returns the list of available nodes, refreshing 1) any nodes which were
