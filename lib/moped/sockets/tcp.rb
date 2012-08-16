@@ -19,6 +19,8 @@ module Moped
         else
           true
         end
+      rescue IOError
+        false
       end
 
       # Initialize the new TCPSocket.
