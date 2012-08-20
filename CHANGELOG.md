@@ -8,6 +8,9 @@
 
 ### Resolved Issues
 
+* \#59 Use the current database, not admin, for `getLastError` commands.
+  (Christopher Winslett)
+
 * \#50 Fixed connection issues when connection is disconnected mid call.
   (Jonathan Hyman)
 
