@@ -6,3 +6,4 @@ doc
 Gemfile.lock
 perf/results
 tmp/
+.idea
