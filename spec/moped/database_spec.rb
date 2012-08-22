@@ -62,4 +62,52 @@ describe Moped::Database do
       end
     end
   end
+
+
+  describe "#collection_names" do
+
+    let(:collection_names) do
+      session.collection_names
+    end
+
+    before :each do
+      session.drop
+      names.map do |name|
+        session.command create: name
+      end
+    end
+
+    context "when name doesn't include system" do
+
+      let(:names) do
+        %w[ users comments ]
+      end
+
+      it "returns the name of all non system collections" do
+        collection_names.sort.should eq %w[ users comments ].sort
+      end
+    end
+
+    context "when name includes system not at the beginning" do
+
+      let(:names) do
+        %w[ users comments_system_fu ]
+      end
+
+      it "returns the name of all non system collections" do
+        collection_names.sort.should eq %w[ users comments_system_fu ].sort
+      end
+    end
+
+    context "when name includes system at the beginning" do
+
+      let(:names) do
+        %w[ users system_comments_fu ]
+      end
+
+      it "returns the name of all non system collections" do
+        collection_names.sort.should eq %w[ users ].sort
+      end
+    end
+  end
 end
