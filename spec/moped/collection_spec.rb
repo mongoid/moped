@@ -73,20 +73,6 @@ describe Moped::Collection do
     end
   end
 
-  describe "#collection_names" do
-    before do
-      session.drop
-      session.command create: "users"
-      session.command create: "comments"
-    end
-
-    it "returns the name of all non system collections" do
-      collection_names = session.collection_names
-      collection_names.should be_instance_of(Array)
-      collection_names.sort.should eq %w[ users comments ].sort
-    end
-  end
-
   describe "#collections" do
     before do
       session.drop
