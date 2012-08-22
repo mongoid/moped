@@ -73,6 +73,21 @@ describe Moped::Collection do
     end
   end
 
+  describe "#initialize" do
+
+    let(:database) do
+      session.send(:current_database)
+    end
+
+    let(:collection) do
+      described_class.new(database, :users)
+    end
+
+    it "converts the collection name to a string" do
+      collection.name.should eq("users")
+    end
+  end
+
   describe "#collections" do
     before do
       session.drop
