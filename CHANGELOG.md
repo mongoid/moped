@@ -14,6 +14,8 @@
 * \#59 Use the current database, not admin, for `getLastError` commands.
   (Christopher Winslett)
 
+* \#57 Ensure collection name is a string for all operations.
+
 * \#50 Fixed connection issues when connection is disconnected mid call.
   (Jonathan Hyman)
 

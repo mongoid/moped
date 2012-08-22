@@ -66,7 +66,7 @@ module Moped
     #
     # @since 1.0.0
     def initialize(database, name)
-      @database, @name = database, name
+      @database, @name = database, name.to_s
     end
 
     # Insert one or more documents into the collection.
