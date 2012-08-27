@@ -4,7 +4,11 @@
 
 ### New Features
 
-## 1.2.1 (branch: 1.2.0-stable)
+## 1.2.2 (branch: 1.2.0-stable)
+
+### Resolved Issues
+
+## 1.2.1
 
 ### Resolved Issues
 
