@@ -6,22 +6,6 @@ module Moped
     class SSL < TCP
       attr_reader :ssl
 
-      # Is the socket connection alive?
-      #
-      # @example Is the socket alive?
-      #   socket.alive?
-      #
-      # @return [ true, false ] If the socket is alive.
-      #
-      # @since 1.0.0
-      def alive?
-        if Kernel::select([ self ], nil, nil, 0)
-          !eof? rescue false
-        else
-          true
-        end
-      end
-
       # Initialize the new TCPSocket with SSL.
       #
       # @example Initialize the socket.
@@ -46,7 +30,7 @@ module Moped
       #
       # @since 1.2.0
       def read(length)
-        handle_socket_errors { @ssl.sysread(length) }
+        handle_socket_errors { @ssl.read(length) }
       end
 
       # Write to the socket.
@@ -61,7 +45,7 @@ module Moped
       # @since 1.0.0
       def write(*args)
         raise Errors::ConnectionFailure, "Socket connection was closed by remote host" unless alive?
-        handle_socket_errors { @ssl.syswrite(*args) }
+        handle_socket_errors { @ssl.write(*args) }
       end
 
       private
@@ -77,31 +61,7 @@ module Moped
       rescue OpenSSL::SSL::SSLError => e
         raise Errors::ConnectionFailure, "SSL Error '#{e.to_s}' for connection to Mongo on #{host}:#{port}"
       end
-
-      class << self
-
-        # Connect to the tcp server.
-        #
-        # @example Connect to the server.
-        #   SSL.connect("127.0.0.1", 27017, 30)
-        #
-        # @param [ String ] host The host to connect to.
-        # @param [ Integer ] post The server port.
-        # @param [ Integer ] timeout The connection timeout.
-        #
-        # @return [ TCPSocket ] The socket.
-        #
-        # @since 1.0.0
-        def connect(host, port, timeout)
-          Timeout::timeout(timeout) do
-            sock = new(host, port)
-            sock.set_encoding('binary')
-            sock.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, 1)
-            
-            sock
-          end
-        end
-      end
+      
     end
   end
 end
