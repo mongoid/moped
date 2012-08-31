@@ -30,10 +30,11 @@ module Moped
     # @since 1.0.0
     def connect
       @sock = if !!@options[:ssl]
-        Sockets::SSL.connect @host, @port, @timeout
+        Sockets::SSL.connect @host, @port, @timeout, @options[:ssl]
       else
         Sockets::TCP.connect @host, @port, @timeout
       end
+    
     end
 
     # Is the connection connected?
