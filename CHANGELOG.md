@@ -4,6 +4,15 @@
 
 ### New Features
 
+* \#49 Support for the 2.2 aggregation framework is included. (Rodrigo Saito)
+
+        session[:users].aggregate({
+          "$group" => {
+            "_id" => "$city",
+            "totalpop" => { "$sum" => "$pop" }
+          }
+        })
+
 * \#42 Moped now supports SSL connections to MongoDB. Provide the `ssl: true`
   option when creating a new `Session`.
 

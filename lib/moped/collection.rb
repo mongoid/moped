@@ -92,9 +92,15 @@ module Moped
       end
     end
 
-    # Call aggregate function over the collection
+    # Call aggregate function over the collection.
     #
     # @example Execute an aggregation.
+    #   session[:users].aggregate({
+    #     "$group" => {
+    #       "_id" => "$city",
+    #       "totalpop" => { "$sum" => "$pop" }
+    #     }
+    #   })
     #
     # @param [ Hash, Array<Hash> ] documents representing the aggregate function to execute
     #
