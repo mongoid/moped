@@ -1,4 +1,5 @@
 require "timeout"
+require "moped/sockets/connectable"
 require "moped/sockets/tcp"
 require "moped/sockets/ssl"
 
@@ -8,6 +9,9 @@ module Moped
   #
   # @api private
   class Connection
+
+    attr_reader :host, :port, :timeout, :options
+
     # Is the connection alive?
     #
     # @example Is the connection alive?
@@ -29,10 +33,10 @@ module Moped
     #
     # @since 1.0.0
     def connect
-      @sock = if !!@options[:ssl]
-        Sockets::SSL.connect @host, @port, @timeout, @options[:ssl]
+      @sock = if !!options[:ssl]
+        Sockets::SSL.connect(host, port, timeout)
       else
-        Sockets::TCP.connect @host, @port, @timeout
+        Sockets::TCP.connect(host, port, timeout)
       end
     end
 
@@ -78,10 +82,7 @@ module Moped
     def initialize(host, port, timeout, options = {})
       @sock = nil
       @request_id = 0
-      @host = host
-      @port = port
-      @timeout = timeout
-      @options = options
+      @host, @port, @timeout, @options = host, port, timeout, options
     end
 
     # Read from the connection.
