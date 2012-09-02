@@ -46,6 +46,28 @@ module Support
       session
     end
 
+    def ssl_replica_set_configured?
+      ENV["MONGOHQ_REPL_SSL_PASS"]
+    end
+
+    def ssl_replica_set_seeds
+      [ENV["MONGOHQ_REPL_SSL_1_URL"], ENV["MONGOHQ_REPL_SSL_2_URL"]]
+    end
+
+    def ssl_replica_set_credentials
+      [ENV["MONGOHQ_REPL_SSL_USER"], ENV["MONGOHQ_REPL_SSL_PASS"]]
+    end
+
+    def ssl_replica_set_database
+      ENV["MONGOHQ_REPL_SSL_NAME"]
+    end
+
+    def ssl_replica_set_session(auth = true)
+      session = Moped::Session.new ssl_replica_set_seeds, database: ssl_replica_set_database, ssl: true
+      session.login(*ssl_replica_set_credentials) if auth
+      session
+    end
+
     def message
       %Q{
       ---------------------------------------------------------------------

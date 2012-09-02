@@ -29,6 +29,7 @@ RSpec.configure do |config|
   Support::ReplicaSetSimulator.configure config
 
   config.filter_run_excluding mongohq: ->(value) do
+    return true if value == :replica_set_ssl && !Support::MongoHQ.ssl_replica_set_configured?
     return true if value == :replica_set && !Support::MongoHQ.replica_set_configured?
     return true if value == :auth && !Support::MongoHQ.auth_node_configured?
   end

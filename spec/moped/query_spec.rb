@@ -633,7 +633,8 @@ describe Moped::Query do
     include_examples "Query"
   end
 
-  context "with a remote replica set connection with eventual consistency", mongohq: :replica_set do
+  context "with a remote replica set connection with eventual consistency",
+    mongohq: :replica_set do
 
     before(:all) do
       @session = Support::MongoHQ.replica_set_session.with(safe: true, consistency: :eventual)
@@ -651,10 +652,53 @@ describe Moped::Query do
     include_examples "Query"
   end
 
-  context "with a remote replica set connection with strong consistency", mongohq: :replica_set do
+  context "with a remote replica set connection with eventual consistency and ssl",
+    mongohq: :replica_set_ssl do
+
+    before(:all) do
+      @session = Support::MongoHQ.ssl_replica_set_session.with(
+        safe: true, consistency: :eventual
+      )
+      @session.command ping: 1
+    end
+
+    let(:users) do
+      @session[:users]
+    end
+
+    let(:node_for_reads) do
+      :secondary
+    end
+
+    include_examples "Query"
+  end
+
+  context "with a remote replica set connection with strong consistency",
+    mongohq: :replica_set do
 
     before(:all) do
       @session = Support::MongoHQ.replica_set_session.with(safe: true, consistency: :strong)
+    end
+
+    let(:users) do
+      @session[:users]
+    end
+
+    let(:node_for_reads) do
+      :primary
+    end
+
+    include_examples "Modify"
+    include_examples "Query"
+  end
+
+  context "with a remote replica set connection with strong consistency and ssl",
+    mongohq: :replica_set_ssl do
+
+    before(:all) do
+      @session = Support::MongoHQ.ssl_replica_set_session.with(
+        safe: true, consistency: :strong
+      )
     end
 
     let(:users) do
