@@ -18,10 +18,10 @@ module Moped
       # @since 1.2.0
       def initialize(host, port, context, *args)
         super host, port, *args
-        
+
         @ssl = OpenSSL::SSL::SSLSocket.new(self, context)
         @ssl.sync_close = true
-        
+
         handle_socket_errors { @ssl.connect }
       end
 
@@ -64,9 +64,9 @@ module Moped
       rescue OpenSSL::SSL::SSLError => e
         raise Errors::ConnectionFailure, "SSL Error '#{e.to_s}' for connection to Mongo on #{host}:#{port}"
       end
-      
+
       class << self
-      
+
         # Connect to the tcp server.
         #
         # @example Connect to the server.
@@ -89,14 +89,14 @@ module Moped
         # @since 1.0.0
         def connect(host, port, timeout, ssl_options = true)
           Timeout::timeout(timeout) do
-            
+
             context = OpenSSL::SSL::SSLContext.new
-            
+
             if ssl_options.is_a?(Hash)
-              
+
               if !!ssl_options[:verify_peer]
                 context.verify_mode = OpenSSL::SSL::VERIFY_PEER
-              
+
                 if ssl_options[:ca_path]
                   context.ca_path = ssl_options[:ca_path]
                 elsif ssl_options[:ca_file]
@@ -109,16 +109,15 @@ module Moped
               else
                 context.verify_mode = OpenSSL::SSL::VERIFY_NONE
               end
-              
+
               if ssl_options.has_key?(:client_cert) && ssl_options.has_key?(:client_key)
                 context.cert = OpenSSL::X509::Certificate.new(File.read(ssl_options[:client_cert]))
                 context.key = OpenSSL::PKey::RSA.new(File.read(ssl_options[:client_key]))
               end
-              
             else
               context.verify_mode = OpenSSL::SSL::VERIFY_NONE
             end
-            
+
             sock = new(host, port, context)
             sock.set_encoding('binary')
             sock.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, 1)
@@ -126,7 +125,6 @@ module Moped
           end
         end
       end
-      
     end
   end
 end

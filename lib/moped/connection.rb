@@ -34,7 +34,6 @@ module Moped
       else
         Sockets::TCP.connect @host, @port, @timeout
       end
-    
     end
 
     # Is the connection connected?

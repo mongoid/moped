@@ -46,7 +46,7 @@ module Moped
     def initialize(hosts, options)
       @seeds = hosts
       @nodes = hosts.map { |host| Node.new(host, options) }
-      
+
       @options = {
         down_interval: 30,
         refresh_interval: 300
