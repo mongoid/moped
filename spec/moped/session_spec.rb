@@ -6,6 +6,11 @@ describe Moped::Session do
     Moped::Session.new(%w[127.0.0.1:27017], database: "moped_test")
   end
 
+  before(:all) do
+    session[:users].insert({ name: "test" })
+    session[:users].find.delete_all
+  end
+
   describe "#database_names" do
 
     let(:names) do
