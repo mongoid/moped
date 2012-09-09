@@ -8,7 +8,7 @@ describe Moped::Session do
 
   before(:all) do
     session[:users].insert({ name: "test" })
-    session[:users].find.delete_all
+    session[:users].find.remove_all
   end
 
   describe "#database_names" do
