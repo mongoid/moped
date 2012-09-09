@@ -13,6 +13,8 @@ module Moped
     class Reply
       include Message
 
+      UNAUTHORIZED = 10057
+
       # @attribute
       # @return [Number] the length of the message
       int32 :length
@@ -52,6 +54,14 @@ module Moped
       document :documents, type: :array
 
       finalize
+
+      def query_failed?
+        flags.include?(:query_failure)
+      end
+
+      def unauthorized?
+        documents.first["code"] == UNAUTHORIZED
+      end
 
       class << self
 
