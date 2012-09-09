@@ -93,6 +93,10 @@ describe Moped::Session do
 
   describe "#use" do
 
+    after do
+      session.use "moped_test"
+    end
+
     it "changes the current database" do
       session.use "moped_test_2"
       session.command(dbStats: 1)["db"].should eq "moped_test_2"
