@@ -8,3 +8,4 @@ perf/results
 tmp/
 .idea
 .replica
+mongo.key
