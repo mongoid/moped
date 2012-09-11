@@ -55,6 +55,10 @@ module Moped
 
       finalize
 
+      def cursor_not_found?
+        flags.include?(:cursor_not_found)
+      end
+
       def query_failed?
         flags.include?(:query_failure)
       end

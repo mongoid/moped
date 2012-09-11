@@ -125,7 +125,7 @@ module Moped
         # Someone else wrapped this in an #ensure_primary block, so let the
         # reconfiguration exception bubble up.
         raise
-      rescue Errors::OperationFailure, Errors::AuthenticationFailure, Errors::QueryFailure
+      rescue Errors::OperationFailure, Errors::AuthenticationFailure, Errors::QueryFailure, Errors::CursorNotFound
         # These exceptions are "expected" in the normal course of events, and
         # don't necessitate disconnecting.
         raise
@@ -179,12 +179,19 @@ module Moped
     # @param [ Collection ] collection The collection to get more from.
     # @param [ Integer ] cursor_id The id of the cursor on the server.
     # @param [ Integer ] limit The number of documents to limit.
+    # @raise [ CursorNotFound ] if the cursor has been killed
     #
     # @return [ Message ] The result of the operation.
     #
     # @since 1.0.0
-    def get_more(database, collection, cursor_id, limit)
-      process(Protocol::GetMore.new(database, collection, cursor_id, limit))
+    def get_more(database, collection, cursor_id, limit, &callback)
+      checking_block = callback.nil? ? nil : lambda do |reply|
+        raise Moped::Errors::CursorNotFound.new("GET MORE", cursor_id) if reply.cursor_not_found?
+        callback.call reply
+      end
+      reply = process(Protocol::GetMore.new(database, collection, cursor_id, limit), &checking_block)
+      raise Moped::Errors::CursorNotFound.new("GET MORE", cursor_id) if reply.cursor_not_found?
+      reply
     end
 
     # Get the hash identifier for the node.
