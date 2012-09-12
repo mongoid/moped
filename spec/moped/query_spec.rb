@@ -613,6 +613,26 @@ describe Moped::Query do
           stats[:primary].grep(Moped::Protocol::KillCursors).count.should eq 1
         end
       end
+
+      context "without a limit and large result set" do
+        before do
+          11.times do
+            users.insert(scope: scope, large_field: "a"*1_000_000)
+          end
+        end
+
+        it "raises an error when the cursor cannot be found" do
+          expect {
+            Support::Stats.collect do
+              users.find(scope: scope).each do
+                stats = Support::Stats.instance_variable_get(:@stats)[:primary]
+                cursor_id = stats[-1].instance_variable_get(:@cursor_id)
+                session.cluster.nodes.first.kill_cursors([cursor_id]) if cursor_id
+              end
+            end
+          }.to raise_error(Moped::Errors::CursorNotFound)
+        end
+      end
     end
   end
 

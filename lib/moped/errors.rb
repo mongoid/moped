@@ -97,6 +97,13 @@ module Moped
     # Exception raised on invalid queries.
     class QueryFailure < MongoError; end
 
+    # Exception raised if the cursor could not be found.
+    class CursorNotFound < MongoError
+      def initialize(operation, cursor_id)
+        super(operation, {"errmsg" => "cursor #{cursor_id} not found"})
+      end
+    end
+
     # @api private
     #
     # Internal exception raised by Node#ensure_primary and captured by
