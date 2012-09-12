@@ -78,6 +78,8 @@ module Moped
       # @return [String, Symbol] the collection to query
       attr_reader :collection
 
+      attr_accessor :batch_size
+
       # Create a new query command.
       #
       # @example
@@ -109,6 +111,7 @@ module Moped
         @limit                = options[:limit]
         @skip                 = options[:skip]
         @fields               = options[:fields]
+        @batch_size           = options[:batch_size]
       end
 
       def log_inspect
@@ -122,6 +125,7 @@ module Moped
         fields << ["limit=%s", limit.inspect]
         fields << ["skip=%s", skip.inspect]
         fields << ["fields=%s", self.fields.inspect]
+        fields << ["batch_size=%s", self.batch_size.inspect]
         f, v = fields.transpose
         f.join(" ") % v
       end

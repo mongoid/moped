@@ -173,6 +173,11 @@ module Moped
       self
     end
 
+    def batch_size(batch_size)
+      operation.batch_size = batch_size
+      self
+    end
+
     # Execute a $findAndModify on the query.
     #
     # @example Find and modify a document, returning the original.
