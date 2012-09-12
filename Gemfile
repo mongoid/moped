@@ -18,5 +18,6 @@ group :test do
 end
 
 gem "rake"
+gem "jruby-openssl", :platform => :jruby
 
 gemspec
