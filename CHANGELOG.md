@@ -4,6 +4,10 @@
 
 ### New Features
 
+## 1.2.3 (branch: 1.2.0-stable)
+
+### Resolved Issues
+
 ## 1.2.2
 
 ### Resolved Issues
