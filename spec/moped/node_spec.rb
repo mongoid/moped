@@ -94,4 +94,37 @@ describe Moped::Node, replica_set: true do
       end
     end
   end
+
+  describe "#initialize" do
+
+    let(:node) do
+      described_class.new("iamnota.mongoid.org")
+    end
+
+    context "when dns cannot resolve the address" do
+
+      it "flags the node as being down" do
+        node.should be_down
+      end
+
+      it "sets the down_at time" do
+        node.down_at.should be_within(1).of(Time.now)
+      end
+
+      context "when attempting to refresh the node" do
+
+        before do
+          node.refresh
+        end
+
+        it "keeps the node flagged as down" do
+          node.should be_down
+        end
+
+        it "updates the down_at time" do
+          node.down_at.should be_within(1).of(Time.now)
+        end
+      end
+    end
+  end
 end
