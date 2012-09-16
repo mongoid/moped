@@ -22,6 +22,12 @@
 
 ### Resolved Issues
 
+* \#73 Raise a `Moped::Errors::CursorNotFound` on long running queries where
+  the cursor was killed by the server. (Marius Podwyszynski)
+
+* \#72 Reauthenticate properly when an `rs.stepDown()` occurs in the middle of
+  cursor execution.
+
 ## 1.2.1
 
 ### Resolved Issues

@@ -185,12 +185,8 @@ module Moped
     # @return [ Message ] The result of the operation.
     #
     # @since 1.0.0
-    def get_more(database, collection, cursor_id, limit, &callback)
-      checking_block = callback.nil? ? nil : lambda do |reply|
-        raise Moped::Errors::CursorNotFound.new("GET MORE", cursor_id) if reply.cursor_not_found?
-        callback.call reply
-      end
-      reply = process(Protocol::GetMore.new(database, collection, cursor_id, limit), &checking_block)
+    def get_more(database, collection, cursor_id, limit)
+      reply = process(Protocol::GetMore.new(database, collection, cursor_id, limit))
       raise Moped::Errors::CursorNotFound.new("GET MORE", cursor_id) if reply.cursor_not_found?
       reply
     end
