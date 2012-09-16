@@ -28,6 +28,10 @@
 * \#72 Reauthenticate properly when an `rs.stepDown()` occurs in the middle of
   cursor execution.
 
+* \#71 When DNS cannot resolve on node initialization, the node will be flagged
+  as down instead of raising a `SocketError`. On subsequent refreshes Moped will
+  attempt to resolve the DNS again to determine if the node can be brought up.
+
 ## 1.2.1
 
 ### Resolved Issues

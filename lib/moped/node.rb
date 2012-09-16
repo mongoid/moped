@@ -215,17 +215,12 @@ module Moped
     def initialize(address, options = {})
       @address = address
       @options = options
-
-      host, port = address.split(":")
-      @ip_address = ::Socket.getaddrinfo(host, nil, ::Socket::AF_INET, ::Socket::SOCK_STREAM).first[3]
-      @port = port.to_i
-      @resolved_address = "#{@ip_address}:#{@port}"
-
       @timeout = 5
       @down_at = nil
       @refreshed_at = nil
       @primary = nil
       @secondary = nil
+      resolve_address
     end
 
     # Insert documents into the database.
@@ -380,25 +375,27 @@ module Moped
     #
     # @since 1.0.0
     def refresh
-      info = command("admin", ismaster: 1)
+      if resolve_address
+        info = command("admin", ismaster: 1)
 
-      @refreshed_at = Time.now
-      primary = true if info["ismaster"]
-      secondary = true if info["secondary"]
+        @refreshed_at = Time.now
+        primary = true if info["ismaster"]
+        secondary = true if info["secondary"]
 
-      peers = []
-      peers.push(info["primary"]) if info["primary"]
-      peers.concat(info["hosts"]) if info["hosts"]
-      peers.concat(info["passives"]) if info["passives"]
-      peers.concat(info["arbiters"]) if info["arbiters"]
+        peers = []
+        peers.push(info["primary"]) if info["primary"]
+        peers.concat(info["hosts"]) if info["hosts"]
+        peers.concat(info["passives"]) if info["passives"]
+        peers.concat(info["arbiters"]) if info["arbiters"]
 
-      @peers = peers.map { |peer| Node.new(peer) }
-      @primary, @secondary = primary, secondary
-      @arbiter = info["arbiterOnly"]
-      @passive = info["passive"]
+        @peers = peers.map { |peer| Node.new(peer) }
+        @primary, @secondary = primary, secondary
+        @arbiter = info["arbiterOnly"]
+        @passive = info["passive"]
 
-      if !primary && Threaded.executing?(:ensure_primary)
-        raise Errors::ReplicaSetReconfigured, "#{inspect} is no longer the primary node."
+        if !primary && Threaded.executing?(:ensure_primary)
+          raise Errors::ReplicaSetReconfigured, "#{inspect} is no longer the primary node."
+        end
       end
     end
 
@@ -564,6 +561,29 @@ module Moped
         middle.each { |m| logger.debug indent + m.log_inspect }
         logger.debug indent + last.log_inspect + runtime
       end
+    end
+
+    def resolve_address
+      unless ip_address
+        begin
+          parse_address and true
+        rescue SocketError
+          if logger = Moped.logger
+            logger.warn " MOPED: Could not resolve IP address for #{address}"
+          end
+          @down_at = Time.new
+          false
+        end
+      else
+        true
+      end
+    end
+
+    def parse_address
+      host, port = address.split(":")
+      @port = port.to_i
+      @ip_address = ::Socket.getaddrinfo(host, nil, ::Socket::AF_INET, ::Socket::SOCK_STREAM).first[3]
+      @resolved_address = "#{@ip_address}:#{@port}"
     end
   end
 end
