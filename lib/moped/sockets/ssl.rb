@@ -37,13 +37,11 @@ module Moped
 
       # Set a socket option on the underlying socket.
       #
-      # @param [ Integer ] level The option level.
-      # @param [ Integer ] option The option.
-      # @param [ Object ] value The option value.
+      # @param [ Array<Object> ] args The option arguments.
       #
       # @since 1.3.0
-      def setsockopt(level, option, value)
-        socket.setsockopt(level, option, value)
+      def setsockopt(*args)
+        socket.setsockopt(*args)
       end
     end
   end
