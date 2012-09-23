@@ -78,7 +78,7 @@ module Moped
         yield
       rescue Timeout::Error
         raise Errors::ConnectionFailure, "Timed out connection to Mongo on #{host}:#{port}"
-      rescue Errno::ECONNREFUSED
+      rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH
         raise Errors::ConnectionFailure, "Could not connect to Mongo on #{host}:#{port}"
       rescue Errno::ECONNRESET
         raise Errors::ConnectionFailure, "Connection reset to Mongo on #{host}:#{port}"
