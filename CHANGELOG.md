@@ -24,9 +24,6 @@
 
 * \#76 Fixed typo in database check on Node. (Mathieu Ravaux)
 
-* Sockets now set TCP `SO_LINGER` option to false to ensure connections that are no
-  longer used get closed.
-
 * \#75 Ensure that `Errno::EHOSTUNREACH` is also handled with other socket errors.
 
 ## 1.2.2
