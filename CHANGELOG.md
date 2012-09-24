@@ -4,9 +4,11 @@
 
 ### New Features
 
-## 1.2.3
+## 1.2.5
 
 ### Resolved Issues
+
+*\#76 Fixed typo in database check on Node. (Mathieu Ravaux)
 
 * Sockets now set TCP `SO_LINGER` option to false to ensure connections that are no
   longer used get closed.
