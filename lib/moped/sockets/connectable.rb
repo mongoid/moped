@@ -104,7 +104,12 @@ module Moped
           Timeout::timeout(timeout) do
             sock = new(host, port)
             sock.set_encoding('binary')
-            sock.setsockopt(Socket::Option.linger(false, 0))
+            if RUBY_PLATFORM == 'java'
+              linger = [0, 0].pack("ii")
+              sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_LINGER, linger)
+            else
+              sock.setsockopt(Socket::Option.linger(false, 0))
+            end
             sock.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, 1)
             sock
           end
