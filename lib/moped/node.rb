@@ -343,7 +343,7 @@ module Moped
 
       process(operation) do |reply|
         if reply.query_failed?
-          if reply.unauthorized? && auth.has_key?[database]
+          if reply.unauthorized? && auth.has_key?(database)
             # If we got here, most likely this is the case of Moped
             # authenticating successfully against the node originally, but the
             # node has been reset or gone down and come back up. The most
