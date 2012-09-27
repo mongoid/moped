@@ -126,7 +126,14 @@ module Moped
         # Someone else wrapped this in an #ensure_primary block, so let the
         # reconfiguration exception bubble up.
         raise
-      rescue Errors::OperationFailure, Errors::AuthenticationFailure, Errors::QueryFailure, Errors::CursorNotFound
+      rescue Errors::QueryFailure => e
+        # We might have a replica set change with:
+        # "failed with error 13435: "not master and slaveOk=false"
+        if e.details['code'] == 13435
+          raise Errors::ReplicaSetReconfigured
+        end
+        raise
+      rescue Errors::OperationFailure, Errors::AuthenticationFailure, Errors::CursorNotFound
         # These exceptions are "expected" in the normal course of events, and
         # don't necessitate disconnecting.
         raise
