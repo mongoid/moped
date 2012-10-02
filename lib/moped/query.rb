@@ -207,7 +207,7 @@ module Moped
       end
 
       # Keeping moped compatibility with mongodb >= 2.2.0-rc0
-      options[:upsert] && !result ? [] : result
+      options[:upsert] && !result ? {} : result
     end
 
     # Remove a single document matching the query's selector.
