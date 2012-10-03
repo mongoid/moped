@@ -23,6 +23,7 @@ module Moped
         handle_socket_errors do
           @socket = TCPSocket.new(host, port)
           super(socket)
+          connect
         end
       end
 
