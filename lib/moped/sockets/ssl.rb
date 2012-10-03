@@ -23,7 +23,7 @@ module Moped
         handle_socket_errors do
           @socket = TCPSocket.new(host, port)
           super(socket)
-          connect
+          self.sync_close = true
         end
       end
 
