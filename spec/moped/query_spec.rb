@@ -147,8 +147,11 @@ describe Moped::Query do
                 users.find(likes: 1).modify({ "$set" => { name: "Tool" }}, upsert: true)
               end
 
-              it "returns an empty hash" do
-                result.should be_kind_of(Hash)
+              it "returns a hash" do
+                result.should be_a(Hash)
+              end
+
+              it "returns an empty result" do
                 result.should be_empty
               end
 
