@@ -148,6 +148,7 @@ describe Moped::Query do
               end
 
               it "returns an empty hash" do
+                result.should be_kind_of(Hash)
                 result.should be_empty
               end
 
