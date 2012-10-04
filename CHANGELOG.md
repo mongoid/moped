@@ -1,8 +1,10 @@
 # Overview
 
-## 1.3.0 (branch: master)
+## 1.2.6
 
-### New Features
+### Resolved Issues
+
+* mongoid/mongoid\#2430 Don't include $orderby criteria in update calls.
 
 ## 1.2.5
 
