@@ -503,25 +503,59 @@ describe Moped::Query do
 
     describe "#update" do
 
-      before do
-        users.insert(documents)
-        users.find(scope: scope).update("$set" => { "updated" => true })
+      context "when no sorting is provided" do
+
+        before do
+          users.insert(documents)
+          users.find(scope: scope).update("$set" => { "updated" => true })
+        end
+
+        it "updates the first matching document" do
+          users.find(scope: scope, updated: true).count.should eq 1
+        end
       end
 
-      it "updates the first matching document" do
-        users.find(scope: scope, updated: true).count.should eq 1
+      context "when sorting is provided" do
+
+        before do
+          users.insert(documents)
+          users.find(scope: scope).
+            sort(updated: 1).
+            update("$set" => { "updated" => true })
+        end
+
+        it "updates the first matching document" do
+          users.find(scope: scope, updated: true).count.should eq 1
+        end
       end
     end
 
     describe "#update_all" do
 
-      before do
-        users.insert(documents)
-        users.find(scope: scope).update_all("$set" => { "updated" => true })
+      context "when no sorting is provided" do
+
+        before do
+          users.insert(documents)
+          users.find(scope: scope).update_all("$set" => { "updated" => true })
+        end
+
+        it "updates all matching documents" do
+          users.find(scope: scope, updated: true).count.should eq 2
+        end
       end
 
-      it "updates all matching documents" do
-        users.find(scope: scope, updated: true).count.should eq 2
+      context "when sorting is provided" do
+
+        before do
+          users.insert(documents)
+          users.find(scope: scope).
+            sort(updated: 1).
+            update_all("$set" => { "updated" => true })
+        end
+
+        it "updates all matching documents" do
+          users.find(scope: scope, updated: true).count.should eq 2
+        end
       end
     end
 

@@ -18,6 +18,12 @@
 
         Moped::Session.new([ "ssl.mongohq.com:10004" ], ssl: true)
 
+## 1.2.6
+
+### Resolved Issues
+
+* mongoid/mongoid\#2430 Don't include $orderby criteria in update calls.
+
 ## 1.2.5
 
 ### Resolved Issues

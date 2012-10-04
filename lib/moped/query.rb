@@ -309,7 +309,7 @@ module Moped
         session.context.update(
           operation.database,
           operation.collection,
-          operation.selector,
+          operation.selector["$query"] || operation.selector,
           change,
           flags: flags
         )
