@@ -24,6 +24,7 @@ module Moped
           @socket = TCPSocket.new(host, port)
           super(socket)
           self.sync_close = true
+          connect
         end
       end
 
