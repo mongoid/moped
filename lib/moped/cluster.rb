@@ -143,7 +143,7 @@ module Moped
     # @return [ Object ] The result of the yield.
     #
     # @since 1.0.0
-    def with_primary(retry_on_failure = true, &block)
+    def with_primary(retry_on_failure = 30, &block)
       if node = nodes.find(&:primary?)
         begin
           node.ensure_primary do
@@ -155,10 +155,11 @@ module Moped
         end
       end
 
-      if retry_on_failure
+      if retry_on_failure > 0
         # We couldn't find a primary node, so refresh the list and try again.
+        sleep 1
         refresh
-        with_primary(false, &block)
+        with_primary(retry_on_failure - 1, &block)
       else
         raise(
           Errors::ConnectionFailure,
@@ -183,7 +184,7 @@ module Moped
     # @return [ Object ] The result of the yield.
     #
     # @since 1.0.0
-    def with_secondary(retry_on_failure = true, &block)
+    def with_secondary(retry_on_failure = 30, &block)
       available_nodes = nodes.shuffle!.partition(&:secondary?).flatten
 
       while node = available_nodes.shift
@@ -195,11 +196,12 @@ module Moped
         end
       end
 
-      if retry_on_failure
+      if retry_on_failure > 0
         # We couldn't find a secondary or primary node, so refresh the list and
         # try again.
+        sleep 1
         refresh
-        with_secondary(false, &block)
+        with_secondary(retry_on_failure - 1, &block)
       else
         raise(
           Errors::ConnectionFailure,
