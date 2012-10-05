@@ -39,6 +39,15 @@ module Moped
         BSON::ObjectId === other && data == other.data
       end
       alias eql? ==
+      
+      def ===(other)
+        if other.respond_to?(:to_str)
+          # Allow string comparison
+          to_s == other.to_str
+        else
+          self == other
+        end
+      end
 
       def <=>(other)
         data <=> other.data
@@ -51,6 +60,8 @@ module Moped
       def to_s
         data.unpack("H*")[0]
       end
+      alias to_str to_s
+
 
       def inspect
         to_s.inspect
