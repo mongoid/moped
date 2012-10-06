@@ -1,5 +1,19 @@
 # Overview
 
+## 1.2.7
+
+### Resolved Issues
+
+* \#60/\#80 Moped now gracefully handles replica set reconfig and crashes of the
+  primary and secondary. By default, the node list will be refreshed every
+  second and the operation will be retried up to 30 times. This is configurable
+  by setting the `:max_retries` and `:retry_interval` options on the session.
+
+        Moped::Session.new(
+          [ "node1:27017", "node2:27017" ],
+          retry_interval: 0.5, max_retries: 45
+        )
+
 ## 1.2.6
 
 ### Resolved Issues
