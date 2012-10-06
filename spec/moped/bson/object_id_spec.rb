@@ -155,6 +155,22 @@ describe Moped::BSON::ObjectId do
 
   end
 
+  describe "#===" do
+
+    context "when data is identical" do
+      it "returns true" do
+        Moped::BSON::ObjectId.from_string("4e4d66343b39b68407000001").should === "4e4d66343b39b68407000001"
+      end
+    end
+
+    context "when other is not an object id" do
+      it "returns false" do
+        Moped::BSON::ObjectId.new.should_not === nil
+      end
+    end
+
+  end
+
   describe "#eql?" do
 
     context "when data is identical" do
