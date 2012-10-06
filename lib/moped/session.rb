@@ -178,6 +178,10 @@ module Moped
     # @option options [ Symbol, String ] :database The database to use.
     # @option options [ :strong, :eventual ] :consistency (:eventual).
     # @option options [ Boolean ] :ssl Connect using SSL.
+    # @option options [ Integer ] :max_retries The maximum number of attempts
+    #   to retry an operation. (30)
+    # @option options [ Integer ] :retry_interval The time in seconds to retry
+    #   connections to a secondary or primary after a failure. (1)
     #
     # @since 1.0.0
     def initialize(seeds, options = {})

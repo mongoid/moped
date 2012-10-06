@@ -4,8 +4,9 @@ module Moped
   # node, a replica set, or a mongos server.
   class Cluster
 
+    # @attribute [r] options The cluster options.
     # @attribute [r] seeds The seeds the cluster was initialized with.
-    attr_reader :seeds
+    attr_reader :options, :seeds
 
     # Get the authentication details for the cluster.
     #
@@ -30,6 +31,22 @@ module Moped
       nodes.each { |node| node.disconnect } and true
     end
 
+    def down_interval
+      options[:down_interval]
+    end
+
+    def max_retries
+      options[:max_retries]
+    end
+
+    def refresh_interval
+      options[:refresh_interval]
+    end
+
+    def retry_interval
+      options[:retry_interval]
+    end
+
     # Initialize the new cluster.
     #
     # @example Initialize the cluster.
@@ -49,7 +66,9 @@ module Moped
 
       @options = {
         down_interval: 30,
-        refresh_interval: 300
+        max_retries: 30,
+        refresh_interval: 300,
+        retry_interval: 1
       }.merge(options)
     end
 
@@ -65,8 +84,8 @@ module Moped
     # @since 1.0.0
     def nodes
       current_time = Time.new
-      down_boundary = current_time - @options[:down_interval]
-      refresh_boundary = current_time - @options[:refresh_interval]
+      down_boundary = current_time - down_interval
+      refresh_boundary = current_time - refresh_interval
 
       # Find the nodes that were down but are ready to be refreshed, or those
       # with stale connection information.
@@ -135,15 +154,14 @@ module Moped
     #     # ...
     #   end
     #
-    # @param [ true, false ] retry_on_failure Whether to retry if an error was
-    #   raised.
+    # @param [ true, false ] retries The number of times to retry.
     #
     # @raises [ ConnectionFailure ] When no primary node can be found
     #
     # @return [ Object ] The result of the yield.
     #
     # @since 1.0.0
-    def with_primary(retry_on_failure = true, &block)
+    def with_primary(retries = max_retries, &block)
       if node = nodes.find(&:primary?)
         begin
           node.ensure_primary do
@@ -155,10 +173,11 @@ module Moped
         end
       end
 
-      if retry_on_failure
+      if retries > 0
         # We couldn't find a primary node, so refresh the list and try again.
+        sleep(retry_interval)
         refresh
-        with_primary(false, &block)
+        with_primary(retries - 1, &block)
       else
         raise(
           Errors::ConnectionFailure,
