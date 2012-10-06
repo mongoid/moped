@@ -412,8 +412,45 @@ describe Moped::Query do
         it "updates to a mongo advanced selector" do
           operation.selector.should eq(
             "$query" => { created_at: { "$exists" => false }},
-            "$orderby" => {},
             "$explain" => true,
+            "$limit" => -1
+          )
+        end
+
+        it "scans more than one document" do
+          explain["nscanned"].should eq(2)
+        end
+
+        it "scans more than one object" do
+          explain["nscannedObjects"].should eq(2)
+        end
+      end
+
+      context "when a hint exists" do
+
+        before do
+          2.times do |n|
+            users.insert({ likes: n })
+          end
+        end
+
+        let(:explain) do
+          users.find(likes: { "$exists" => false }).hint(_id: 1).explain
+        end
+
+        let(:stats) do
+          Support::Stats.collect { explain }
+        end
+
+        let(:operation) do
+          stats[node_for_reads].grep(Moped::Protocol::Query).last
+        end
+
+        it "updates to a mongo advanced selector" do
+          operation.selector.should eq(
+            "$query" => { likes: { "$exists" => false }},
+            "$explain" => true,
+            "$hint" => { _id: 1 },
             "$limit" => -1
           )
         end
