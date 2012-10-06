@@ -26,8 +26,9 @@ describe Moped::BSON::ObjectId do
   end
 
   describe "unmarshalling" do
+
     let(:marshal_data) do
-      Marshal.dump(Moped::BSON::ObjectId.from_data(bytes))
+      Marshal.dump(described_class.from_data(bytes))
     end
 
     it "does not attempt to repair the id" do
@@ -66,8 +67,8 @@ describe Moped::BSON::ObjectId do
     context "when the string is valid" do
 
       it "initializes with the string's bytes" do
-        Moped::BSON::ObjectId.should_receive(:from_data).with(bytes)
-        Moped::BSON::ObjectId.from_string "4e4d66343b39b68407000001"
+        described_class.should_receive(:from_data).with(bytes)
+        described_class.from_string "4e4d66343b39b68407000001"
       end
     end
 
@@ -75,7 +76,7 @@ describe Moped::BSON::ObjectId do
 
       it "raises an error" do
         expect {
-          Moped::BSON::ObjectId.from_string("asadsf")
+          described_class.from_string("asadsf")
         }.to raise_error(Moped::Errors::InvalidObjectId)
       end
     end
@@ -85,32 +86,42 @@ describe Moped::BSON::ObjectId do
 
     context "when the string is too short to be an object id" do
       it "returns false" do
-        Moped::BSON::ObjectId.legal?("a" * 23).should be_false
+        described_class.legal?("a" * 23).should be_false
       end
     end
 
     context "when the string contains invalid hex characters" do
       it "returns false" do
-        Moped::BSON::ObjectId.legal?("y" + "a" * 23).should be_false
+        described_class.legal?("y" + "a" * 23).should be_false
       end
     end
 
     context "when the string is a valid object id" do
       it "returns true" do
-        Moped::BSON::ObjectId.legal?("a" * 24).should be_true
+        described_class.legal?("a" * 24).should be_true
       end
     end
 
+    context "when checking against another object id" do
+
+      let(:object_id) do
+        described_class.new
+      end
+
+      it "returns true" do
+        described_class.legal?(object_id).should be_true
+      end
+    end
   end
 
   describe ".from_time" do
     it "sets the generation time" do
       time = Time.at((Time.now.utc - 64800).to_i).utc
-      Moped::BSON::ObjectId.from_time(time).generation_time.should == time
+      described_class.from_time(time).generation_time.should == time
     end
 
     it "does not include process or sequence information" do
-      id = Moped::BSON::ObjectId.from_time(Time.now)
+      id = described_class.from_time(Time.now)
       id.to_s.should =~ /\A\h{8}0{16}\Z/
     end
   end
@@ -118,11 +129,11 @@ describe Moped::BSON::ObjectId do
   describe "#initialize" do
     context "with no data" do
       it "increments the id on each call" do
-        Moped::BSON::ObjectId.new.should_not eq Moped::BSON::ObjectId.new
+        described_class.new.should_not eq described_class.new
       end
 
       it "increments the id safely across threads" do
-        ids = 2.times.map { Thread.new { Moped::BSON::ObjectId.new } }
+        ids = 2.times.map { Thread.new { described_class.new } }
         ids[0].value.should_not eq ids[1].value
       end
     end
@@ -132,13 +143,13 @@ describe Moped::BSON::ObjectId do
 
     context "when data is identical" do
       it "returns true" do
-        Moped::BSON::ObjectId.from_data(bytes).should == Moped::BSON::ObjectId.from_data(bytes)
+        described_class.from_data(bytes).should == described_class.from_data(bytes)
       end
     end
 
     context "when other is not an object id" do
       it "returns false" do
-        Moped::BSON::ObjectId.new.should_not == nil
+        described_class.new.should_not == nil
       end
     end
 
@@ -148,13 +159,13 @@ describe Moped::BSON::ObjectId do
 
     context "when data is identical" do
       it "returns true" do
-        Moped::BSON::ObjectId.from_data(bytes).should eql Moped::BSON::ObjectId.from_data(bytes)
+        described_class.from_data(bytes).should eql described_class.from_data(bytes)
       end
     end
 
     context "when other is not an object id" do
       it "returns false" do
-        Moped::BSON::ObjectId.new.should_not eql nil
+        described_class.new.should_not eql nil
       end
     end
 
@@ -164,13 +175,13 @@ describe Moped::BSON::ObjectId do
 
     context "when data is identical" do
       it "returns the same hash" do
-        Moped::BSON::ObjectId.from_data(bytes).hash.should eq Moped::BSON::ObjectId.from_data(bytes).hash
+        described_class.from_data(bytes).hash.should eq described_class.from_data(bytes).hash
       end
     end
 
     context "when other is not an object id" do
       it "returns a different hash" do
-        Moped::BSON::ObjectId.new.hash.should_not eql Moped::BSON::ObjectId.new.hash
+        described_class.new.hash.should_not eql described_class.new.hash
       end
     end
 
@@ -179,7 +190,7 @@ describe Moped::BSON::ObjectId do
   describe "#to_s" do
 
     it "returns a hex string representation of the id" do
-      Moped::BSON::ObjectId.from_data(bytes).to_s.should eq "4e4d66343b39b68407000001"
+      described_class.from_data(bytes).to_s.should eq "4e4d66343b39b68407000001"
     end
 
   end
@@ -187,7 +198,7 @@ describe Moped::BSON::ObjectId do
   describe "#inspect" do
 
     it "returns a sane representation of the id" do
-      Moped::BSON::ObjectId.from_data(bytes).inspect.should eq '"4e4d66343b39b68407000001"'
+      described_class.from_data(bytes).inspect.should eq '"4e4d66343b39b68407000001"'
     end
 
   end
@@ -195,13 +206,13 @@ describe Moped::BSON::ObjectId do
   describe "#to_json" do
 
     it "returns a json representation of the id" do
-      Moped::BSON::ObjectId.from_data(bytes).to_json.should eq('{"$oid": "4e4d66343b39b68407000001"}')
+      described_class.from_data(bytes).to_json.should eq('{"$oid": "4e4d66343b39b68407000001"}')
     end
 
   end
 
   describe "#repair!" do
-    let(:id) { Moped::BSON::ObjectId.allocate }
+    let(:id) { described_class.allocate }
 
     context "when the data is a 12-element array" do
       it "sets the id's data to the byte string" do
@@ -225,5 +236,4 @@ describe Moped::BSON::ObjectId do
       end
     end
   end
-
 end
