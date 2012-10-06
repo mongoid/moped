@@ -6,6 +6,8 @@
 
 * \#87 `Moped::BSON::ObjectId.legal?` now returns true for object ids.
 
+* \#84 Query hints are no longer wiped on explain.
+
 * \#60/\#80 Moped now gracefully handles replica set reconfig and crashes of the
   primary and secondary. By default, the node list will be refreshed every
   second and the operation will be retried up to 30 times. This is configurable
