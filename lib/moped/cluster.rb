@@ -31,18 +31,53 @@ module Moped
       nodes.each { |node| node.disconnect } and true
     end
 
+    # Get the interval at which a node should be flagged as down before
+    # retrying.
+    #
+    # @example Get the down interval, in seconds.
+    #   cluster.down_interval
+    #
+    # @return [ Integer ] The down interval.
+    #
+    # @since 1.2.7
     def down_interval
       options[:down_interval]
     end
 
+    # Get the number of times an operation should be retried before raising an
+    # error.
+    #
+    # @example Get the maximum retries.
+    #   cluster.max_retries
+    #
+    # @return [ Integer ] The max retries.
+    #
+    # @since 1.2.7
     def max_retries
       options[:max_retries]
     end
 
+    # Get the interval in which the node list should be refreshed.
+    #
+    # @example Get the refresh interval, in seconds.
+    #   cluster.refresh_interval
+    #
+    # @return [ Integer ] The refresh interval.
+    #
+    # @since 1.2.7
     def refresh_interval
       options[:refresh_interval]
     end
 
+    # Get the operation retry interval - the time to wait before retrying a
+    # single operation.
+    #
+    # @example Get the retry interval, in seconds.
+    #   cluster.retry_interval
+    #
+    # @return [ Integer ] The retry interval.
+    #
+    # @since 1.2.7
     def retry_interval
       options[:retry_interval]
     end
@@ -154,7 +189,7 @@ module Moped
     #     # ...
     #   end
     #
-    # @param [ true, false ] retries The number of times to retry.
+    # @param [ Integer ] retries The number of times to retry.
     #
     # @raises [ ConnectionFailure ] When no primary node can be found
     #
@@ -194,15 +229,14 @@ module Moped
     #     # ...
     #   end
     #
-    # @param [ true, false ] retry_on_failure Whether to retry if an error was
-    #   raised.
+    # @param [ Integer ] retries The number of times to retry.
     #
     # @raises [ ConnectionFailure ] When no primary node can be found
     #
     # @return [ Object ] The result of the yield.
     #
     # @since 1.0.0
-    def with_secondary(retry_on_failure = true, &block)
+    def with_secondary(retries = max_retries, &block)
       available_nodes = nodes.shuffle!.partition(&:secondary?).flatten
 
       while node = available_nodes.shift
@@ -214,11 +248,12 @@ module Moped
         end
       end
 
-      if retry_on_failure
+      if retries > 0
         # We couldn't find a secondary or primary node, so refresh the list and
         # try again.
+        sleep(retry_interval)
         refresh
-        with_secondary(false, &block)
+        with_secondary(retries - 1, &block)
       else
         raise(
           Errors::ConnectionFailure,
