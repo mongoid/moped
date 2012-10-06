@@ -27,6 +27,11 @@ module Moped
         end
       end
 
+      def ===(other)
+        return to_str === other.to_str if other.respond_to?(:to_str)
+        super
+      end
+
       def data
         # If @data is defined, then we know we've been loaded in some
         # non-standard way, so we attempt to repair the data.
@@ -39,15 +44,6 @@ module Moped
         BSON::ObjectId === other && data == other.data
       end
       alias eql? ==
-      
-      def ===(other)
-        if other.respond_to?(:to_str)
-          # Allow string comparison
-          to_s == other.to_str
-        else
-          self == other
-        end
-      end
 
       def <=>(other)
         data <=> other.data
@@ -60,8 +56,7 @@ module Moped
       def to_s
         data.unpack("H*")[0]
       end
-      alias to_str to_s
-
+      alias :to_str :to_s
 
       def inspect
         to_s.inspect

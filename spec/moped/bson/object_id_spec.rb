@@ -6,6 +6,84 @@ describe Moped::BSON::ObjectId do
     [78, 77, 102, 52, 59, 57, 182, 132, 7, 0, 0, 1].pack("C12")
   end
 
+  describe "#===" do
+
+    let(:object_id) do
+      described_class.new
+    end
+
+    context "when comparing with another object id" do
+
+      context "when the data is equal" do
+
+        let(:other) do
+          described_class.from_string(object_id.to_s)
+        end
+
+        it "returns true" do
+          (object_id === other).should be_true
+        end
+      end
+
+      context "when the data is not equal" do
+
+        let(:other) do
+          described_class.new
+        end
+
+        it "returns false" do
+          (object_id === other).should be_false
+        end
+      end
+    end
+
+    context "when comparing to an object id class" do
+
+      it "returns false" do
+        (object_id === Moped::BSON::ObjectId).should be_false
+      end
+    end
+
+    context "when comparing with a string" do
+
+      context "when the data is equal" do
+
+        let(:other) do
+          object_id.to_s
+        end
+
+        it "returns true" do
+          (object_id === other).should be_true
+        end
+      end
+
+      context "when the data is not equal" do
+
+        let(:other) do
+          described_class.new.to_s
+        end
+
+        it "returns false" do
+          (object_id === other).should be_false
+        end
+      end
+    end
+
+    context "when comparing with a non string or object id" do
+
+      it "returns false" do
+        (object_id === "test").should be_false
+      end
+    end
+
+    context "when comparing with a non object id class" do
+
+      it "returns false" do
+        (object_id === String).should be_false
+      end
+    end
+  end
+
   describe "ordering" do
 
     let(:first) do
@@ -150,22 +228,6 @@ describe Moped::BSON::ObjectId do
     context "when other is not an object id" do
       it "returns false" do
         described_class.new.should_not == nil
-      end
-    end
-
-  end
-
-  describe "#===" do
-
-    context "when data is identical" do
-      it "returns true" do
-        Moped::BSON::ObjectId.from_string("4e4d66343b39b68407000001").should === "4e4d66343b39b68407000001"
-      end
-    end
-
-    context "when other is not an object id" do
-      it "returns false" do
-        Moped::BSON::ObjectId.new.should_not === nil
       end
     end
 
