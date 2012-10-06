@@ -24,6 +24,9 @@
 
 * \#87 `Moped::BSON::ObjectId.legal?` now returns true for object ids.
 
+* \#85 Allow `===` comparisons with object ids to check for equality of the
+  underlying string. (Bob Aman)
+
 * \#84 Query hints are no longer wiped on explain.
 
 * \#60/\#80 Moped now gracefully handles replica set reconfig and crashes of the
