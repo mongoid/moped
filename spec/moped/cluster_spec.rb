@@ -3,7 +3,7 @@ require "spec_helper"
 describe Moped::Cluster, replica_set: true do
 
   let(:replica_set) do
-    Moped::Cluster.new(seeds, {})
+    Moped::Cluster.new(seeds, max_retries: 1)
   end
 
   describe "#disconnect" do
