@@ -28,7 +28,7 @@ module Moped
     #
     # @since 1.2.0
     def disconnect
-      nodes.each { |node| node.disconnect } and true
+      nodes(include_arbiters: true).each { |node| node.disconnect } and true
     end
 
     # Get the interval at which a node should be flagged as down before
@@ -119,7 +119,7 @@ module Moped
     # @return [ Array<Node> ] the list of available nodes.
     #
     # @since 1.0.0
-    def nodes
+    def nodes(opts = {})
       current_time = Time.new
       down_boundary = current_time - down_interval
       refresh_boundary = current_time - refresh_interval
@@ -135,7 +135,7 @@ module Moped
 
       # Now return all the nodes that are available and participating in the
       # replica set.
-      available.reject { |node| node.down? || node.arbiter? }
+      available.reject { |node| node.down? || (!opts[:include_arbiters] && node.arbiter?) }
     end
 
     # Refreshes information for each of the nodes provided. The node list
