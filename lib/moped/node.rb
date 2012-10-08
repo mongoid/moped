@@ -133,7 +133,14 @@ module Moped
           raise Errors::ReplicaSetReconfigured
         end
         raise
-      rescue Errors::OperationFailure, Errors::AuthenticationFailure, Errors::CursorNotFound
+      rescue Errors::OperationFailure => e
+        # We might have a replica set change with:
+        # "failed with error 10054: "not master"
+        if e.details['code'] == 10054
+          raise Errors::ReplicaSetReconfigured
+        end
+        raise
+      rescue Errors::AuthenticationFailure, Errors::CursorNotFound
         # These exceptions are "expected" in the normal course of events, and
         # don't necessitate disconnecting.
         raise
