@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Bernerd Schaefer"]
   s.email       = ["bj.schaefer@gmail.com"]
-  s.homepage    = "http://mongoid.org/moped"
+  s.homepage    = "http://mongoid.org/en/moped"
   s.summary     = "A MongoDB driver for Ruby."
   s.description = s.summary
 
