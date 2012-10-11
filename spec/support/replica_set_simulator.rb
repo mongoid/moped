@@ -126,7 +126,7 @@ module Support
         }
       end
 
-      def bad_status
+      def incomplete_status
         {}
       end
 
@@ -137,10 +137,10 @@ module Support
         reply
       end
 
-      def bad_status_reply
+      def incomplete_status_reply
         reply = Moped::Protocol::Reply.new
         reply.count = 1
-        reply.documents = [bad_status]
+        reply.documents = [incomplete_status]
         reply
       end
 
@@ -207,8 +207,8 @@ module Support
         @hiccup_on_next_message = true
       end
 
-      def bad_result_on_next_message!
-        @bad_result_on_next_message = true
+      def incomplete_result_on_next_message!
+        @incomplete_result_on_next_message = true
       end
 
       # Proxies a single message from client to the mongo connection.
@@ -222,9 +222,9 @@ module Support
         length, op_code = incoming_message.unpack("l<x8l<")
         incoming_message << client.read(length - 16)
 
-        if @bad_result_on_next_message
-          @bad_result_on_next_message = false
-          client.write bad_status_reply
+        if @incomplete_result_on_next_message
+          @incomplete_result_on_next_message = false
+          client.write incomplete_status_reply
         elsif op_code == OP_QUERY && ismaster_command?(incoming_message)
           # Intercept the ismaster command and send our own reply.
           client.write status_reply
