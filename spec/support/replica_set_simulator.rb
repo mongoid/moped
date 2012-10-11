@@ -126,10 +126,21 @@ module Support
         }
       end
 
+      def bad_status
+        {}
+      end
+
       def status_reply
         reply = Moped::Protocol::Reply.new
         reply.count = 1
         reply.documents = [status]
+        reply
+      end
+
+      def bad_status_reply
+        reply = Moped::Protocol::Reply.new
+        reply.count = 1
+        reply.documents = [bad_status]
         reply
       end
 
@@ -196,6 +207,10 @@ module Support
         @hiccup_on_next_message = true
       end
 
+      def bad_result_on_next_message!
+        @bad_result_on_next_message = true
+      end
+
       # Proxies a single message from client to the mongo connection.
       def proxy(client, mongo)
         if @hiccup_on_next_message
@@ -207,7 +222,10 @@ module Support
         length, op_code = incoming_message.unpack("l<x8l<")
         incoming_message << client.read(length - 16)
 
-        if op_code == OP_QUERY && ismaster_command?(incoming_message)
+        if @bad_result_on_next_message
+          @bad_result_on_next_message = false
+          client.write bad_status_reply
+        elsif op_code == OP_QUERY && ismaster_command?(incoming_message)
           # Intercept the ismaster command and send our own reply.
           client.write status_reply
         else
