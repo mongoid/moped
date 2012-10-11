@@ -93,6 +93,15 @@ describe Moped::Node, replica_set: true do
         end.should_not raise_exception
       end
     end
+
+    context "when node is connected but an incomplete result is returned" do
+      it "reconnects without raising an exception" do
+        replica_set_node.incomplete_result_on_next_message!
+        node.ensure_connected do
+          node.command("admin", ping: 1)
+        end.should eq("ok" => 1)
+      end
+    end
   end
 
   describe "#initialize" do

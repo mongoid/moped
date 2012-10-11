@@ -82,7 +82,7 @@ module Moped
           "failed with error #{code}: #{err.inspect}\n\n" <<
             "See #{ERROR_REFERENCE}\nfor details about this error."
         else
-          "failed with error #{err.inspect}"
+          "failed with error #{err.inspect} from details #{details.inspect}"
         end
       end
     end
