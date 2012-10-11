@@ -71,7 +71,7 @@ module Moped
         result = reply.documents[0]
         raise Errors::ConnectionFailure.new(
           "incomplete response returned: #{result}"
-        ) if result["ok"].nil?
+        ) if result.nil? || result["ok"].nil?
         raise Errors::OperationFailure.new(
           operation, result
         ) if result["ok"] != 1 || result["err"] || result["errmsg"]
