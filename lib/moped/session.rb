@@ -182,6 +182,8 @@ module Moped
     #   to retry an operation. (30)
     # @option options [ Integer ] :retry_interval The time in seconds to retry
     #   connections to a secondary or primary after a failure. (1)
+    # @option options [ Integer ] :timeout The time in seconds to wait for an
+    #   operation to timeout. (5)
     #
     # @since 1.0.0
     def initialize(seeds, options = {})

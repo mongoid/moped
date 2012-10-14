@@ -215,7 +215,7 @@ module Moped
     def initialize(address, options = {})
       @address = address
       @options = options
-      @timeout = 5
+      @timeout = options[:timeout] || 5
       @down_at = nil
       @refreshed_at = nil
       @primary = nil

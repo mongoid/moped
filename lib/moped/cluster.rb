@@ -93,6 +93,8 @@ module Moped
     #   to reconnect to a down node. (30)
     # @option options :refresh_interval number of seconds to cache information
     #   about a node. (300)
+    # @option options [ Integer ] :timeout The time in seconds to wait for an
+    #   operation to timeout. (5)
     #
     # @since 1.0.0
     def initialize(hosts, options)

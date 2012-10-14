@@ -4,6 +4,11 @@
 
 ### New Features
 
+* mongoid/mongoid\#2460 Moped now makes the connection timeout configurable
+  by passing a `:timeout` option to the session. This defaults to 5 seconds.
+
+        Moped::Session.new([ "node1:27017", "node2:27017" ], timeout: 5)
+
 * \#49 Support for the 2.2 aggregation framework is included. (Rodrigo Saito)
 
         session[:users].aggregate({
