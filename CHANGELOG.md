@@ -23,6 +23,12 @@
 
         Moped::Session.new([ "ssl.mongohq.com:10004" ], ssl: true)
 
+## 1.2.8
+
+### Resolved Issues
+
+* \#97 Propagate node options to newly discovered nodes. (Adam Lebsack)
+
 ## 1.2.7
 
 ### Resolved Issues
