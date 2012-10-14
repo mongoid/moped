@@ -29,6 +29,9 @@
 
 * \#97 Propagate node options to newly discovered nodes. (Adam Lebsack)
 
+* \#91 Added more graceful replica set handling when safe mode is enabled
+  and replica sets were reconfigured. (Nicolas Viennot)
+
 * \#90 Include arbiters in the list of nodes to disconnect. (Matt Parlane)
 
 ## 1.2.7
