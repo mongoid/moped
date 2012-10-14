@@ -399,7 +399,7 @@ module Moped
         peers.concat(info["passives"]) if info["passives"]
         peers.concat(info["arbiters"]) if info["arbiters"]
 
-        @peers = peers.map { |peer| Node.new(peer, options) }
+        @peers = peers.map { |peer| Node.new(peer) }
         @primary, @secondary = primary, secondary
         @arbiter = info["arbiterOnly"]
         @passive = info["passive"]
