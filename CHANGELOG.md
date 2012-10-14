@@ -29,6 +29,8 @@
 
 * \#97 Propagate node options to newly discovered nodes. (Adam Lebsack)
 
+* \#90 Include arbiters in the list of nodes to disconnect. (Matt Parlane)
+
 ## 1.2.7
 
 ### Resolved Issues
