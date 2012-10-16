@@ -111,7 +111,8 @@ module Moped
 
         # Generate object id data for a given time using the provided +counter+.
         def generate(time, counter = 0)
-          [time, @machine_id, Process.pid, counter << 8].pack("N NX lXX NX")
+          process_thread_id = "#{Process.pid}#{Thread.current.object_id}".hash % 0xFFFF
+          [time, @machine_id, process_thread_id, counter << 8].pack("N NX lXX NX")
         end
       end
 
