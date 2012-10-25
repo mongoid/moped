@@ -592,7 +592,7 @@ module Moped
 
     def parse_address
       host, port = address.split(":")
-      @port = port.to_i
+      @port = (port || 27017).to_i
       @ip_address = ::Socket.getaddrinfo(host, nil, ::Socket::AF_INET, ::Socket::SOCK_STREAM).first[3]
       @resolved_address = "#{@ip_address}:#{@port}"
     end
