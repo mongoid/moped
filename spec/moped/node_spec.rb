@@ -101,6 +101,18 @@ describe Moped::Node, replica_set: true do
       described_class.new("iamnota.mongoid.org")
     end
 
+    let(:non_default_node) do
+      described_class.new("iama.mongoid.org:5309")
+    end
+
+    context "defaults" do
+      it("defaults to port 27017") { node.port.should eq(27017) }
+    end
+
+    context "non-default" do
+      it("accepts explicit port") { non_default_node.port.should eq(5309) }
+    end
+
     context "when dns cannot resolve the address" do
 
       it "flags the node as being down" do
