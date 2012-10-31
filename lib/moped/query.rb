@@ -89,15 +89,16 @@ module Moped
     #
     # @since 1.0.0
     def explain
-      hint, sort = operation.selector["$hint"], operation.selector["$orderby"]
-      operation.selector = {
+      explanation = operation.selector.dup
+      hint = explanation["$hint"]
+      sort = explanation["$orderby"]
+      explanation = {
         "$query" => selector,
         "$explain" => true,
-        "$limit" => operation.selector.fetch("$limit", 1).abs * -1
       }
-      operation.selector["$orderby"] = sort if sort
-      operation.selector["$hint"] = hint if hint
-      each { |doc| return doc }
+      explanation["$orderby"] = sort if sort
+      explanation["$hint"] = hint if hint
+      Query.new(collection, explanation).limit(-(operation.limit.abs)).each { |doc| return doc }
     end
 
     # Get the first matching document.
