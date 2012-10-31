@@ -27,6 +27,8 @@
 
 ### Resolved Issues
 
+* \#104 `Query#explain` now respects limit.
+
 * \#100 Fix duplicate object id potential issue for JRuby. (Tim Olsen)
 
 * \#97 Propagate node options to newly discovered nodes. (Adam Lebsack)
