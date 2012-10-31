@@ -6,6 +6,8 @@
 
 * \#104 `Query#explain` now respects limit.
 
+* \#103 Port defaults to 27017 instead of zero if not provided. (Chris Winslett)
+
 * \#100 Fix duplicate object id potential issue for JRuby. (Tim Olsen)
 
 * \#97 Propagate node options to newly discovered nodes. (Adam Lebsack)
