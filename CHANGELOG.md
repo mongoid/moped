@@ -1,8 +1,10 @@
 # Overview
 
-## 1.2.8
+## 1.2.8 (branch: 1.2.0-stable)
 
 ### Resolved Issues
+
+* \#100 Fix duplicate object id potential issue for JRuby. (Tim Olsen)
 
 * \#97 Propagate node options to newly discovered nodes. (Adam Lebsack)
 
