@@ -192,6 +192,10 @@ module Support
         hiccup
       end
 
+      def crash_on_next_message!
+        @crash_on_next_message = true
+      end
+
       def hiccup_on_next_message!
         @hiccup_on_next_message = true
       end
@@ -207,7 +211,10 @@ module Support
         length, op_code = incoming_message.unpack("l<x8l<")
         incoming_message << client.read(length - 16)
 
-        if op_code == OP_QUERY && ismaster_command?(incoming_message)
+        if @crash_on_next_message
+          @crash_on_next_message = false
+          return hiccup
+        elsif op_code == OP_QUERY && ismaster_command?(incoming_message)
           # Intercept the ismaster command and send our own reply.
           client.write status_reply
         else

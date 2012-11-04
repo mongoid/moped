@@ -27,6 +27,10 @@
 
 ### Resolved Issues
 
+* \#108 Connection drops that would result in a `nil` response on socket read or
+  a `SocketError` now re-raise a `ConnectionFailure` error which causes the
+  replica set to go through it's failover behavor with node refreshing.
+
 * \#104 `Query#explain` now respects limit.
 
 * \#103 Port defaults to 27017 instead of zero if not provided. (Chris Winslett)
