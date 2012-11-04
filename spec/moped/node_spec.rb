@@ -67,14 +67,22 @@ describe Moped::Node, replica_set: true do
       end
     end
 
+    context "when the server crashes or responds with nil" do
+
+      it "fails over to the next node" do
+        replica_set_node.crash_on_next_message!
+        node.ensure_connected do
+          node.command("admin", ping: 1)
+        end.should eq("ok" => 1)
+      end
+    end
+
     context "when node closes the connection before sending a reply" do
-      it "raises an exception" do
+      it "fails over to the next node" do
         replica_set_node.hiccup_on_next_message!
-        lambda do
-          node.ensure_connected do
-            node.command("admin", ping: 1)
-          end
-        end.should raise_exception(Moped::Errors::SocketError)
+        node.ensure_connected do
+          node.command("admin", ping: 1)
+        end.should eq("ok" => 1)
       end
     end
 

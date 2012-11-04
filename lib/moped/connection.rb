@@ -85,7 +85,11 @@ module Moped
     def read
       with_connection do |socket|
         reply = Protocol::Reply.allocate
-        response = socket.read(36).unpack('l<5q<l<2')
+        data = socket.read(36)
+        unless data
+          raise Errors::ConnectionFailure, "Attempted read from socket which returned no data."
+        end
+        response = data.unpack('l<5q<l<2')
         reply.length,
             reply.request_id,
             reply.response_to,
