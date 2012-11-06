@@ -24,7 +24,7 @@ module Moped
     def drop
       begin
         database.command(drop: name)
-      rescue Moped::Errors::OperationFailure => e
+      rescue Moped::Errors::OperationFailure
         false
       end
     end
