@@ -85,10 +85,7 @@ module Moped
     def read
       with_connection do |socket|
         reply = Protocol::Reply.allocate
-        data = socket.read(36)
-        unless data
-          raise Errors::ConnectionFailure, "Attempted read from socket which returned no data."
-        end
+        data = read_data(socket, 36)
         response = data.unpack('l<5q<l<2')
         reply.length,
             reply.request_id,
@@ -102,10 +99,8 @@ module Moped
         if reply.count == 0
           reply.documents = []
         else
-          sock_read = socket.read(reply.length - 36)
-
+          sock_read = read_data(socket, reply.length - 36)
           buffer = StringIO.new(sock_read)
-
           reply.documents = reply.count.times.map do
             BSON::Document.deserialize(buffer)
           end
@@ -155,6 +150,33 @@ module Moped
 
     def create_connection
       @sock = TCPSocket.connect @host, @port, @timeout
+    end
+
+    # Read data from the socket until we get back the number of bytes that we
+    # are expecting.
+    #
+    # @api private
+    #
+    # @example Read the number of bytes.
+    #   connection.read_data(socket, 36)
+    #
+    # @param [ TCPSocket ] socket The socket to read from.
+    # @param [ Integer ] length The number of bytes to read.
+    #
+    # @return [ String ] The read data.
+    #
+    # @since 1.2.9
+    def read_data(socket, length)
+      data = socket.read(length)
+      unless data
+        raise Errors::ConnectionFailure.new(
+          "Attempted to read #{length} bytes from the socket but nothing was returned."
+        )
+      end
+      if data.length < length
+        data << read_data(socket, length - data.length)
+      end
+      data
     end
 
     # Yields a connected socket to the calling back. It will attempt to reconnect
