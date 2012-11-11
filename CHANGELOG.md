@@ -4,6 +4,8 @@
 
 ### New Features
 
+* \#78 IPv4 and IPv6 are both supported. (kubz)
+
 * mongoid/mongoid\#2460 Moped now makes the connection timeout configurable
   by passing a `:timeout` option to the session. This defaults to 5 seconds.
 
