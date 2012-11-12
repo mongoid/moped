@@ -1,6 +1,13 @@
 # Overview
 
-## 1.2.8 (branch: 1.2.0-stable)
+## 1.2.9
+
+* Moped now ensures that when reading bytes from the socket that it continues
+  to read until the requested number of bytes have been received. In the case
+  of getting `nil` back it will raise a `ConnectionFailure` and go through the
+  normal failover motions.
+
+## 1.2.8
 
 ### Resolved Issues
 
