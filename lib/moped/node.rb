@@ -390,25 +390,30 @@ module Moped
     # @since 1.0.0
     def refresh
       if resolve_address
-        info = command("admin", ismaster: 1)
+        begin
+          info = command("admin", ismaster: 1)
 
-        @refreshed_at = Time.now
-        primary = true if info["ismaster"]
-        secondary = true if info["secondary"]
+          @refreshed_at = Time.now
+          primary = true if info["ismaster"]
+          secondary = true if info["secondary"]
 
-        peers = []
-        peers.push(info["primary"]) if info["primary"]
-        peers.concat(info["hosts"]) if info["hosts"]
-        peers.concat(info["passives"]) if info["passives"]
-        peers.concat(info["arbiters"]) if info["arbiters"]
+          peers = []
+          peers.push(info["primary"]) if info["primary"]
+          peers.concat(info["hosts"]) if info["hosts"]
+          peers.concat(info["passives"]) if info["passives"]
+          peers.concat(info["arbiters"]) if info["arbiters"]
 
-        @peers = peers.map { |peer| Node.new(peer, options) }
-        @primary, @secondary = primary, secondary
-        @arbiter = info["arbiterOnly"]
-        @passive = info["passive"]
+          @peers = peers.map { |peer| Node.new(peer, options) }
+          @primary, @secondary = primary, secondary
+          @arbiter = info["arbiterOnly"]
+          @passive = info["passive"]
 
-        if !primary && Threaded.executing?(:ensure_primary)
-          raise Errors::ReplicaSetReconfigured, "#{inspect} is no longer the primary node."
+          if !primary && Threaded.executing?(:ensure_primary)
+            raise Errors::ReplicaSetReconfigured, "#{inspect} is no longer the primary node."
+          end
+        rescue Timeout::Error
+          @peers = []
+          down!
         end
       end
     end

@@ -30,6 +30,11 @@
 
         Moped::Session.new([ "ssl.mongohq.com:10004" ], ssl: true)
 
+### Resolved Issues
+
+* \#110 Handle timeout errors with SSL connections gracefully and mark nodes as
+  down without failing any other queries.
+
 ## 1.2.9
 
 * Moped now ensures that when reading bytes from the socket that it continues

@@ -137,4 +137,24 @@ describe Moped::Session do
       end
     end
   end
+
+  context "when attempting to connect to a node that does not exist" do
+
+    let!(:session_with_bad_node) do
+      Moped::Session.new(
+        [ "127.0.0.1:27017", "127.0.0.1:27018" ],
+        database: "moped_test",
+        ssl: true
+      )
+    end
+
+    let(:nodes) do
+      session_with_bad_node.cluster.instance_variable_get(:@nodes)
+    end
+
+    it "flags the node as down" do
+      session_with_bad_node.cluster.nodes
+      nodes.last.should be_down
+    end
+  end
 end
