@@ -79,6 +79,7 @@ module Moped
       end if block_given?
       enum
     end
+    alias :cursor :each
 
     # Explain the current query.
     #
@@ -293,6 +294,19 @@ module Moped
     # @since 1.0.0
     def sort(sort)
       operation.selector = { "$query" => selector, "$orderby" => sort }
+      self
+    end
+
+    # Tell the query to create a tailable cursor.
+    #
+    # @example Tell the query the cursor is tailable.
+    #   db[:people].find.tailable
+    #
+    # @return [ Query ] The query.
+    #
+    # @since 1.3.0
+    def tailable
+      operation.flags.push(:tailable)
       self
     end
 

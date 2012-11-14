@@ -32,6 +32,63 @@ describe Moped::Query do
     end
   end
 
+  describe "#tailable" do
+
+    let(:session) do
+      Moped::Session.new([ "127.0.0.1:27017" ], database: "moped_test")
+    end
+
+    let(:events) do
+      session[:capped_events]
+    end
+
+    before(:all) do
+      begin
+        session.command(
+          create: "capped_events",
+          capped: true,
+          size: 10000000,
+          max: 10
+        )
+      rescue Moped::Errors::OperationFailure
+      end
+    end
+
+    context "when the collection is capped" do
+
+      before(:all) do
+        events.insert({ "name" => "create" })
+      end
+
+      after(:all) do
+        events.drop
+      end
+
+      let(:cursor) do
+        events.find.tailable.cursor
+      end
+
+      it "returns the documents from the tail" do
+        cursor.next["name"].should eq("create")
+      end
+
+      context "when inserting another document" do
+
+        before(:all) do
+          events.insert({ "name" => "delete" })
+        end
+
+        it "keeps the cursor open" do
+          cursor.next["name"].should eq("delete")
+          Thread.new do
+            events.insert({ "name" => "new" })
+          end
+          cursor.next["name"].should eq("new")
+        end
+      end
+    end
+  end
+
   shared_examples_for "Modify" do
 
     before do

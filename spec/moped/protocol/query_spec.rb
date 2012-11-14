@@ -100,5 +100,4 @@ describe Moped::Protocol::Query do
       query.op_code.should eq 2004
     end
   end
-
 end

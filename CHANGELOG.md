@@ -4,7 +4,12 @@
 
 ### New Features
 
-* \#78 IPv4 and IPv6 are both supported. (kubz)
+* \#79 Tailable cursors are now supported. These are just Ruby `Enumerators` that
+  keep the cursor open until the next document appears. The cursor will be closed
+  when it becomes "dead".
+
+        enumerator = session[:users].find.tailable.each
+        enumerator.next # Will stay open until next doc.
 
 * mongoid/mongoid\#2460 Moped now makes the connection timeout configurable
   by passing a `:timeout` option to the session. This defaults to 5 seconds.
