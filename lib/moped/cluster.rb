@@ -169,7 +169,9 @@ module Moped
             refreshed_nodes << node unless refreshed_nodes.include?(node)
 
             # Now refresh any newly discovered peer nodes.
-            (node.peers - @nodes).each(&refresh_node)
+            if node.peers
+              (node.peers - @nodes).each(&refresh_node)
+            end
           rescue Errors::ConnectionFailure
             # We couldn't connect to the node, so don't do anything with it.
           end
