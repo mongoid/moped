@@ -1,6 +1,6 @@
 # Overview
 
-## 1.3.0 (branch: master)
+## 1.3.0
 
 ### New Features
 
