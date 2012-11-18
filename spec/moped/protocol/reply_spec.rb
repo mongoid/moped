@@ -73,7 +73,144 @@ describe Moped::Protocol::Reply do
     it "sets the documents" do
       reply.documents.should == [{"a" => "b"}, {"a" => "b"}]
     end
-
   end
 
+  describe "#command_failed?" do
+
+    context "when ok is not 1" do
+
+      let(:error) do
+        { "ok" => 0 }
+      end
+
+      let(:reply) do
+        described_class.new
+      end
+
+      before do
+        reply.documents = [ error ]
+      end
+
+      it "returns true" do
+        reply.should be_command_failure
+      end
+    end
+
+    context "when an err message is present" do
+
+      let(:error) do
+        { "err" => "message" }
+      end
+
+      let(:reply) do
+        described_class.new
+      end
+
+      before do
+        reply.documents = [ error ]
+      end
+
+      it "returns true" do
+        reply.should be_command_failure
+      end
+    end
+
+    context "when an errmsg message is present" do
+
+      let(:error) do
+        { "errmsg" => "message" }
+      end
+
+      let(:reply) do
+        described_class.new
+      end
+
+      before do
+        reply.documents = [ error ]
+      end
+
+      it "returns true" do
+        reply.should be_command_failure
+      end
+    end
+
+    context "when no errors exist" do
+
+      let(:error) do
+        { "ok" => 1 }
+      end
+
+      let(:reply) do
+        described_class.new
+      end
+
+      before do
+        reply.documents = [ error ]
+      end
+
+      it "returns false" do
+        reply.should_not be_command_failure
+      end
+    end
+  end
+
+  describe "#unauthorized?" do
+
+    context "when the code is unauthorized" do
+
+      let(:error) do
+        { "ok" => 0, "err" => "message", "code" => 10057 }
+      end
+
+      let(:reply) do
+        described_class.new
+      end
+
+      before do
+        reply.documents = [ error ]
+      end
+
+      it "returns true" do
+        reply.should be_unauthorized
+      end
+    end
+
+    context "when the assertion code is unauthorized" do
+
+      let(:error) do
+        { "ok" => 0, "err" => "message", "assertionCode" => 10057 }
+      end
+
+      let(:reply) do
+        described_class.new
+      end
+
+      before do
+        reply.documents = [ error ]
+      end
+
+      it "returns true" do
+        reply.should be_unauthorized
+      end
+    end
+
+    context "when no auth errors exist" do
+
+      let(:error) do
+        { "ok" => 1 }
+      end
+
+      let(:reply) do
+        described_class.new
+      end
+
+      before do
+        reply.documents = [ error ]
+      end
+
+      it "returns false" do
+        reply.should_not be_unauthorized
+      end
+    end
+  end
 end

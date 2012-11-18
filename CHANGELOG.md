@@ -35,6 +35,9 @@
 * \#110 Handle timeout errors with SSL connections gracefully and mark nodes as
   down without failing any other queries.
 
+* \#109 Moped reauthorizes on "db assertion failures" with commands that have
+  an unauthorized assertion code in the reply.
+
 ## 1.2.9
 
 * Moped now ensures that when reading bytes from the socket that it continues

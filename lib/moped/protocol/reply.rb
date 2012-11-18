@@ -55,16 +55,60 @@ module Moped
 
       finalize
 
+      # Is the reply the result of a command failure?
+      #
+      # @example Did the command fail?
+      #   reply.command_failure?
+      #
+      # @note This is when ok is not 1, or "err" or "errmsg" are present.
+      #
+      # @return [ true, false ] If the command failed.
+      #
+      # @since 1.2.10
+      def command_failure?
+        result = documents[0]
+        result["ok"] != 1 || result["err"] || result["errmsg"]
+      end
+
+      # Was the provided cursor id not found on the server?
+      #
+      # @example Is the cursor not on the server?
+      #   reply.cursor_not_found?
+      #
+      # @return [ true, false ] If the cursor went missing.
+      #
+      # @since 1.2.0
       def cursor_not_found?
         flags.include?(:cursor_not_found)
       end
 
+      # Did the query fail on the server?
+      #
+      # @example Did the query fail?
+      #   reply.query_failed?
+      #
+      # @return [ true, false ] If the query failed.
+      #
+      # @since 1.2.0
       def query_failed?
         flags.include?(:query_failure)
       end
 
+      # Is the reply an error message that we are not authorized for the query
+      # or command?
+      #
+      # @example Was the query unauthorized.
+      #   reply.unauthorized?
+      #
+      # @note So far this can be a "code" of 10057 in the error message or an
+      #   "assertionCode" of 10057.
+      #
+      # @return [ true, false ] If we had an authorization error.
+      #
+      # @since 1.2.10
       def unauthorized?
-        documents.first["code"] == UNAUTHORIZED
+        result = documents[0]
+        result["code"] == UNAUTHORIZED || result["assertionCode"] == UNAUTHORIZED
       end
 
       class << self

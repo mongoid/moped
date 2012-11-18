@@ -69,10 +69,15 @@ module Moped
       operation = Protocol::Command.new(database, cmd, options)
 
       process(operation) do |reply|
-        result = reply.documents[0]
-        raise Errors::OperationFailure.new(
-          operation, result
-        ) if result["ok"] != 1 || result["err"] || result["errmsg"]
+        result = reply.documents.first
+        if reply.command_failure?
+          if reply.unauthorized? && auth.has_key?(database)
+            login(database, *auth[database])
+            command(database, cmd, options)
+          else
+            raise Errors::OperationFailure.new(operation, result)
+          end
+        end
         result
       end
     end
