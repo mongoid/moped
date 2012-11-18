@@ -30,7 +30,7 @@
         })
 
 * \#42 Moped now supports SSL connections to MongoDB. Provide the `ssl: true`
-  option when creating a new `Session`.
+  option when creating a new `Session`. This is currently experimental.
 
         Moped::Session.new([ "ssl.mongohq.com:10004" ], ssl: true)
 
