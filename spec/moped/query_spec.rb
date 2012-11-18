@@ -82,7 +82,7 @@ describe Moped::Query do
           cursor.next["name"].should eq("delete")
           Thread.new do
             events.insert({ "name" => "new" })
-          end
+          end.join
           cursor.next["name"].should eq("new")
         end
       end
