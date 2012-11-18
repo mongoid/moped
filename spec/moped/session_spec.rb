@@ -158,8 +158,7 @@ describe Moped::Session do
     let!(:session_with_bad_node) do
       Moped::Session.new(
         [ "127.0.0.1:27017", "127.0.0.1:27018" ],
-        database: "moped_test",
-        ssl: true
+        database: "moped_test"
       )
     end
 
