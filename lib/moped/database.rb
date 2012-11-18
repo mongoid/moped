@@ -73,7 +73,7 @@ module Moped
     #
     # @since 1.0.0
     def command(command)
-      session.context.command name, command
+      session.context.command(name.to_s, command)
     end
 
     # Drop the database.
