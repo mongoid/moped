@@ -4,6 +4,10 @@
 
 ### New Features
 
+* \#114 Moped now accepts connecting with a URI. (Christopher Winslett)
+
+        Moped::Session.connect("mongodb://localhost:27017/my_db")
+
 * \#79 Tailable cursors are now supported. These are just Ruby `Enumerators` that
   keep the cursor open until the next document appears. The cursor will be closed
   when it becomes "dead".

@@ -193,21 +193,6 @@ module Moped
       @options[:consistency] ||= :eventual
     end
 
-    # Create a new session from a URI
-    #
-    # @example Initialize a new session.
-    #   Session.connect("mongodb://localhost:27017/my_db")
-    #
-    # @param [ String ] MongoDB URI formatted string
-    def self.connect(uri)
-      uri = MongoUri.new(uri)
-
-      session = self.new *uri.moped_arguments
-      session.login(uri.username, uri.password) if uri.auth_provided?
-
-      session
-    end
-
     # Create a new session with +options+ and use new socket connections.
     #
     # @example Change safe mode
@@ -326,6 +311,26 @@ module Moped
       if block_given?
         yield session
       else
+        session
+      end
+    end
+
+    class << self
+
+      # Create a new session from a URI.
+      #
+      # @example Initialize a new session.
+      #   Session.connect("mongodb://localhost:27017/my_db")
+      #
+      # @param [ String ] MongoDB URI formatted string.
+      #
+      # @return [ Session ] The new session.
+      #
+      # @since 3.0.0
+      def connect(uri)
+        uri = MongoUri.new(uri)
+        session = new(*uri.moped_arguments)
+        session.login(uri.username, uri.password) if uri.auth_provided?
         session
       end
     end

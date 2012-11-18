@@ -11,6 +11,21 @@ describe Moped::Session do
     session[:users].find.remove_all
   end
 
+  describe ".connect" do
+
+    let(:from_uri) do
+      described_class.connect("mongodb://localhost:27017/moped_test?safe=true")
+    end
+
+    it "returns the session with the correct database" do
+      from_uri.__send__(:current_database).name.should eq("moped_test")
+    end
+
+    it "sets the options" do
+      from_uri.options[:safe].should be_true
+    end
+  end
+
   describe "#database_names" do
 
     let(:names) do

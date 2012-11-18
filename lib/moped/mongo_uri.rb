@@ -22,9 +22,9 @@ module Moped
     # @example Boolean response if username/password given
     #   uri.auth_provided?
     #
-    # @return [ Boolean ] True / false
+    # @return [ true, false ] If authorization is provided.
     #
-    # @since 3.2.x
+    # @since 1.3.0
     def auth_provided?
       !username.nil? && !password.nil?
     end
@@ -36,7 +36,7 @@ module Moped
     #
     # @return [ String ] The database.
     #
-    # @since 3.0.0
+    # @since 1.3.0
     def database
       @database ||= match[9]
     end
@@ -48,7 +48,7 @@ module Moped
     #
     # @return [ Array<String> ] The hosts.
     #
-    # @since 3.0.0
+    # @since 1.3.0
     def hosts
       @hosts ||= match[5].split(",")
     end
@@ -60,7 +60,7 @@ module Moped
     #
     # @param [ String ] string The uri string.
     #
-    # @since 3.0.0
+    # @since 1.3.0
     def initialize(string)
       @match = string.match(URI)
     end
@@ -71,7 +71,7 @@ module Moped
     #
     # @return [ Hash ] Options hash usable by Moped
     #
-    # @since 3.2.x
+    # @since 1.3.0
     def options
       options_string, options = @match[10], {database: database}
 
@@ -101,7 +101,7 @@ module Moped
     #
     # @return [ String ] The password.
     #
-    # @since 3.0.0
+    # @since 1.3.0
     def password
       @password ||= match[4]
     end
@@ -113,7 +113,7 @@ module Moped
     #
     # @return [ Hash ] The uri as options.
     #
-    # @since 3.0.0
+    # @since 1.3.0
     def to_hash
       config = { database: database, hosts: hosts }
       if username && password
@@ -129,7 +129,7 @@ module Moped
     #
     # @return [ Array ] Array of arguments usable by Moped
     #
-    # @since 3.2.x
+    # @since 1.3.0
     def moped_arguments
       [hosts, options]
     end
@@ -141,7 +141,7 @@ module Moped
     #
     # @return [ String ] The username.
     #
-    # @since 3.0.0
+    # @since 1.3.0
     def username
       @username ||= match[3]
     end
