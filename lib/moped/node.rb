@@ -140,8 +140,9 @@ module Moped
         raise
       rescue Errors::OperationFailure => e
         # We might have a replica set change with:
-        # "failed with error 10054: "not master"
-        if e.details['code'] == 10054
+        # MongoDB uses 3 different error codes for "not master", [10054, 10056, 10058]
+        # thus it is easier to capture the "err"
+        if e.details["err"] == "not master" 
           raise Errors::ReplicaSetReconfigured
         end
         raise
