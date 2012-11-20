@@ -1,5 +1,12 @@
 # Overview
 
+## 1.3.1
+
+### Resolved Issues
+
+* \#116 Handle all cases of replica set step down or reconfiguring.
+  (Chris Winslett)
+
 ## 1.3.0
 
 ### New Features
