@@ -63,7 +63,39 @@ module Moped
     # @since 1.3.0
     def initialize(string)
       @match = string.match(URI)
+      invalid_uri!(string) unless @match
     end
+
+    # Raise a human readable error when improper URI provided
+    #
+    # @example Raise error and provide guidance on invalid URI
+    #   MongoUri.invalid!(uri)
+    #
+    # @param [ String ] Invalid string
+    #
+    # @since 1.3.1
+    def invalid_uri!(string)
+      msg = %{
+The given connection string is invalid:
+  #{string}
+
+MongoDB connection strings must be of the format:
+  mongodb://host:port/database
+
+For authentication, include username and password before host:
+  mongodb://username:password@host:port/database
+
+For Replica Sets, include multiple host:port entries:
+  mongodb://host:port,host2:port2/database
+
+For options, use query string syntax with the option value:
+  mongodb://host:port/database?safe=true&max_retries=30&timeout=5
+      }
+
+      raise Errors::InvalidMongoURI, msg
+    end
+
+
 
     # Get the options provided in the URI.
     # @example Get the options
