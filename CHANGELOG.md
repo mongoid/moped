@@ -7,6 +7,9 @@
 * \#116 Handle all cases of replica set step down or reconfiguring.
   (Chris Winslett)
 
+* Change the default retries to 20 and the retry interval to 0.25 seconds.
+  (Old was 30/1)
+
 ## 1.3.0
 
 ### New Features
