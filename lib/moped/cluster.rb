@@ -103,9 +103,9 @@ module Moped
 
       @options = {
         down_interval: 30,
-        max_retries: 30,
+        max_retries: 20,
         refresh_interval: 300,
-        retry_interval: 1
+        retry_interval: 0.25
       }.merge(options)
     end
 
