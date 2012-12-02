@@ -4,6 +4,8 @@
 
 ### Resolved Issues
 
+* \#118 Give better error when invalid URI is provided. (Chris Winslett)
+
 * \#116 Handle all cases of replica set step down or reconfiguring.
   (Chris Winslett)
 
