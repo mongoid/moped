@@ -77,7 +77,7 @@ module Moped
     def invalid_uri!(string)
       msg = %{
 The given connection string is invalid:
-  #{string}
+  #{string.gsub(/[^:]+@/, '<password>@')}
 
 MongoDB connection strings must be of the format:
   mongodb://host:port/database
