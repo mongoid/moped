@@ -10,6 +10,10 @@ describe Moped::MongoUri do
     "mongodb://localhost:27017,localhost:27017/mongoid_test"
   end
 
+  let(:invalid) do
+    "invalid://uri/test"
+  end
+
   describe "#database" do
 
     let(:uri) do
@@ -43,6 +47,16 @@ describe Moped::MongoUri do
       it "returns an array with 2 nodes" do
         uri.hosts.should eq([ "localhost:27017", "localhost:27017" ])
       end
+    end
+  end
+
+  describe "#invalid" do
+    let(:uri) do
+      described_class.new(invalid)
+    end
+
+    it "raises informative error" do
+      lambda { uri }.should raise_exception(Moped::Errors::InvalidMongoURI)
     end
   end
 

@@ -11,6 +11,9 @@ module Moped
     # Raised when a database name is invalid.
     class InvalidDatabaseName < StandardError; end
 
+    # Raised when a Mongo URI is invalid.
+    class InvalidMongoURI < StandardError; end
+
     # Raised when providing an invalid string from an object id.
     class InvalidObjectId < StandardError
 
