@@ -84,6 +84,16 @@ describe Moped::Protocol::Query do
       end
     end
 
+    context "with a batch_size option" do
+      let(:query) do
+        described_class.new "db", "coll", {}, batch_size: 5
+      end
+
+      it "sets the batch_size" do
+        query.batch_size.should eq 5
+      end
+    end
+
     context "with a fields option" do
       let(:query) do
         described_class.new "db", "coll", {}, fields: { a: 1 }

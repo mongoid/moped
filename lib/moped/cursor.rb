@@ -41,7 +41,8 @@ module Moped
     #
     # @since 1.0.0
     def get_more
-      reply = @node.get_more @database, @collection, @cursor_id, @limit
+      batch = (@options[:batch_size]) ? @options[:batch_size] : @limit
+      reply = @node.get_more @database, @collection, @cursor_id, batch
       @limit -= reply.count if limited?
       @cursor_id = reply.cursor_id
       reply.documents
@@ -72,7 +73,8 @@ module Moped
         flags: query_operation.flags,
         limit: query_operation.limit,
         skip: query_operation.skip,
-        fields: query_operation.fields
+        fields: query_operation.fields,
+        batch_size: query_operation.batch_size,
       }
     end
 
@@ -111,9 +113,13 @@ module Moped
     def load_docs
       consistency = session.consistency
       @options[:flags] |= [:slave_ok] if consistency == :eventual
+      @options[:flags] |= [:no_cursor_timeout] if @options[:no_timeout]
+
+      options = @options.clone
+      options[:limit] = @options[:batch_size] if @options[:batch_size]
 
       reply, @node = session.context.with_node do |node|
-        [ node.query(@database, @collection, @selector, @options), node ]
+        [ node.query(@database, @collection, @selector, options), node ]
       end
 
       @limit -= reply.count if limited?

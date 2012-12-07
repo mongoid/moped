@@ -173,6 +173,34 @@ module Moped
       self
     end
 
+    # Set the query's batch size.
+    #
+    # @example Set the batch size.
+    #   db[:people].find.batch_size(20)
+    #
+    # @param [ Integer ] limit The number of documents per batch.
+    #
+    # @return [ Query ] self
+    #
+    # @since 1.0.0
+    def batch_size(batch_size)
+      operation.batch_size = batch_size
+      self
+    end
+
+    # Disable cursor timeout
+    #
+    # @example Disable cursor timeout.
+    #   db[:people].find.timeout
+    #
+    # @return [ Query ] self
+    #
+    # @since 1.0.0
+    def timeout(timeout)
+      operation.no_timeout = true unless timeout
+      self
+    end
+
     # Execute a $findAndModify on the query.
     #
     # @example Find and modify a document, returning the original.
