@@ -41,7 +41,12 @@ module Moped
     #
     # @since 1.0.0
     def get_more
-      batch = (@options[:batch_size]) ? @options[:batch_size] : @limit
+      batch_size = (@options[:batch_size]) ? @options[:batch_size] : 0
+      if limited?
+        batch = (@limit > batch_size) ? batch_size : @limit
+      else
+        batch = batch_size
+      end
       reply = @node.get_more @database, @collection, @cursor_id, batch
       @limit -= reply.count if limited?
       @cursor_id = reply.cursor_id
