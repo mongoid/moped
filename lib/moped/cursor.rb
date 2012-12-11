@@ -41,16 +41,27 @@ module Moped
     #
     # @since 1.0.0
     def get_more
-      batch_size = (@options[:batch_size]) ? @options[:batch_size] : 0
-      if limited?
-        batch = (@limit > batch_size) ? batch_size : @limit
-      else
-        batch = batch_size
-      end
-      reply = @node.get_more @database, @collection, @cursor_id, batch
+      reply = @node.get_more @database, @collection, @cursor_id, request_limit
       @limit -= reply.count if limited?
       @cursor_id = reply.cursor_id
       reply.documents
+    end
+
+    # Determine the request limit for the query
+    #
+    # @example What is the cursor request_limit
+    #   cursor.request_limit
+    #
+    # @return [ Integer ]
+    #
+    # @since 1.0.0
+
+    def request_limit
+      if limited?
+        [ @limit, @batch_size ].min
+      else
+        @batch_size
+      end
     end
 
     # Initialize the new cursor.
@@ -72,6 +83,7 @@ module Moped
       @cursor_id = 0
       @limit = query_operation.limit
       @limited = @limit > 0
+      @batch_size = query_operation.batch_size || @limit
 
       @options = {
         request_id: query_operation.request_id,
@@ -79,7 +91,6 @@ module Moped
         limit: query_operation.limit,
         skip: query_operation.skip,
         fields: query_operation.fields,
-        batch_size: query_operation.batch_size,
       }
     end
 
