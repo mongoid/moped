@@ -127,7 +127,7 @@ module Moped
       # Find the nodes that were down but are ready to be refreshed, or those
       # with stale connection information.
       needs_refresh, available = @nodes.partition do |node|
-        (node.down? && node.down_at < down_boundary) || node.needs_refresh?(refresh_boundary)
+        node.down? ? (node.down_at < down_boundary) : node.needs_refresh?(refresh_boundary)
       end
 
       # Refresh those nodes.
