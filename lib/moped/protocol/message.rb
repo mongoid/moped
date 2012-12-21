@@ -245,7 +245,7 @@ module Moped
               end
 
               def serialize_#{name}(buffer)
-                buffer << #{name}.pack('q*<')
+                buffer << #{name}.pack('q<*')
               end
 
               def deserialize_#{name}(buffer)
