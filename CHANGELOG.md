@@ -10,6 +10,9 @@
 * \#130 Flag down as down in refresh when not primary or secondary.
   (Nilson Santos Figueiredo Jr)
 
+* \#128 Fix refresh check to only check nodes that have been down longer
+  than the refresh boundary using the proper interval.
+
 * \#124 Fix packing of bytes in core messages for big endian systems.
 
 ## 1.3.1
