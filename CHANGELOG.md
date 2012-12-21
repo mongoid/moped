@@ -1,5 +1,12 @@
 # Overview
 
+## 1.3.2
+
+### Resolved Issues
+
+* \#130 Flag down as down in refresh when not primary or secondary.
+  (Nilson Santos Figueiredo Jr)
+
 ## 1.3.1
 
 ### Resolved Issues
