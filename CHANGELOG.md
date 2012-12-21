@@ -4,6 +4,9 @@
 
 ### Resolved Issues
 
+* \#131 Give better error messages when assertion and assertionCode are
+  present in the result.
+
 * \#130 Flag down as down in refresh when not primary or secondary.
   (Nilson Santos Figueiredo Jr)
 

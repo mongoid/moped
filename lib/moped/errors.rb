@@ -80,9 +80,12 @@ module Moped
       # @since 1.0.0
       def error_message
         err = details["err"] || details["errmsg"] || details["$err"]
-
         if code = details["code"]
           "failed with error #{code}: #{err.inspect}\n\n" <<
+            "See #{ERROR_REFERENCE}\nfor details about this error."
+        elsif code = details["assertionCode"]
+          assertion = details["assertion"]
+          "failed with error #{code}: #{assertion.inspect}\n\n" <<
             "See #{ERROR_REFERENCE}\nfor details about this error."
         else
           "failed with error #{err.inspect}"
