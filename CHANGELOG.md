@@ -13,6 +13,9 @@
 * \#128 Fix refresh check to only check nodes that have been down longer
   than the refresh boundary using the proper interval.
 
+* \#125 Batch size and no timeout are now respected by queries.
+  (Derek Buttineau)
+
 * \#124 Fix packing of bytes in core messages for big endian systems.
 
 ## 1.3.1
