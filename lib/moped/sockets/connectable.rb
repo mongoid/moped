@@ -76,8 +76,6 @@ module Moped
       # @since 1.0.0
       def handle_socket_errors
         yield
-      rescue Timeout::Error
-        raise Errors::ConnectionFailure, "Timed out connection to Mongo on #{host}:#{port}"
       rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH, Errno::EPIPE
         raise Errors::ConnectionFailure, "Could not connect to Mongo on #{host}:#{port}"
       rescue Errno::ECONNRESET
@@ -101,11 +99,15 @@ module Moped
         #
         # @since 1.0.0
         def connect(host, port, timeout)
-          Timeout::timeout(timeout) do
-            sock = new(host, port)
-            sock.set_encoding('binary')
-            sock.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, 1)
-            sock
+          begin
+            Timeout::timeout(timeout) do
+              sock = new(host, port)
+              sock.set_encoding('binary')
+              sock.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, 1)
+              sock
+            end
+          rescue Timeout::Error
+            raise Errors::ConnectionFailure, "Timed out connection to Mongo on #{host}:#{port}"
           end
         end
       end
