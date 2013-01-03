@@ -172,7 +172,7 @@ module Moped
     # @param [ Array ] seeds an of host:port pairs
     # @param [ Hash ] options
     #
-    # @option options [ Boolean ] :safe (false) Ensure writes are persisted.
+    # @option options [ Boolean ] :safe (true) Ensure writes are persisted.
     # @option options [ Hash ] :safe Ensure writes are persisted with the
     #   specified safety level e.g., "fsync: true", or "w: 2, wtimeout: 5".
     # @option options [ Symbol, String ] :database The database to use.
@@ -191,6 +191,7 @@ module Moped
       @context = Context.new(self)
       @options = options
       @options[:consistency] ||= :eventual
+      @options[:safe] = true if @options[:safe].nil?
     end
 
     # Create a new session with +options+ and use new socket connections.
