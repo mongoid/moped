@@ -80,6 +80,8 @@ module Moped
         raise Errors::ConnectionFailure, "Could not connect to Mongo on #{host}:#{port}"
       rescue Errno::ECONNRESET
         raise Errors::ConnectionFailure, "Connection reset to Mongo on #{host}:#{port}"
+      rescue IOError
+        raise Errors::ConnectionFailure, "Connection timed out to Mongo on #{host}:#{port}"
       rescue OpenSSL::SSL::SSLError => e
         raise Errors::ConnectionFailure, "SSL Error '#{e.to_s}' for connection to Mongo on #{host}:#{port}"
       end
