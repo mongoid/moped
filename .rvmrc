@@ -1,1 +1,1 @@
-rvm use 1.9.3@moped --create
+rvm use 1.9.3-p327@moped --create
