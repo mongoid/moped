@@ -1,3 +1,5 @@
+require "moped/connection_pool"
+
 module Moped
 
   # Represents a client to a node in a server cluster.
