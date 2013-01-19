@@ -25,7 +25,7 @@ the Moped section: [mongoid.org](http://mongoid.org/en/moped/)
 License
 -------
 
-Copyright (c) 2011-2012 Bernerd Schaefer
+Copyright (c) 2011-2013 Bernerd Schaefer, Durran Jordan
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
