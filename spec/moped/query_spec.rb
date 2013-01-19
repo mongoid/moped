@@ -611,12 +611,42 @@ describe Moped::Query do
         users.insert(documents)
       end
 
-      it "returns the number of matching document" do
-        users.find(scope: scope).count.should eq(2)
+      context "when no limiting is provided" do
+
+        context "when passing no arguments" do
+
+          it "returns the number of matching document" do
+            users.find(scope: scope).count.should eq(2)
+          end
+
+          it "returns a fixnum" do
+            users.find(scope: scope).count.should be_a(Integer)
+          end
+        end
+
+        context "when passing true" do
+
+          it "returns the number of matching document" do
+            users.find(scope: scope).count(true).should eq(2)
+          end
+        end
       end
 
-      it "returns a fixnum" do
-        users.find(scope: scope).count.should be_a(Integer)
+      context "when limiting options are provided" do
+
+        context "when passing no arguments" do
+
+          it "returns the number of matching document" do
+            users.find(scope: scope).limit(1).count.should eq(2)
+          end
+        end
+
+        context "when passing true" do
+
+          it "returns the count with limiting applied" do
+            users.find(scope: scope).limit(1).count(true).should eq(1)
+          end
+        end
       end
     end
 

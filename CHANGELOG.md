@@ -1,5 +1,12 @@
 # Overview
 
+## 2.0.0
+
+* mongoid/mongoid\#2452 A boolean can now be passed to count to determine
+  if the skip and limit options should be included in the value.
+
+        session[:bands].find(name: "Blur").skip(10).limit(5).count(true)
+
 ## 1.3.2
 
 ### Resolved Issues

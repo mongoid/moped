@@ -32,11 +32,10 @@ module Moped
     # @return [ Integer ] The number of documents that match the selector.
     #
     # @since 1.0.0
-    def count
-      result = collection.database.command(
-        count: collection.name,
-        query: selector
-      )
+    def count(limit = false)
+      command = { count: collection.name, query: selector }
+      command.merge!(skip: operation.skip, limit: operation.limit) if limit
+      result = collection.database.command(command)
       result["n"].to_i
     end
 
