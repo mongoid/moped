@@ -129,32 +129,17 @@ module Moped
       begin
         connect unless connected?
         yield
-      rescue Errors::ReplicaSetReconfigured
-        # Someone else wrapped this in an #ensure_primary block, so let the
-        # reconfiguration exception bubble up.
-        raise
-      rescue Errors::QueryFailure => e
-        # We might have a replica set change with:
-        # "failed with error 13435: "not master and slaveOk=false"
-        if e.details['code'] == 13435
+      rescue Errors::PotentialReconfiguration => e
+        if e.reconfiguring_replica_set?
           raise Errors::ReplicaSetReconfigured
         end
         raise
-      rescue Errors::OperationFailure => e
-        # We might have a replica set change with:
-        # MongoDB uses 3 different error codes for "not master", [10054, 10056, 10058]
-        # thus it is easier to capture the "err"
-        if e.details["err"] == "not master"
-          raise Errors::ReplicaSetReconfigured
-        end
-        raise
-      rescue Errors::AuthenticationFailure, Errors::CursorNotFound
+      rescue Errors::DoNotDisconnect
         # These exceptions are "expected" in the normal course of events, and
         # don't necessitate disconnecting.
         raise
       rescue Errors::ConnectionFailure
         disconnect
-
         if retry_on_failure
           # Maybe there was a hiccup -- try reconnecting one more time
           retry_on_failure = false
