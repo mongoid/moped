@@ -119,8 +119,8 @@ module Moped
     # @return [ Hash ] containing the result of aggregation
     #
     # @since 1.3.0
-    def aggregate(pipeline)
-      pipeline = [ pipeline ] unless pipeline.is_a?(Array)
+    def aggregate(*pipeline)
+      pipeline.flatten!
       command = { aggregate: name.to_s, pipeline: pipeline }
       database.session.command(command)["result"]
     end
