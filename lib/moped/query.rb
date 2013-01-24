@@ -255,7 +255,7 @@ module Moped
         session.context.remove(
           operation.database,
           operation.collection,
-          operation.selector,
+          operation.basic_selector,
           flags: [ :remove_first ]
         )
       end
@@ -274,7 +274,7 @@ module Moped
         session.context.remove(
           operation.database,
           operation.collection,
-          operation.selector
+          operation.basic_selector
         )
       end
     end

@@ -134,6 +134,21 @@ module Moped
         f.join(" ") % v
       end
 
+      # Get the basic selector.
+      #
+      # @example Get the basic selector.
+      #   query.basic_selector
+      #
+      # @note Sometimes, like in cases of deletion we need this since MongoDB
+      # does not understand $query in operations like DELETE.
+      #
+      # @return [ Hash ] The basic selector.
+      #
+      # @since 2.0.0
+      def basic_selector
+        selector["$query"] || selector
+      end
+
       # Receive replies to the message.
       #
       # @example Receive replies.

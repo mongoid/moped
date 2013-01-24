@@ -738,11 +738,28 @@ describe Moped::Query do
 
       before do
         users.insert(documents)
-        users.find(scope: scope).remove
       end
 
-      it "removes the first matching document" do
-        users.find(scope: scope).count.should eq 1
+      context "when ordering exists on the query" do
+
+        before do
+          users.find(scope: scope).sort(scope: 1).remove
+        end
+
+        it "removes the first matching document" do
+          users.find(scope: scope).count.should eq(1)
+        end
+      end
+
+      context "when no ordering exists on the query" do
+
+        before do
+          users.find(scope: scope).remove
+        end
+
+        it "removes the first matching document" do
+          users.find(scope: scope).count.should eq(1)
+        end
       end
     end
 
@@ -750,11 +767,28 @@ describe Moped::Query do
 
       before do
         users.insert(documents)
-        users.find(scope: scope).remove_all
       end
 
-      it "removes all matching documents" do
-        users.find(scope: scope).count.should eq 0
+      context "when ordering exists on the query" do
+
+        before do
+          users.find(scope: scope).sort(scope: 1).remove_all
+        end
+
+        it "removes all matching documents" do
+          users.find(scope: scope).count.should eq(0)
+        end
+      end
+
+      context "when no ordering exists on the query" do
+
+        before do
+          users.find(scope: scope).remove_all
+        end
+
+        it "removes all matching documents" do
+          users.find(scope: scope).count.should eq(0)
+        end
       end
     end
   end
