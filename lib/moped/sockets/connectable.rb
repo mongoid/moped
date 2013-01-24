@@ -106,6 +106,11 @@ module Moped
               sock = new(host, port)
               sock.set_encoding('binary')
               sock.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, 1)
+
+              timeout_val = [timeout, 0].pack("l_2")
+              sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_RCVTIMEO, timeout_val)
+              sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_SNDTIMEO, timeout_val)
+              
               sock
             end
           rescue Timeout::Error
