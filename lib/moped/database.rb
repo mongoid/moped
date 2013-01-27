@@ -54,7 +54,7 @@ module Moped
     #
     # @since 1.0.0
     def collection_names
-      namespaces = Collection.new(self, "system.namespaces").find(name: { "$not" => /#{name}\.system|\$/ })
+      namespaces = Collection.new(self, "system.namespaces").find(name: { "$not" => /#{name}\.system\.|\$/ })
       namespaces.map do |doc|
         _name = doc["name"]
         _name[name.length + 1, _name.length]

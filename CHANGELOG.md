@@ -5,6 +5,9 @@
 * mongoid/mongoid\#2738 Ensure that delete operations don't include
   special selectors, like $query.
 
+* mongoid/mongoid\#2713 Allow collections that have names that start with
+  "system" to be returned by `Database#collection_names`.
+
 * mongoid/mongoid\#2452 A boolean can now be passed to count to determine
   if the skip and limit options should be included in the value.
 

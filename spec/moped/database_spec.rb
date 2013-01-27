@@ -106,7 +106,7 @@ describe Moped::Database do
       end
 
       it "returns the name of all non system collections" do
-        collection_names.sort.should eq %w[ users ].sort
+        collection_names.sort.should eq %w[ users system_comments_fu ].sort
       end
     end
   end
