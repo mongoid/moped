@@ -353,6 +353,32 @@ describe Moped::Query do
       end
     end
 
+    describe "#max_scan" do
+
+      let(:document1) do
+        { "_id" => Moped::BSON::ObjectId.new, "scope" => scope, "n" => 0 }
+      end
+
+      let(:document2) do
+        { "_id" => Moped::BSON::ObjectId.new, "scope" => scope, "n" => 1 }
+      end
+
+      let(:documents) do
+        [
+          document1,
+          document2
+        ]
+      end
+
+      before do
+        users.insert(documents)
+      end
+
+      it "limits the number of documents returned" do
+        users.find(scope: scope).max_scan(1).to_a.should eq [document1]
+      end
+    end
+
     describe "#distinct" do
 
       let(:documents) do
@@ -515,6 +541,63 @@ describe Moped::Query do
 
         it "scans more than one object" do
           explain["nscannedObjects"].should eq(2)
+        end
+      end
+
+      context "when a max scan exists" do
+
+        before do
+          2.times do |n|
+            users.insert({ likes: n })
+          end
+        end
+
+        let(:explain) do
+          users.find(likes: { "$exists" => false }).max_scan(1).explain
+        end
+
+        let(:stats) do
+          Support::Stats.collect { explain }
+        end
+
+        let(:operation) do
+          stats[node_for_reads].grep(Moped::Protocol::Query).last
+        end
+
+        it "updates to a mongo advanced selector" do
+          operation.selector.should eq(
+                                      "$query" => { likes: { "$exists" => false }},
+                                      "$explain" => true,
+                                      "$maxScan" => 1
+                                    )
+        end
+
+        it "scans up to the number of objects in the max scan" do
+          explain["nscannedObjects"].should eq(1)
+        end
+
+        context "and a sort exists" do
+
+          let(:explain) do
+            users.find(likes: { "$exists" => false }).max_scan(10).sort(_id: 1).explain
+          end
+
+          let(:stats) do
+            Support::Stats.collect { explain }
+          end
+
+          let(:operation) do
+            stats[node_for_reads].grep(Moped::Protocol::Query).last
+          end
+
+          it "updates to a mongo advanced selector" do
+            operation.selector.should eq(
+                                        "$query" => { likes: { "$exists" => false }},
+                                        "$explain" => true,
+                                        "$orderby" => { _id: 1 },
+                                        "$maxScan" => 10
+                                      )
+          end
         end
       end
 

@@ -92,12 +92,14 @@ module Moped
       explanation = operation.selector.dup
       hint = explanation["$hint"]
       sort = explanation["$orderby"]
+      max_scan = explanation["$maxScan"]
       explanation = {
         "$query" => selector,
         "$explain" => true,
       }
       explanation["$orderby"] = sort if sort
       explanation["$hint"] = hint if hint
+      explanation["$maxScan"] = max_scan if max_scan
       Query.new(collection, explanation).limit(-(operation.limit.abs)).each { |doc| return doc }
     end
 
@@ -134,8 +136,24 @@ module Moped
     #
     # @since 1.0.0
     def hint(hint)
-      operation.selector = { "$query" => selector } unless operation.selector["$query"]
+      update_to_mongo_advanced_selector
       operation.selector["$hint"] = hint
+      self
+    end
+
+    # Apply a max scan limit to the query.
+    #
+    # @example Limit the query to only scan up to 100 documents
+    #   db[:people].find.max_scan(100)
+    #
+    # @param [ Integer ] max The maximum number of documents to scan
+    #
+    # @return [ Query ] self
+    #
+    # @since 1.3.0
+    def max_scan(max)
+      update_to_mongo_advanced_selector
+      operation.selector["$maxScan"] = max
       self
     end
 
@@ -320,7 +338,8 @@ module Moped
     #
     # @since 1.0.0
     def sort(sort)
-      operation.selector = { "$query" => selector, "$orderby" => sort }
+      update_to_mongo_advanced_selector
+      operation.selector["$orderby"] = sort
       self
     end
 
@@ -402,6 +421,10 @@ module Moped
 
     def session
       collection.database.session
+    end
+
+    def update_to_mongo_advanced_selector
+      operation.selector = { "$query" => selector } unless operation.selector["$query"]
     end
   end
 end
