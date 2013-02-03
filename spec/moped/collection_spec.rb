@@ -9,19 +9,19 @@ describe Moped::Collection do
 
   describe "#capped?" do
 
-    before(:all) do
-      begin
-        session.command(
-          create: "capped_events",
-          capped: true,
-          size: 10000000,
-          max: 10
-        )
-      rescue Moped::Errors::OperationFailure
-      end
-    end
-
     context "when the collection is capped" do
+
+      before(:all) do
+        begin
+          session.command(
+            create: "capped_events",
+            capped: true,
+            size: 10000000,
+            max: 10
+          )
+        rescue Moped::Errors::OperationFailure
+        end
+      end
 
       it "returns true" do
         session[:capped_events].should be_capped
@@ -29,6 +29,13 @@ describe Moped::Collection do
     end
 
     context "when the collection is not capped" do
+
+      before(:all) do
+        begin
+          session.command(create: "users")
+        rescue Moped::Errors::OperationFailure
+        end
+      end
 
       it "returns false" do
         session[:users].should_not be_capped
