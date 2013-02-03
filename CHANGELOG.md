@@ -9,6 +9,9 @@
 * \#143 Aggregation pipeline commands no longer force to read from
   primary.
 
+* \#137 `IOError` exceptions during connection go through reconnect
+  process properly. (Peter Kieltyka)
+
 * mongoid/mongoid\#2738 Ensure that delete operations don't include
   special selectors, like $query.
 
