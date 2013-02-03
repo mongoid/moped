@@ -1,6 +1,10 @@
 # Overview
 
-## 2.0.0
+## 1.4.0
+
+* \#144 Moped now supports $maxScan options in queries. (Jonathan Hyman)
+
+        session[:bands].find(name: "Blur").max_scan(50)
 
 * mongoid/mongoid\#2738 Ensure that delete operations don't include
   special selectors, like $query.

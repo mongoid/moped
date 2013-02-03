@@ -136,7 +136,7 @@ module Moped
     #
     # @since 1.0.0
     def hint(hint)
-      update_to_mongo_advanced_selector
+      upgrade_to_advanced_selector
       operation.selector["$hint"] = hint
       self
     end
@@ -152,7 +152,7 @@ module Moped
     #
     # @since 1.3.0
     def max_scan(max)
-      update_to_mongo_advanced_selector
+      upgrade_to_advanced_selector
       operation.selector["$maxScan"] = max
       self
     end
@@ -338,7 +338,7 @@ module Moped
     #
     # @since 1.0.0
     def sort(sort)
-      update_to_mongo_advanced_selector
+      upgrade_to_advanced_selector
       operation.selector["$orderby"] = sort
       self
     end
@@ -423,7 +423,7 @@ module Moped
       collection.database.session
     end
 
-    def update_to_mongo_advanced_selector
+    def upgrade_to_advanced_selector
       operation.selector = { "$query" => selector } unless operation.selector["$query"]
     end
   end

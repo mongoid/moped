@@ -364,10 +364,7 @@ describe Moped::Query do
       end
 
       let(:documents) do
-        [
-          document1,
-          document2
-        ]
+        [ document1, document2 ]
       end
 
       before do
@@ -375,7 +372,7 @@ describe Moped::Query do
       end
 
       it "limits the number of documents returned" do
-        users.find(scope: scope).max_scan(1).to_a.should eq [document1]
+        users.find(scope: scope).max_scan(1).to_a.should eq [ document1 ]
       end
     end
 
@@ -566,10 +563,9 @@ describe Moped::Query do
 
         it "updates to a mongo advanced selector" do
           operation.selector.should eq(
-                                      "$query" => { likes: { "$exists" => false }},
-                                      "$explain" => true,
-                                      "$maxScan" => 1
-                                    )
+            "$query" => { likes: { "$exists" => false }},
+            "$explain" => true, "$maxScan" => 1
+          )
         end
 
         it "scans up to the number of objects in the max scan" do
@@ -592,11 +588,9 @@ describe Moped::Query do
 
           it "updates to a mongo advanced selector" do
             operation.selector.should eq(
-                                        "$query" => { likes: { "$exists" => false }},
-                                        "$explain" => true,
-                                        "$orderby" => { _id: 1 },
-                                        "$maxScan" => 10
-                                      )
+              "$query" => { likes: { "$exists" => false }}, "$explain" => true,
+              "$orderby" => { _id: 1 }, "$maxScan" => 10
+            )
           end
         end
       end
