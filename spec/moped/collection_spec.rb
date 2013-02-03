@@ -170,24 +170,50 @@ describe Moped::Collection do
 
     context "with more than one operation" do
 
-      let(:result) do
-        session[:zips].aggregate([
-          { "$group" =>
-            {
-              "_id" => "$city",
-              "totalpop" => { "$sum" => "$pop" }
-            }
-          },
-          { "$match" => { "totalpop" => { "$gte" => 100000 }}}
-        ])
+      context "when providing an array" do
+
+        let(:result) do
+          session[:zips].aggregate([
+            { "$group" =>
+              {
+                "_id" => "$city",
+                "totalpop" => { "$sum" => "$pop" }
+              }
+            },
+            { "$match" => { "totalpop" => { "$gte" => 100000 }}}
+          ])
+        end
+
+        it "returns an aggregated result" do
+          result.size.should eq(1)
+        end
+
+        it "returns an aggregated result with grouped and matched documents" do
+          result.first["totalpop"].should eq(18913 + 84143)
+        end
       end
 
-      it "returns an aggregated result" do
-        result.size.should eq(1)
-      end
+      context "when providing a splat" do
 
-      it "returns an aggregated result with grouped and matched documents" do
-        result.first["totalpop"].should eq(18913 + 84143)
+        let(:result) do
+          session[:zips].aggregate(
+            { "$group" =>
+              {
+                "_id" => "$city",
+                "totalpop" => { "$sum" => "$pop" }
+              }
+            },
+            { "$match" => { "totalpop" => { "$gte" => 100000 }}}
+          )
+        end
+
+        it "returns an aggregated result" do
+          result.size.should eq(1)
+        end
+
+        it "returns an aggregated result with grouped and matched documents" do
+          result.first["totalpop"].should eq(18913 + 84143)
+        end
       end
     end
   end
