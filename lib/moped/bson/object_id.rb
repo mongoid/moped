@@ -7,19 +7,68 @@ module Moped
       include Comparable
 
       class << self
+
+        # Create a new object id from a string.
+        #
+        # @example Create an object id from the string.
+        #   Moped::BSON::ObjectId.from_string(id)
+        #
+        # @param [ String ] string The string to create from.
+        #
+        # @return [ ObjectId ] The new object id.
+        #
+        # @since 1.0.0
         def from_string(string)
           raise Errors::InvalidObjectId.new(string) unless legal?(string)
           from_data [string].pack("H*")
         end
 
-        def from_time(time)
-          from_data [time.to_i].pack("Nx8")
+        # Create a new object id from a time.
+        #
+        # @example Create an object id from a time.
+        #   Moped::BSON::ObjectId.from_id(time)
+        #
+        # @example Create an object id from a time, ensuring uniqueness.
+        #   Moped::BSON::ObjectId.from_id(time, unique: true)
+        #
+        # @param [ Time ] time The time to generate from.
+        # @param [ Hash ] options The options.
+        #
+        # @option options [ true, false ] :unique Whether the id should be
+        #   unique.
+        #
+        # @return [ ObjectId ] The new object id.
+        #
+        # @since 1.0.0
+        def from_time(time, options = nil)
+          unique = (options || {})[:unique]
+          from_data(unique ? @@generator.next(time.to_i) : [ time.to_i ].pack("Nx8"))
         end
 
-        def legal?(str)
-          /\A\h{24}\Z/ === str.to_s
+        # Determine if the string is a legal object id.
+        #
+        # @example Is the string a legal object id?
+        #   Moped::BSON::ObjectId.legal?(string)
+        #
+        # @param [ String ] The string to test.
+        #
+        # @return [ true, false ] If the string is legal.
+        #
+        # @since 1.0.0
+        def legal?(string)
+          /\A\h{24}\Z/ === string.to_s
         end
 
+        # Create a new object id from some raw data.
+        #
+        # @example Create an object id from raw data.
+        #   Moped::BSON::ObjectId.from_data(data)
+        #
+        # @param [ String ] data The raw bytes.
+        #
+        # @return [ ObjectId ] The new object id.
+        #
+        # @since 1.0.0
         def from_data(data)
           id = allocate
           id.send(:data=, data)
@@ -36,7 +85,6 @@ module Moped
         # If @data is defined, then we know we've been loaded in some
         # non-standard way, so we attempt to repair the data.
         repair! @data if defined? @data
-
         @raw_data ||= @@generator.next
       end
 
@@ -98,7 +146,7 @@ module Moped
 
         # Return object id data based on the current time, incrementing the
         # object id counter.
-        def next
+        def next(time = nil)
           @mutex.lock
           begin
             counter = @counter = (@counter + 1) % 0xFFFFFF
@@ -106,7 +154,7 @@ module Moped
             @mutex.unlock rescue nil
           end
 
-          generate(Time.new.to_i, counter)
+          generate(time || Time.new.to_i, counter)
         end
 
         # Generate object id data for a given time using the provided +counter+.

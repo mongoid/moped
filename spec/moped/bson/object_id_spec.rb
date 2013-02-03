@@ -193,14 +193,40 @@ describe Moped::BSON::ObjectId do
   end
 
   describe ".from_time" do
-    it "sets the generation time" do
-      time = Time.at((Time.now.utc - 64800).to_i).utc
-      described_class.from_time(time).generation_time.should == time
+
+    context "when no unique option is provided" do
+
+      let(:time) do
+        Time.at((Time.now.utc - 64800).to_i).utc
+      end
+
+      it "sets the generation time" do
+        described_class.from_time(time).generation_time.should eq(time)
+      end
+
+      it "does not include process or sequence information" do
+        id = described_class.from_time(Time.now)
+        id.to_s.should =~ /\A\h{8}0{16}\Z/
+      end
     end
 
-    it "does not include process or sequence information" do
-      id = described_class.from_time(Time.now)
-      id.to_s.should =~ /\A\h{8}0{16}\Z/
+    context "when a unique option is provided" do
+
+      let(:time) do
+        Time.at((Time.now.utc - 64800).to_i).utc
+      end
+
+      let(:object_id) do
+        described_class.from_time(time, unique: true)
+      end
+
+      let(:non_unique) do
+        described_class.from_time(time, unique: true)
+      end
+
+      it "creates a new unique object id" do
+        object_id.should_not eq(non_unique)
+      end
     end
   end
 

@@ -12,6 +12,11 @@
 * \#137 `IOError` exceptions during connection go through reconnect
   process properly. (Peter Kieltyka)
 
+* \#41 `Moped::BSON::ObjectId.from_time` now accepts a `unique` option to
+  ensure the generated id is unique.
+
+        Moped::BSON::ObjectId.from_time(time, unique: true)
+
 * mongoid/mongoid\#2738 Ensure that delete operations don't include
   special selectors, like $query.
 
