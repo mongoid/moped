@@ -91,7 +91,7 @@ module Moped
       def ==(other)
         BSON::ObjectId === other && data == other.data
       end
-      alias eql? ==
+      alias :eql? :==
 
       def <=>(other)
         data <=> other.data
