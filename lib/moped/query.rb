@@ -150,7 +150,7 @@ module Moped
     #
     # @return [ Query ] self
     #
-    # @since 1.3.0
+    # @since 1.4.0
     def max_scan(max)
       upgrade_to_advanced_selector
       operation.selector["$maxScan"] = max

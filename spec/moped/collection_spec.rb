@@ -7,6 +7,35 @@ describe Moped::Collection do
 
   let(:scope) { object_id }
 
+  describe "#capped?" do
+
+    before(:all) do
+      begin
+        session.command(
+          create: "capped_events",
+          capped: true,
+          size: 10000000,
+          max: 10
+        )
+      rescue Moped::Errors::OperationFailure
+      end
+    end
+
+    context "when the collection is capped" do
+
+      it "returns true" do
+        session[:capped_events].should be_capped
+      end
+    end
+
+    context "when the collection is not capped" do
+
+      it "returns false" do
+        session[:users].should_not be_capped
+      end
+    end
+  end
+
   describe "#drop" do
     context "when collection exists" do
       before do

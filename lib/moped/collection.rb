@@ -13,6 +13,18 @@ module Moped
     # @attribute [r] name The collection name.
     attr_reader :database, :name
 
+    # Return whether or not this collection is a capped collection.
+    #
+    # @example Is the collection capped?
+    #   collection.capped?
+    #
+    # @return [ true, false ] If the collection is capped.
+    #
+    # @since 1.4.0
+    def capped?
+      database.command(collstats: name)["capped"]
+    end
+
     # Drop the collection.
     #
     # @example Drop the collection.
