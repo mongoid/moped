@@ -6,6 +6,9 @@
 
         session[:bands].find(name: "Blur").max_scan(50)
 
+* \#143 Aggregation pipeline commands no longer force to read from
+  primary.
+
 * mongoid/mongoid\#2738 Ensure that delete operations don't include
   special selectors, like $query.
 

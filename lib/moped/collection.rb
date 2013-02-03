@@ -110,9 +110,7 @@ module Moped
     def aggregate(pipeline)
       pipeline = [ pipeline ] unless pipeline.is_a?(Array)
       command = { aggregate: name.to_s, pipeline: pipeline }
-      database.session.with(consistency: :strong) do |sess|
-        sess.command(command)["result"]
-      end
+      database.session.command(command)["result"]
     end
   end
 end
