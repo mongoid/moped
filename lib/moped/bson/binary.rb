@@ -17,45 +17,6 @@ module Moped
 
       attr_reader :data, :type
 
-      # Create the new binary type.
-      #
-      # @example Create the new binary.
-      #   Moped::BSON::Binary.new(:md5, data)
-      #
-      # @param [ Symbol ] type The type of data. Should be one of :generic,
-      #   :function, :old, :uuid, :md5, :user
-      # @param [ Object ] data The binary data.
-      #
-      # @since 1.0.0
-      def initialize(type, data)
-        @type = type
-        @data = data
-      end
-
-      class << self
-
-        # Load the BSON from the raw data to a binary.
-        #
-        # @example Load the raw data.
-        #   Moped::BSON::Binary.__bson_load__(data)
-        #
-        # @param [ String ] io The raw bytes of data.
-        #
-        # @return [ Binary ] The binary object.
-        #
-        # @since 1.0.0
-        def __bson_load__(io)
-          length, = io.read(4).unpack(INT32_PACK)
-          type = SUBTYPE_TYPES[io.read(1)]
-          if type == :old
-            length -= 4
-            io.read(4)
-          end
-          data = io.read(length)
-          new(type, data)
-        end
-      end
-
       # Dump the binary into it's raw bytes.
       #
       # @example Dump the binary to raw bytes.
@@ -109,6 +70,21 @@ module Moped
         [data, type].hash
       end
 
+      # Create the new binary type.
+      #
+      # @example Create the new binary.
+      #   Moped::BSON::Binary.new(:md5, data)
+      #
+      # @param [ Symbol ] type The type of data. Should be one of :generic,
+      #   :function, :old, :uuid, :md5, :user
+      # @param [ Object ] data The binary data.
+      #
+      # @since 1.0.0
+      def initialize(type, data)
+        @type = type
+        @data = data
+      end
+
       # Gets the string inspection for the object.
       #
       # @example Get the string inspection.
@@ -131,6 +107,30 @@ module Moped
       # @since 1.0.0
       def to_s
         data.to_s
+      end
+
+      class << self
+
+        # Load the BSON from the raw data to a binary.
+        #
+        # @example Load the raw data.
+        #   Moped::BSON::Binary.__bson_load__(data)
+        #
+        # @param [ String ] io The raw bytes of data.
+        #
+        # @return [ Binary ] The binary object.
+        #
+        # @since 1.0.0
+        def __bson_load__(io)
+          length, = io.read(4).unpack(INT32_PACK)
+          type = SUBTYPE_TYPES[io.read(1)]
+          if type == :old
+            length -= 4
+            io.read(4)
+          end
+          data = io.read(length)
+          new(type, data)
+        end
       end
     end
   end
