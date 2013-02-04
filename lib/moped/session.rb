@@ -229,7 +229,7 @@ module Moped
       session = with(options)
       session.instance_variable_set(:@cluster, cluster.dup)
       if block_given?
-        yield session
+        yield(session)
       else
         session
       end
@@ -271,7 +271,7 @@ module Moped
     # @since 1.0.0
     def use(database)
       options[:database] = database
-      set_current_database database
+      set_current_database(database)
     end
 
     # Create a new session with +options+ reusing existing connections.
@@ -309,7 +309,7 @@ module Moped
       session = dup
       session.options.update(options)
       if block_given?
-        yield session
+        yield(session)
       else
         session
       end
@@ -339,7 +339,6 @@ module Moped
 
     def current_database
       return @current_database if defined? @current_database
-
       if database = options[:database]
         set_current_database(database)
       else
@@ -350,9 +349,8 @@ module Moped
     def initialize_copy(_)
       @context = Context.new(self)
       @options = @options.dup
-
-      if defined? @current_database
-        remove_instance_variable :@current_database
+      if defined?(@current_database)
+        remove_instance_variable(:@current_database)
       end
     end
 
