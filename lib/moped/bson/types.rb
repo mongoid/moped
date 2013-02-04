@@ -1,20 +1,21 @@
 module Moped
   module BSON
 
-    # @private
+    # Various BSON type behaviour.
     module Types
+
       class CodeWithScope
+
         def self.__bson_load__(io)
           io.read 4 # swallow the length
-
           code = io.read(*io.read(4).unpack(INT32_PACK)).from_utf8_binary.chop!
           scope = BSON::Document.deserialize(io)
-
-          Code.new code, scope
+          Code.new(code, scope)
         end
       end
 
       class Integer64
+
         def self.__bson_load__(io)
           io.read(8).unpack(INT64_PACK)[0]
         end
@@ -61,7 +62,6 @@ module Moped
       MIN_KEY = 255.chr.freeze
 
       TRUE = 1.chr.freeze
-
     end
   end
 end
