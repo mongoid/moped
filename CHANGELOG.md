@@ -14,6 +14,8 @@
 * \#137 `IOError` exceptions during connection go through reconnect
   process properly. (Peter Kieltyka)
 
+* \#120 Return UTF-8 strings when calling `ObjectId#to_s`.
+
 * \#41 `Moped::BSON::ObjectId.from_time` now accepts a `unique` option to
   ensure the generated id is unique.
 

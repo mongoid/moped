@@ -294,31 +294,48 @@ describe Moped::BSON::ObjectId do
   describe "#to_s" do
 
     it "returns a hex string representation of the id" do
-      described_class.from_data(bytes).to_s.should eq "4e4d66343b39b68407000001"
+      described_class.from_data(bytes).to_s.should eq(
+        "4e4d66343b39b68407000001"
+      )
     end
 
+    it "returns the string in UTF-8" do
+      described_class.from_data(bytes).to_s.encoding.should eq(
+        Moped::BSON::UTF8_ENCODING
+      )
+    end
+
+    it "converts to a readable yaml string" do
+      YAML.dump(described_class.from_data(bytes).to_s).should eq(
+        "--- 4e4d66343b39b68407000001\n...\n"
+      )
+    end
   end
 
   describe "#inspect" do
 
     it "returns a sane representation of the id" do
-      described_class.from_data(bytes).inspect.should eq '"4e4d66343b39b68407000001"'
+      described_class.from_data(bytes).inspect.should eq(
+        '"4e4d66343b39b68407000001"'
+      )
     end
-
   end
 
   describe "#to_json" do
 
     it "returns a json representation of the id" do
-      described_class.from_data(bytes).to_json.should eq('{"$oid": "4e4d66343b39b68407000001"}')
+      described_class.from_data(bytes).to_json.should eq(
+        '{"$oid": "4e4d66343b39b68407000001"}'
+      )
     end
-
   end
 
   describe "#repair!" do
+
     let(:id) { described_class.allocate }
 
     context "when the data is a 12-element array" do
+
       it "sets the id's data to the byte string" do
         id.send(:repair!, bytes.unpack("C*"))
         id.data.should eq bytes
@@ -326,6 +343,7 @@ describe Moped::BSON::ObjectId do
     end
 
     context "when the data is a 12-element byte string" do
+
       it "sets the id's data to the byte string" do
         id.send(:repair!, bytes)
         id.data.should eq bytes
@@ -333,6 +351,7 @@ describe Moped::BSON::ObjectId do
     end
 
     context "when the data is in another format" do
+
       it "raises a type error" do
         lambda do
           id.send(:repair!, bytes.unpack("C11"))
