@@ -1,20 +1,13 @@
 module Moped
   module BSON
-    # @private
     module Extensions
+
       module String
-        module ClassMethods
-          def __bson_load__(io)
-            io.read(*io.read(4).unpack(INT32_PACK)).from_utf8_binary.chop!
-          end
-        end
 
         def __bson_dump__(io, key)
           io << Types::STRING
           io << key.to_bson_cstring
-
           data = to_utf8_binary
-
           io << [ data.bytesize + 1 ].pack(INT32_PACK)
           io << data
           io << NULL_BYTE
@@ -25,7 +18,6 @@ module Moped
             raise EncodingError, "#{inspect} cannot be converted to a BSON " \
               "cstring because it contains a null byte"
           end
-
           to_utf8_binary << NULL_BYTE
         end
 
@@ -39,6 +31,13 @@ module Moped
 
         def from_utf8_binary
           force_encoding(UTF8_ENCODING).encode!
+        end
+
+        module ClassMethods
+
+          def __bson_load__(io)
+            io.read(*io.read(4).unpack(INT32_PACK)).from_utf8_binary.chop!
+          end
         end
       end
     end

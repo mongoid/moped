@@ -1,9 +1,21 @@
 module Moped
   module BSON
-    # @private
     module Extensions
+
       module Regexp
+
+        def __bson_dump__(io, key)
+          io << Types::REGEX
+          io << key.to_bson_cstring
+          io << source.to_bson_cstring
+          io << 'i'  if (options & ::Regexp::IGNORECASE) != 0
+          io << 'ms' if (options & ::Regexp::MULTILINE) != 0
+          io << 'x'  if (options & ::Regexp::EXTENDED) != 0
+          io << NULL_BYTE
+        end
+
         module ClassMethods
+
           def __bson_load__(io)
             source = io.gets(NULL_BYTE).from_utf8_binary.chop!
             options = 0
@@ -17,21 +29,8 @@ module Moped
                 options |= ::Regexp::EXTENDED
               end
             end
-
             new(source, options)
           end
-        end
-
-        def __bson_dump__(io, key)
-          io << Types::REGEX
-          io << key.to_bson_cstring
-
-          io << source.to_bson_cstring
-
-          io << 'i'  if (options & ::Regexp::IGNORECASE) != 0
-          io << 'ms' if (options & ::Regexp::MULTILINE) != 0
-          io << 'x'  if (options & ::Regexp::EXTENDED) != 0
-          io << NULL_BYTE
         end
       end
     end
