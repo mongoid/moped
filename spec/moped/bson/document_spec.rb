@@ -270,11 +270,4 @@ describe Moped::BSON::Document do
       let(:doc) { {"n" => Moped::BSON::MinKey} }
     end
   end
-
-  context "max key" do
-    it_behaves_like "a serializable bson document" do
-      let(:raw) { "\b\x00\x00\x00\x7Fn\x00\x00" }
-      let(:doc) { {"n" => Moped::BSON::MaxKey} }
-    end
-  end
 end

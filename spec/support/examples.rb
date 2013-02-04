@@ -1,4 +1,4 @@
-shared_examples_for "a serializable bson document" do
+shared_examples_for "a serializable bson object" do
 
   it "deserializes the document" do
     Moped::BSON::Document.deserialize(io).should eq(doc)
