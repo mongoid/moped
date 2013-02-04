@@ -16,6 +16,7 @@ require "rspec"
 $:.unshift((Pathname(__FILE__).dirname.parent + "lib").to_s)
 
 require "moped"
+require "support/examples"
 require "support/mongohq"
 require "support/replica_set_simulator"
 require "support/stats"

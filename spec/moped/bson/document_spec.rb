@@ -3,17 +3,8 @@
 require "spec_helper"
 
 describe Moped::BSON::Document do
+
   let(:io)  { StringIO.new(raw) }
-
-  shared_examples_for "a serializable bson document" do
-    it "deserializes the document" do
-      Moped::BSON::Document.deserialize(io).should eq doc
-    end
-
-    it "serializes the document" do
-      Moped::BSON::Document.serialize(doc).should eq raw.force_encoding('binary')
-    end
-  end
 
   it "corerces symbol keys to strings" do
     io = Moped::BSON::Document.serialize(:hello => "world")
@@ -145,50 +136,6 @@ describe Moped::BSON::Document do
     it_behaves_like "a serializable bson document" do
       let(:raw) { "\x1D\x00\x00\x00\x04embedded\x00\x0E\x00\x00\x00\x020\x00\x02\x00\x00\x00b\x00\x00\x00" }
       let(:doc) { {"embedded" => ["b"]} }
-    end
-  end
-
-  context "binary" do
-    context "generic" do
-      it_behaves_like "a serializable bson document" do
-        let(:raw) { "\x16\x00\x00\x00\x05data\x00\x06\x00\x00\x00\x00binary\x00" }
-        let(:doc) { {"data" => Moped::BSON::Binary.new(:generic, "binary") } }
-      end
-    end
-
-    context "function" do
-      it_behaves_like "a serializable bson document" do
-        let(:raw) { "\x16\x00\x00\x00\x05data\x00\x06\x00\x00\x00\x01binary\x00" }
-        let(:doc) { {"data" => Moped::BSON::Binary.new(:function, "binary") } }
-      end
-    end
-
-    context "old" do
-      it_behaves_like "a serializable bson document" do
-        let(:raw) { "\x1A\x00\x00\x00\x05data\x00\n\x00\x00\x00\x02\x06\x00\x00\x00binary\x00" }
-        let(:doc) { {"data" => Moped::BSON::Binary.new(:old, "binary") } }
-      end
-    end
-
-    context "uuid" do
-      it_behaves_like "a serializable bson document" do
-        let(:raw) { "\x16\x00\x00\x00\x05data\x00\x06\x00\x00\x00\x03binary\x00" }
-        let(:doc) { {"data" => Moped::BSON::Binary.new(:uuid, "binary") } }
-      end
-    end
-
-    context "md5" do
-      it_behaves_like "a serializable bson document" do
-        let(:raw) { "\x16\x00\x00\x00\x05data\x00\x06\x00\x00\x00\x05binary\x00" }
-        let(:doc) { {"data" => Moped::BSON::Binary.new(:md5, "binary") } }
-      end
-    end
-
-    context "user" do
-      it_behaves_like "a serializable bson document" do
-        let(:raw) { "\x16\x00\x00\x00\x05data\x00\x06\x00\x00\x00\x80binary\x00" }
-        let(:doc) { {"data" => Moped::BSON::Binary.new(:user, "binary") } }
-      end
     end
   end
 

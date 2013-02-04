@@ -1,12 +1,11 @@
+# encoding: utf-8
 require "moped/bson/extensions"
-
 require "moped/bson/binary"
 require "moped/bson/code"
 require "moped/bson/object_id"
 require "moped/bson/max_key"
 require "moped/bson/min_key"
 require "moped/bson/timestamp"
-
 require "moped/bson/document"
 require "moped/bson/types"
 
@@ -14,6 +13,7 @@ module Moped
 
   # The module for Moped's BSON implementation.
   module BSON
+
     EOD = NULL_BYTE = "\u0000".freeze
 
     INT32_PACK = 'l'.freeze
