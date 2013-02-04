@@ -3,18 +3,19 @@ module Moped
 
     # Represents the maximum key value in the database.
     class MaxKey
+
       class << self
 
-      # Check equality on the object.
-      #
-      # @example Check equality.
-      #   object == other
-      #
-      # @param [ Object ] other The object to check against.
-      #
-      # @return [ true, false ] If the objects are equal.
-      #
-      # @since 1.0.0
+        # Check equality on the object.
+        #
+        # @example Check equality.
+        #   object == other
+        #
+        # @param [ Object ] other The object to check against.
+        #
+        # @return [ true, false ] If the objects are equal.
+        #
+        # @since 1.0.0
         def ===(other)
           other == self
         end
