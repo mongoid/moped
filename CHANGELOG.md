@@ -9,6 +9,10 @@
 * \#143 Aggregation pipeline commands no longer force to read from
   primary.
 
+* \#140 Nodes that were provided to Moped's session in intialization, that
+  were removed from the replica set but still alive and accepting
+  connections will no longer be in the list of available nodes.
+
 * \#138 Aggregation pipeline now supports array or splat args. (Gosha Arinich)
 
 * \#137 `IOError` exceptions during connection go through reconnect
