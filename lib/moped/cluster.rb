@@ -1,3 +1,5 @@
+require "moped/ring"
+
 module Moped
 
   # The cluster represents a cluster of MongoDB server nodes, either a single
