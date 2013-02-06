@@ -36,10 +36,23 @@ module Support
     attr_reader :nodes
     attr_reader :manager
 
+    def add_node
+      node = Node.new(self, @start_port += 1)
+      node.start
+      @nodes.push(node)
+      node
+    end
+
+    def remove_node
+      node = @nodes.delete(@nodes.detect { |n| n.secondary? })
+      node.stop
+      node
+    end
+
     def initialize(nodes = 3)
-      start_port = 31000
-      @nodes = nodes.times.map do |i|
-        Node.new(self, start_port + i)
+      @start_port = 31000
+      @nodes = nodes.times.map do
+        Node.new(self, @start_port += 1)
       end
 
       @manager = ConnectionManager.new(@nodes)

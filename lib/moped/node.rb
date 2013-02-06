@@ -372,7 +372,7 @@ module Moped
     #   node.refresh
     #
     # @raise [ ConnectionFailure ] If the node cannot be reached.
-
+    #
     # @raise [ ReplicaSetReconfigured ] If the node is no longer a primary node and
     #   refresh was called within an +#ensure_primary+ block.
     #
