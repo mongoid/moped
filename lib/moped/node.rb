@@ -470,7 +470,7 @@ module Moped
       peers.concat(info["hosts"]) if info["hosts"]
       peers.concat(info["passives"]) if info["passives"]
       peers.concat(info["arbiters"]) if info["arbiters"]
-      @peers = peers.map { |peer| Node.new(peer, options) }.uniq!
+      @peers = peers.map { |peer| Node.new(peer, options) }.uniq
     end
 
     def login(database, username, password)
