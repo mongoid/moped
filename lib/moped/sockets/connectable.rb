@@ -13,7 +13,7 @@ module Moped
       #
       # @since 1.0.0
       def alive?
-        if Kernel::select([ self ], nil, nil, 0)
+        if Kernel::select([ self ], nil, [ self ], 0)
           !eof? rescue false
         else
           true
