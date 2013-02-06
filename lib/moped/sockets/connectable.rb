@@ -42,6 +42,7 @@ module Moped
       #
       # @since 1.2.0
       def read(length)
+        check_if_alive!
         handle_socket_errors { super }
       end
 
@@ -56,11 +57,28 @@ module Moped
       #
       # @since 1.0.0
       def write(*args)
-        raise Errors::ConnectionFailure, "Socket connection was closed by remote host" unless alive?
+        check_if_alive!
         handle_socket_errors { super }
       end
 
       private
+
+      # Before performing a read or write operating, ping the server to check
+      # if it is alive.
+      #
+      # @api private
+      #
+      # @example Check if the connection is alive.
+      #   connectable.check_if_alive!
+      #
+      # @raise [ ConnectionFailure ] If the connectable is not alive.
+      #
+      # @since 1.4.0
+      def check_if_alive!
+        unless alive?
+          raise Errors::ConnectionFailure, "Socket connection was closed by remote host"
+        end
+      end
 
       # Generate the message for the connection failure based of the system
       # call error, with some added information.
