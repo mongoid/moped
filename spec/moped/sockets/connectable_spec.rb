@@ -18,8 +18,7 @@ describe Moped::Sockets::Connectable do
         expect{
           object.send(:handle_socket_errors) { raise Errno::ECONNREFUSED }
         }.to raise_error(
-          Moped::Errors::ConnectionFailure,
-          "127.0.0.1:27017: Errno::ECONNREFUSED (61): Connection refused"
+          Moped::Errors::ConnectionFailure
         )
       end
     end
@@ -30,8 +29,7 @@ describe Moped::Sockets::Connectable do
         expect{
           object.send(:handle_socket_errors) { raise Errno::EHOSTUNREACH }
         }.to raise_error(
-          Moped::Errors::ConnectionFailure,
-          "127.0.0.1:27017: Errno::EHOSTUNREACH (65): No route to host"
+          Moped::Errors::ConnectionFailure
         )
       end
     end
@@ -42,8 +40,7 @@ describe Moped::Sockets::Connectable do
         expect{
           object.send(:handle_socket_errors) { raise Errno::EPIPE }
         }.to raise_error(
-          Moped::Errors::ConnectionFailure,
-          "127.0.0.1:27017: Errno::EPIPE (32): Broken pipe"
+          Moped::Errors::ConnectionFailure
         )
       end
     end
@@ -54,8 +51,7 @@ describe Moped::Sockets::Connectable do
         expect{
           object.send(:handle_socket_errors) { raise Errno::ECONNRESET }
         }.to raise_error(
-          Moped::Errors::ConnectionFailure,
-          "127.0.0.1:27017: Errno::ECONNRESET (54): Connection reset by peer"
+          Moped::Errors::ConnectionFailure
         )
       end
     end
@@ -66,8 +62,7 @@ describe Moped::Sockets::Connectable do
         expect{
           object.send(:handle_socket_errors) { raise Errno::ETIMEDOUT }
         }.to raise_error(
-          Moped::Errors::ConnectionFailure,
-          "127.0.0.1:27017: Errno::ETIMEDOUT (60): Operation timed out"
+          Moped::Errors::ConnectionFailure
         )
       end
     end
