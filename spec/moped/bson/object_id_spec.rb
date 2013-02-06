@@ -306,8 +306,8 @@ describe Moped::BSON::ObjectId do
     end
 
     it "converts to a readable yaml string" do
-      YAML.dump(described_class.from_data(bytes).to_s).should eq(
-        "--- 4e4d66343b39b68407000001\n...\n"
+      YAML.dump(described_class.from_data(bytes).to_s).should include(
+        "4e4d66343b39b68407000001"
       )
     end
   end
