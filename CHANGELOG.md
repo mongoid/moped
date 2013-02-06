@@ -9,6 +9,9 @@
 * \#143 Aggregation pipeline commands no longer force to read from
   primary.
 
+* \#141 Timeouts on sockets are now set to the timeout level provided, as
+  well is active checks now happen before sending both reads and writes.
+
 * \#140 Nodes that were provided to Moped's session in intialization, that
   were removed from the replica set but still alive and accepting
   connections will no longer be in the list of available nodes.
