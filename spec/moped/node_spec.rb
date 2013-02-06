@@ -1,6 +1,7 @@
 require "spec_helper"
 
 describe Moped::Node, replica_set: true do
+
   let(:replica_set_node) do
     @replica_set.nodes.first
   end
@@ -23,8 +24,41 @@ describe Moped::Node, replica_set: true do
     end
   end
 
+  describe "#peers" do
+
+    let(:node) do
+      described_class.new("127.0.0.1:27017")
+    end
+
+    let(:info) do
+      {
+         "setName"   => "moped_dev",
+         "ismaster"  => true,
+         "secondary" => false,
+         "hosts"     => [ "127.0.0.1:27017", "localhost:27017" ],
+         "primary"   => "127.0.0.1:27017",
+         "me"        => "127.0.0.1:27017",
+         "ok"        => 1.0
+      }
+    end
+
+    context "when the hosts contain the primary" do
+
+      before do
+        node.should_receive(:command).with("admin", ismaster: 1).and_return(info)
+        node.refresh
+      end
+
+      it "does not contain duplicate nodes" do
+        node.peers.size.should eq(1)
+      end
+    end
+  end
+
   describe "#ensure_connected" do
-    context "when node is running" do
+
+    context "when the node is running" do
+
       it "processes the block" do
         node.ensure_connected do
           node.command("admin", ping: 1)
@@ -32,7 +66,8 @@ describe Moped::Node, replica_set: true do
       end
     end
 
-    context "when node is not running" do
+    context "when the node is not running" do
+
       before do
         replica_set_node.stop
       end
@@ -52,6 +87,7 @@ describe Moped::Node, replica_set: true do
     end
 
     context "when node is connected but connection is dropped" do
+
       before do
         node.ensure_connected do
           node.command("admin", ping: 1)
@@ -78,6 +114,7 @@ describe Moped::Node, replica_set: true do
     end
 
     context "when node closes the connection before sending a reply" do
+
       it "fails over to the next node" do
         replica_set_node.hiccup_on_next_message!
         node.ensure_connected do
@@ -87,6 +124,7 @@ describe Moped::Node, replica_set: true do
     end
 
     context "when the socket gets disconnected in the middle of a send" do
+
       before do
         Moped::Node.__send__(:public, :connection)
       end

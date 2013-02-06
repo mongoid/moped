@@ -383,18 +383,11 @@ module Moped
       if resolve_address
         begin
           info = command("admin", ismaster: 1)
-
           @refreshed_at = Time.now
-          primary = true if info["ismaster"]
+          primary = true   if info["ismaster"]
           secondary = true if info["secondary"]
+          generate_peers(info)
 
-          peers = []
-          peers.push(info["primary"]) if info["primary"]
-          peers.concat(info["hosts"]) if info["hosts"]
-          peers.concat(info["passives"]) if info["passives"]
-          peers.concat(info["arbiters"]) if info["arbiters"]
-
-          @peers = peers.map { |peer| Node.new(peer, options) }
           @primary, @secondary = primary, secondary
           @arbiter = info["arbiterOnly"]
           @passive = info["passive"]
@@ -471,17 +464,24 @@ module Moped
       @auth ||= {}
     end
 
+    def generate_peers(info)
+      peers = []
+      peers.push(info["primary"]) if info["primary"]
+      peers.concat(info["hosts"]) if info["hosts"]
+      peers.concat(info["passives"]) if info["passives"]
+      peers.concat(info["arbiters"]) if info["arbiters"]
+      @peers = peers.map { |peer| Node.new(peer, options) }.uniq!
+    end
+
     def login(database, username, password)
       getnonce = Protocol::Command.new(database, getnonce: 1)
       connection.write [getnonce]
       result = connection.read.documents.first
       raise Errors::OperationFailure.new(getnonce, result) unless result["ok"] == 1
-
       authenticate = Protocol::Commands::Authenticate.new(database, username, password, result["nonce"])
       connection.write [authenticate]
       result = connection.read.documents.first
       raise Errors::AuthenticationFailure.new(authenticate, result) unless result["ok"] == 1
-
       auth[database] = [username, password]
     end
 
