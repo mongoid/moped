@@ -130,6 +130,18 @@ module Moped
       current_database.drop
     end
 
+    # Provide a string inspection for the session.
+    #
+    # @example Inspect the session.
+    #   session.inspect
+    #
+    # @return [ String ] The string inspection.
+    #
+    # @since 1.4.0
+    def inspect
+      "<#{self.class.name} seeds=#{cluster.seeds} database=#{current_database_name}>"
+    end
+
     # Log in with +username+ and +password+ on the current database.
     #
     # @param (see Moped::Database#login)
@@ -338,12 +350,16 @@ module Moped
     private
 
     def current_database
-      return @current_database if defined? @current_database
+      return @current_database if defined?(@current_database)
       if database = options[:database]
         set_current_database(database)
       else
         raise "No database set for session. Call #use or #with before accessing the database"
       end
+    end
+
+    def current_database_name
+      defined?(@current_database) ? current_database.name : :none
     end
 
     def initialize_copy(_)

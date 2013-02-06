@@ -100,6 +100,7 @@ module Moped
     def initialize(hosts, options)
       @seeds = hosts
       @nodes = hosts.map { |host| Node.new(host, options) }
+      @peers = []
 
       @options = {
         down_interval: 30,
@@ -135,7 +136,9 @@ module Moped
 
       # Now return all the nodes that are available and participating in the
       # replica set.
-      available.reject { |node| node.down? || (!opts[:include_arbiters] && node.arbiter?) }
+      available.reject do |node|
+        node.down? || !member?(node) || (!opts[:include_arbiters] && node.arbiter?)
+      end
     end
 
     # Refreshes information for each of the nodes provided. The node list
@@ -170,10 +173,11 @@ module Moped
             # This node is good, so add it to the list of nodes to return.
             refreshed_nodes << node unless refreshed_nodes.include?(node)
 
-            # Now refresh any newly discovered peer nodes.
-            (node.peers - @nodes).each(&refresh_node) if node.peers
+            # Now refresh any newly discovered peer nodes - this will also
+            # remove nodes that are not included in the peer list.
+            refresh_peers(node, &refresh_node)
           rescue Errors::ConnectionFailure
-            # We couldn't connect to the node, so don't do anything with it.
+            # We couldn't connect to the node.
           end
         end
       end
@@ -272,6 +276,19 @@ module Moped
 
     def initialize_copy(_)
       @nodes = @nodes.map(&:dup)
+    end
+
+    def member?(node)
+      @peers.empty? || @peers.include?(node)
+    end
+
+    def refresh_peers(node, &block)
+      peers = node.peers
+      return if peers.empty?
+      peers.each do |node|
+        block.call(node) unless @nodes.include?(node)
+        @peers.push(node) unless peers.include?(node)
+      end
     end
   end
 end

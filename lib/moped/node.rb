@@ -453,10 +453,17 @@ module Moped
       process(Protocol::Update.new(database, collection, selector, change, options))
     end
 
+    # Get the node as a nice formatted string.
+    #
+    # @example Inspect the node.
+    #   node.inspect
+    #
+    # @return [ String ] The string inspection.
+    #
+    # @since 1.0.0
     def inspect
       "<#{self.class.name} resolved_address=#{@resolved_address.inspect}>"
     end
-
 
     private
 
