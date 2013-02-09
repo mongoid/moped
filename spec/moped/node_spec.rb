@@ -139,6 +139,43 @@ describe Moped::Node, replica_set: true do
         end.should_not raise_exception
       end
     end
+
+    context "when there is a reconfiguration" do
+
+      let(:potential_reconfiguration_error) do
+        Moped::Errors::PotentialReconfiguration.new("", {})
+      end
+
+      before do
+        node.stub(:connect).and_raise(potential_reconfiguration_error)
+      end
+
+      context "and the reconfigation is of a replica set" do
+
+        before do
+          potential_reconfiguration_error.stub(:reconfiguring_replica_set?).and_return(true)
+        end
+
+        it "raises a ReplicaSetReconfigured error" do
+          expect {
+            node.ensure_connected {}
+          }.to raise_error(Moped::Errors::ReplicaSetReconfigured)
+        end
+      end
+
+      context "and the reconfigation is not of a replica set" do
+
+        before do
+          potential_reconfiguration_error.stub(:reconfiguring_replica_set?).and_return(false)
+        end
+
+        it "raises a PotentialReconfiguration error" do
+          expect {
+            node.ensure_connected {}
+          }.to raise_error(Moped::Errors::PotentialReconfiguration)
+        end
+      end
+    end
   end
 
   describe "#initialize" do
@@ -181,6 +218,35 @@ describe Moped::Node, replica_set: true do
 
         it "updates the down_at time" do
           node.down_at.should be_within(1).of(Time.now)
+        end
+      end
+    end
+  end
+
+  describe "#refresh" do
+
+    let(:node) do
+      described_class.new("iamnota.mongoid.org")
+    end
+
+    before :each do
+      node.stub(:resolve_address).and_return(true)
+    end
+
+    context "when ensuring primary" do
+      before :each do
+        Moped::Threaded.stub(:executing?).with(:ensure_primary).and_return(true)
+      end
+
+      context "and not on the primary" do
+        before :each do
+          node.stub(:command).and_return({"secondary" => true})
+        end
+
+        it "raises a ReplicaSetReconfigured error" do
+          expect {
+            node.refresh
+          }.to raise_error(Moped::Errors::ReplicaSetReconfigured)
         end
       end
     end

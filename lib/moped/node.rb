@@ -393,7 +393,7 @@ module Moped
           @passive = info["passive"]
 
           if !primary && Threaded.executing?(:ensure_primary)
-            raise Errors::ReplicaSetReconfigured, "#{inspect} is no longer the primary node."
+            raise Errors::ReplicaSetReconfigured.new("#{inspect} is no longer the primary node.", {})
           elsif !primary && !secondary
             # not primary or secondary so mark it as down, since it's probably
             # a recovering node withing the replica set
