@@ -129,7 +129,7 @@ module Moped
         yield
       rescue Errors::PotentialReconfiguration => e
         if e.reconfiguring_replica_set?
-          raise Errors::ReplicaSetReconfigured
+          raise Errors::ReplicaSetReconfigured.new(e.command, e.details)
         end
         raise
       rescue Errors::DoNotDisconnect
