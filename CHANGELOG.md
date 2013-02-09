@@ -1,6 +1,15 @@
 # Overview
 
+## 1.4.1
+
+### Resolved Issues
+
+* \#148 Fixed invalid parameters passed when raising a `ReplicaSetReconfigured`
+  exception.
+
 ## 1.4.0
+
+### New Features
 
 * \#144 Moped now supports $maxScan options in queries. (Jonathan Hyman)
 
@@ -18,26 +27,28 @@
 
 * \#138 Aggregation pipeline now supports array or splat args. (Gosha Arinich)
 
-* \#137 `IOError` exceptions during connection go through reconnect
-  process properly. (Peter Kieltyka)
-
-* \#120 Return UTF-8 strings when calling `ObjectId#to_s`.
-
 * \#41 `Moped::BSON::ObjectId.from_time` now accepts a `unique` option to
   ensure the generated id is unique.
 
         Moped::BSON::ObjectId.from_time(time, unique: true)
+
+* mongoid/mongoid\#2452 A boolean can now be passed to count to determine
+  if the skip and limit options should be included in the value.
+
+        session[:bands].find(name: "Blur").skip(10).limit(5).count(true)
+
+### Resolved Issues
+
+* \#137 `IOError` exceptions during connection go through reconnect
+  process properly. (Peter Kieltyka)
+
+* \#120 Return UTF-8 strings when calling `ObjectId#to_s`.
 
 * mongoid/mongoid\#2738 Ensure that delete operations don't include
   special selectors, like $query.
 
 * mongoid/mongoid\#2713 Allow collections that have names that start with
   "system" to be returned by `Database#collection_names`.
-
-* mongoid/mongoid\#2452 A boolean can now be passed to count to determine
-  if the skip and limit options should be included in the value.
-
-        session[:bands].find(name: "Blur").skip(10).limit(5).count(true)
 
 ## 1.3.2
 
