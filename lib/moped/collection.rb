@@ -35,7 +35,9 @@ module Moped
     # @since 1.0.0
     def drop
       begin
-        database.command(drop: name)
+        database.session.with(consistency: :strong) do |session|
+          session.context.command(database.name, drop: name)
+        end
       rescue Moped::Errors::OperationFailure
         false
       end
