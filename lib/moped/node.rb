@@ -1,5 +1,7 @@
 # encoding: utf-8
+require "forwardable"
 require "moped/failover"
+require "moped/instrumenters/logging_instrumenter"
 require "moped/read"
 
 module Moped
@@ -8,6 +10,7 @@ module Moped
   #
   # @api private
   class Node
+    extend Forwardable
 
     # @attribute [r] address The address of the node.
     # @attribute [r] down_at The time the server node went down.
@@ -211,6 +214,10 @@ module Moped
       resolved_address.hash
     end
 
+    # forward instrument in this class to @instrumenter, for those unfamilier
+    # with forwardable.
+    def_delegator :@instrumenter, :instrument
+
     # Creat the new node.
     #
     # @example Create the new node.
@@ -228,6 +235,7 @@ module Moped
       @refreshed_at = nil
       @primary = nil
       @secondary = nil
+      @instrumenter = options[:instrumenter] || Instrumenters::LoggingInstrumenter
       resolve_address
     end
 
@@ -538,25 +546,8 @@ module Moped
     end
 
     def logging(operations)
-      instrument_start = (logger = Moped.logger) && logger.debug? && Time.new
-      yield
-    ensure
-      log_operations(logger, operations, 1000 * (Time.new.to_f - instrument_start.to_f)) if instrument_start
-    end
-
-    def log_operations(logger, ops, duration_ms)
-      prefix  = "  MOPED: #{resolved_address} "
-      indent  = " "*prefix.length
-      runtime = (" (%.4fms)" % duration_ms)
-
-      if ops.length == 1
-        logger.debug prefix + ops.first.log_inspect + runtime
-      else
-        first, *middle, last = ops
-
-        logger.debug prefix + first.log_inspect
-        middle.each { |m| logger.debug indent + m.log_inspect }
-        logger.debug indent + last.log_inspect + runtime
+      @instrumenter.instrument('moped.operations', prefix: "  MOPED: #{resolved_address}", ops: operations) do
+        yield
       end
     end
 
@@ -576,9 +567,7 @@ module Moped
         begin
           parse_address and true
         rescue SocketError
-          if logger = Moped.logger
-            logger.warn " MOPED: Could not resolve IP address for #{address}"
-          end
+          @instrumenter.instrument('moped.warn', prefix: "  MOPED:", message: "Could not resolve IP address for #{address}")
           @down_at = Time.new
           false
         end
