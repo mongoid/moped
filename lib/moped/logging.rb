@@ -3,6 +3,26 @@ module Moped
   # Contains behaviour for logging.
   module Logging
 
+    def self.log_operations(prefix, ops, runtime)
+      indent  = " "*prefix.length
+
+      if ops.length == 1
+        Moped.logger.debug [prefix, ops.first.log_inspect, "runtime: #{runtime}"].join(' ')
+
+      else
+        first, *middle, last = ops
+
+        Moped.logger.debug [prefix, first.log_inspect].join(' ')
+        middle.each { |m| Moped.logger.debug [indent, m.log_inspect].join(' ') }
+        Moped.logger.debug [indent, last.log_inspect, "runtime: #{runtime}"].join(' ')
+
+      end
+    end
+
+    def self.debug(prefix, payload, runtime)
+      Moped.logger.debug [prefix, payload, "runtime: #{runtime}"].join(' ')
+    end
+
     # Get the logger.
     #
     # @example Get the logger.
