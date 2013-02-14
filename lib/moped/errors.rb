@@ -103,7 +103,9 @@ module Moped
       # error with code 13435, or with an error message stating the server is
       # not a master. (This encapsulates codes 10054, 10056, 10058)
       def reconfiguring_replica_set?
-        details["code"] == 13435 || details["err"] == "not master"
+        details["code"] == 13435 ||
+          details["err"] == "not master" ||
+          details["errmsg"] == "not master"
       end
     end
 
