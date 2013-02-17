@@ -1,5 +1,11 @@
 # Overview
 
+## 1.4.3
+
+### Resolved Issues
+
+* mongoid/mongoid#2831 Fix node refresh when no peers exist.
+
 ## 1.4.1/1.4.2
 
 ### Resolved Issues

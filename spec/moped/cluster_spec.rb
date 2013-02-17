@@ -374,6 +374,28 @@ describe Moped::Cluster, replica_set: true do
       end
     end
   end
+
+  describe "#refresh_peers" do
+
+    let(:cluster) do
+      described_class.new([ "127.0.0.1:27017" ], {})
+    end
+
+    let(:node) do
+      stub
+    end
+
+    context "when a node has no peers" do
+
+      before do
+        node.should_receive(:peers).and_return(nil)
+      end
+
+      it "does not raise an error" do
+        cluster.send(:refresh_peers, node)
+      end
+    end
+  end
 end
 
 describe Moped::Cluster, "authentication", mongohq: :auth do
