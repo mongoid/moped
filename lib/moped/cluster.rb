@@ -284,7 +284,7 @@ module Moped
 
     def refresh_peers(node, &block)
       peers = node.peers
-      return if peers.empty?
+      return if !peers || peers.empty?
       peers.each do |node|
         block.call(node) unless @nodes.include?(node)
         @peers.push(node) unless peers.include?(node)
