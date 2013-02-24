@@ -4,6 +4,8 @@
 
 ### Resolved Issues
 
+* \#151 Dropping collections now always uses primary. (Christos Trochalakis)
+
 * mongoid/mongoid#2849 Supply proper limit to initial query if either
   limit or batch_size are provided.
 
