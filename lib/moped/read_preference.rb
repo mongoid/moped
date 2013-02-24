@@ -12,7 +12,8 @@ module Moped
       nearest: Nearest,
       primary: Primary,
       primary_preferred: PrimaryPreferred,
-      secondary: Secondary
+      secondary: Secondary,
+      secondary_preferred: SecondaryPreferred
     }
 
     def get(name)
