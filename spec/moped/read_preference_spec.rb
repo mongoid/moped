@@ -18,5 +18,20 @@ describe Moped::ReadPreference do
         expect(preference).to eq(nearest)
       end
     end
+
+    context "when asking for :primary" do
+
+      let(:preference) do
+        described_class.get(:primary)
+      end
+
+      let(:primary) do
+        Moped::ReadPreference::Primary
+      end
+
+      it "returns the primary read preference" do
+        expect(preference).to eq(primary)
+      end
+    end
   end
 end

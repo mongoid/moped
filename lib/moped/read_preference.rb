@@ -9,7 +9,8 @@ module Moped
     extend self
 
     PREFERENCES = {
-      nearest: Nearest
+      nearest: Nearest,
+      primary: Primary
     }
 
     def get(name)
