@@ -6,6 +6,14 @@ require "moped/read_preference/secondary_preferred"
 
 module Moped
   module ReadPreference
+    extend self
 
+    PREFERENCES = {
+      nearest: Nearest
+    }
+
+    def get(name)
+      PREFERENCES.fetch(name)
+    end
   end
 end
