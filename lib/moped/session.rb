@@ -1,3 +1,5 @@
+require "moped/read_preference"
+
 module Moped
 
   # A session in moped is root for all interactions with a MongoDB server or
