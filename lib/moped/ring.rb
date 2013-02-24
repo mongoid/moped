@@ -79,6 +79,8 @@ module Moped
     #
     # @since 2.0.0
     def next_node
+      # @todo: Durran: Do node refresh here while shifting. If the next node
+      # needs a refresh based on the intervals then refresh it in place.
       nodes.push(nodes.shift).last
     end
   end
