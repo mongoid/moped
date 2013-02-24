@@ -1,3 +1,4 @@
+require "moped/read_preference/nearest"
 require "moped/read_preference/primary"
 require "moped/read_preference/primary_preferred"
 require "moped/read_preference/secondary"
