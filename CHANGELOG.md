@@ -4,6 +4,9 @@
 
 ### Resolved Issues
 
+* mongoid/mongoid#2849 Supply proper limit to initial query if either
+  limit or batch_size are provided.
+
 * mongoid/mongoid#2831 Fix node refresh when no peers exist.
 
 ## 1.4.1/1.4.2
