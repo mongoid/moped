@@ -758,6 +758,18 @@ describe Moped::Query do
 
     describe "#update_all" do
 
+      context "when providing a $ne query" do
+
+        before do
+          users.insert(documents)
+          users.find(scope: { "$ne" => nil }).update_all("$set" => { "scope" => nil })
+        end
+
+        it "updates all matching documents" do
+          users.find(scope: { "$ne" => nil }).count.should eq(0)
+        end
+      end
+
       context "when no sorting is provided" do
 
         before do
