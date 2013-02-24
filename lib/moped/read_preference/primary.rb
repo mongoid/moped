@@ -1,7 +1,7 @@
-require "moped/read_preference/primary"
-
 module Moped
   module ReadPreference
+    class Primary
 
+    end
   end
 end
