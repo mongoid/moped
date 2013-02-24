@@ -19,8 +19,9 @@ module Moped
     # @param [ Array<Node> ] nodes The Nodes.
     #
     # @since 2.0.0
-    def initialize(nodes)
+    def initialize(nodes, options = {})
       @nodes = nodes
+      @options = options
     end
 
     # Get the next primary Node in the Ring. Will take the Node from the
@@ -33,7 +34,9 @@ module Moped
     #
     # @since 2.0.0
     def next_primary
-      (node = next_node).primary? ? node : next_primary
+      shuffle.find do |node|
+        node.primary?
+      end
     end
 
     # Get the next secondary Node in the Ring. Will take the Node from the
@@ -46,7 +49,9 @@ module Moped
     #
     # @since 2.0.0
     def next_secondary
-      (node = next_node).secondary? ? node : next_secondary
+      shuffle.find do |node|
+        node.secondary?
+      end
     end
 
     # Adds discovered peer nodes to the Ring. Will not duplicate nodes and will
@@ -78,10 +83,8 @@ module Moped
     # @return [ Node ] The next node in the Ring.
     #
     # @since 2.0.0
-    def next_node
-      # @todo: Durran: Do node refresh here while shifting. If the next node
-      # needs a refresh based on the intervals then refresh it in place.
-      nodes.push(nodes.shift).last
+    def shuffle
+      nodes.push(nodes.shift)
     end
   end
 end

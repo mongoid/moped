@@ -120,6 +120,23 @@ describe Moped::Ring do
 
   describe "#next_primary" do
 
+    context "when no nodes are primary (big trouble)" do
+
+      before do
+        one.instance_variable_set(:@primary, false)
+        two.instance_variable_set(:@primary, false)
+        three.instance_variable_set(:@primary, false)
+      end
+
+      let(:ring) do
+        described_class.new([ one, two, three ])
+      end
+
+      it "returns the next primary in the ring" do
+        expect(ring.next_primary).to be_nil
+      end
+    end
+
     context "when all nodes are primary (multiple mongos)" do
 
       before do
@@ -133,8 +150,8 @@ describe Moped::Ring do
       end
 
       it "returns the next primary in the ring" do
-        expect(ring.next_primary).to eq(one)
         expect(ring.next_primary).to eq(two)
+        expect(ring.next_primary).to eq(three)
       end
 
       context "when cycling full the entire list" do
@@ -144,7 +161,7 @@ describe Moped::Ring do
         end
 
         it "loops back through the beginning" do
-          expect(ring.next_primary).to eq(one)
+          expect(ring.next_primary).to eq(two)
         end
       end
     end
@@ -182,8 +199,8 @@ describe Moped::Ring do
       end
 
       it "returns the next secondary in the ring" do
-        expect(ring.next_secondary).to eq(one)
         expect(ring.next_secondary).to eq(two)
+        expect(ring.next_secondary).to eq(three)
       end
 
       context "when cycling full the entire list" do
@@ -193,7 +210,7 @@ describe Moped::Ring do
         end
 
         it "loops back through the beginning" do
-          expect(ring.next_secondary).to eq(one)
+          expect(ring.next_secondary).to eq(two)
         end
       end
     end
@@ -230,6 +247,23 @@ describe Moped::Ring do
 
       it "returns the only secondary in the ring" do
         5.times { expect(ring.next_secondary).to eq(two) }
+      end
+    end
+
+    context "when no node is secondary (bad call)" do
+
+      before do
+        one.instance_variable_set(:@secondary, false)
+        two.instance_variable_set(:@secondary, false)
+        three.instance_variable_set(:@secondary, false)
+      end
+
+      let(:ring) do
+        described_class.new([ one, two, three ])
+      end
+
+      it "returns nil" do
+        expect(ring.next_secondary).to be_nil
       end
     end
   end
