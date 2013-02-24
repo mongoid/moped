@@ -132,7 +132,7 @@ module Moped
       @options[:flags] |= [:no_cursor_timeout] if @options[:no_timeout]
 
       options = @options.clone
-      options[:limit] = @options[:batch_size] if @options[:batch_size]
+      options[:limit] = request_limit
 
       reply, @node = session.context.with_node do |node|
         [ node.query(@database, @collection, @selector, options), node ]
