@@ -5,9 +5,17 @@ require "moped/read_preference/secondary"
 require "moped/read_preference/secondary_preferred"
 
 module Moped
+
+  # Provides behaviour around getting various read preference implementations.
+  #
+  # @since 2.0.0
   module ReadPreference
     extend self
 
+    # Hash lookup for the read preference classes based off the symbols
+    # provided in configuration.
+    #
+    # @since 2.0.0
     PREFERENCES = {
       nearest: Nearest,
       primary: Primary,
@@ -16,6 +24,21 @@ module Moped
       secondary_preferred: SecondaryPreferred
     }
 
+    # Get a read preference for the provided name. Valid names are:
+    #   - :nearest
+    #   - :primary
+    #   - :primary_preferred
+    #   - :secondary
+    #   - :secondary_preferred
+    #
+    # @example Get the primary read preference.
+    #   Moped::ReadPreference.get(:primary)
+    #
+    # @param [ Symbol ] name The name of the preference.
+    #
+    # @return [ Object ] The appropriate read preference.
+    #
+    # @since 2.0.0
     def get(name)
       PREFERENCES.fetch(name)
     end
