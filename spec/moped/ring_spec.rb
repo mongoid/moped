@@ -7,11 +7,115 @@ describe Moped::Ring do
   end
 
   let(:two) do
-    Moped::Node.new("127.0.0.1:27017")
+    Moped::Node.new("127.0.0.1:27018")
   end
 
   let(:three) do
-    Moped::Node.new("127.0.0.1:27017")
+    Moped::Node.new("127.0.0.1:27019")
+  end
+
+  describe "#add" do
+
+    let(:ring) do
+      described_class.new([ one ])
+    end
+
+    context "when provided a single node" do
+
+      context "when the node is unique" do
+
+        before do
+          ring.add(two)
+        end
+
+        it "adds the node to the ring" do
+          expect(ring.nodes).to eq([ one, two ])
+        end
+      end
+
+      context "when the node is not unique" do
+
+        before do
+          ring.add(one)
+        end
+
+        it "does not add the node to the ring" do
+          expect(ring.nodes).to eq([ one ])
+        end
+      end
+    end
+
+    context "when provided multiple nodes" do
+
+      context "when the nodes are unique" do
+
+        before do
+          ring.add(two, three)
+        end
+
+        it "adds the node to the ring" do
+          expect(ring.nodes).to eq([ one, two, three ])
+        end
+      end
+
+      context "when the nodes are not all unique" do
+
+        before do
+          ring.add(one, two)
+        end
+
+        it "does not add the node to the ring" do
+          expect(ring.nodes).to eq([ one, two ])
+        end
+      end
+    end
+
+    context "when provided an array of nodes" do
+
+      context "when the nodes are unique" do
+
+        before do
+          ring.add([ two, three ])
+        end
+
+        it "adds the node to the ring" do
+          expect(ring.nodes).to eq([ one, two, three ])
+        end
+      end
+
+      context "when the nodes are not all unique" do
+
+        before do
+          ring.add([ one, two ])
+        end
+
+        it "does not add the node to the ring" do
+          expect(ring.nodes).to eq([ one, two ])
+        end
+      end
+    end
+
+    context "when provided nil" do
+
+      before do
+        ring.add(nil)
+      end
+
+      it "does not alter the ring" do
+        expect(ring.nodes).to eq([ one ])
+      end
+    end
+
+    context "when provided multple nil values" do
+
+      before do
+        ring.add(nil, nil, nil)
+      end
+
+      it "does not alter the ring" do
+        expect(ring.nodes).to eq([ one ])
+      end
+    end
   end
 
   describe "#next_primary" do

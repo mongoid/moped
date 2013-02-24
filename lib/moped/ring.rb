@@ -49,6 +49,23 @@ module Moped
       (node = next_node).secondary? ? node : next_secondary
     end
 
+    # Adds discovered peer nodes to the Ring. Will not duplicate nodes and will
+    # handle nil values.
+    #
+    # @example Add newly discovered nodes to the Ring.
+    #   ring.add(node_one, node_two)
+    #
+    # @param [ Array<Node> ] discovered The discovered nodes.
+    #
+    # @return [ Ring ] The Ring itself.
+    #
+    # @since 2.0.0
+    def add(*discovered)
+      discovered.flatten.compact.each do |node|
+        nodes.push(node) unless nodes.include?(node)
+      end and self
+    end
+
     private
 
     # Get the next node of any type in the ring and shift the nodes.
