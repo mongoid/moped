@@ -11,7 +11,8 @@ module Moped
     PREFERENCES = {
       nearest: Nearest,
       primary: Primary,
-      primary_preferred: PrimaryPreferred
+      primary_preferred: PrimaryPreferred,
+      secondary: Secondary
     }
 
     def get(name)

@@ -48,5 +48,20 @@ describe Moped::ReadPreference do
         expect(preference).to eq(primary_preferred)
       end
     end
+
+    context "when asking for :secondary" do
+
+      let(:preference) do
+        described_class.get(:secondary)
+      end
+
+      let(:secondary) do
+        Moped::ReadPreference::Secondary
+      end
+
+      it "returns the secondary read preference" do
+        expect(preference).to eq(secondary)
+      end
+    end
   end
 end
