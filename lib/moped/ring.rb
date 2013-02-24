@@ -84,7 +84,10 @@ module Moped
     #
     # @since 2.0.0
     def shuffle
-      nodes.push(nodes.shift)
+      next_node = nodes.shift
+      # @todo: Durran: Check if the node needs a refresh here, and do it at
+      # this time if so. Should we also refresh others?
+      nodes.push(next_node)
     end
   end
 end
