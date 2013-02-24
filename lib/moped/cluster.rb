@@ -1,3 +1,4 @@
+# encoding: utf-8
 require "moped/ring"
 
 module Moped

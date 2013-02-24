@@ -23,16 +23,45 @@ module Moped
       @nodes = nodes
     end
 
-    # Get the next Node in the Ring. Will take the Node from the beginning of
-    # the Node list and push it to the end.
+    # Get the next primary Node in the Ring. Will take the Node from the
+    # beginning of the Node list and push it to the end.
     #
-    # @example Get the next Node.
-    #   ring.next
+    # @example Get the next primary Node.
+    #   ring.next_primary
     #
-    # @return [ Node ] The next Node in the Ring.
+    # @return [ Node ] The next primary Node in the Ring.
     #
     # @since 2.0.0
-    def next
+    def next_primary
+      (node = next_node).primary? ? node : next_primary
+    end
+
+    # Get the next secondary Node in the Ring. Will take the Node from the
+    # beginning of the Node list and push it to the end.
+    #
+    # @example Get the next secondary Node.
+    #   ring.next_secondary
+    #
+    # @return [ Node ] The next secondary Node in the Ring.
+    #
+    # @since 2.0.0
+    def next_secondary
+      (node = next_node).secondary? ? node : next_secondary
+    end
+
+    private
+
+    # Get the next node of any type in the ring and shift the nodes.
+    #
+    # @api private
+    #
+    # @example Get the next node in the Ring.
+    #   ring.next_node
+    #
+    # @return [ Node ] The next node in the Ring.
+    #
+    # @since 2.0.0
+    def next_node
       nodes.push(nodes.shift).last
     end
   end
