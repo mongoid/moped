@@ -1,3 +1,5 @@
+# encoding: utf-8
+require "moped/read"
 require "moped/read_preference"
 
 module Moped

@@ -146,6 +146,30 @@ module Support
         reply
       end
 
+      def unauthorized
+        { "ok" => 0.0, "code" => 10057 }
+      end
+
+      def unauthorized_reply
+        reply = Moped::Protocol::Reply.new
+        reply.count = 1
+        reply.flags = [ :query_failure ]
+        reply.documents = [ unauthorized ]
+        reply
+      end
+
+      def query_failure
+        { "ok" => 0.0, "assertionCode" => "selector was invalid" }
+      end
+
+      def query_failure_reply
+        reply = Moped::Protocol::Reply.new
+        reply.count = 1
+        reply.flags = [ :query_failure ]
+        reply.documents = [ query_failure ]
+        reply
+      end
+
       OP_QUERY = 2004
       OP_GETMORE = 2005
 
@@ -213,13 +237,20 @@ module Support
         @hiccup_on_next_message = true
       end
 
+      def query_failure_on_next_message!
+        @query_failure_on_next_message = true
+      end
+
+      def unauthorized_on_next_message!
+        @unauthorized_on_next_message = true
+      end
+
       # Proxies a single message from client to the mongo connection.
       def proxy(client, mongo)
         if @hiccup_on_next_message
           @hiccup_on_next_message = false
           return hiccup
         end
-
         incoming_message = client.read(16)
         length, op_code = incoming_message.unpack("l<x8l<")
         incoming_message << client.read(length - 16)
@@ -227,9 +258,17 @@ module Support
         if @crash_on_next_message
           @crash_on_next_message = false
           return hiccup
+        elsif @unauthorized_on_next_message
+          @unauthorized_on_next_message = false
+          client.write(unauthorized_reply)
+        elsif @query_failure_on_next_message
+          @query_failure_on_next_message = false
+          client.write(query_failure_reply)
+        elsif op_code == OP_QUERY && authentication_command?(incoming_message)
+          client.write(status_reply)
         elsif op_code == OP_QUERY && ismaster_command?(incoming_message)
           # Intercept the ismaster command and send our own reply.
-          client.write status_reply
+          client.write(status_reply)
         else
           # This is a normal command, so proxy it to the real mongo instance.
           mongo.write incoming_message
@@ -256,6 +295,16 @@ module Support
 
         selector = Moped::BSON::Document.deserialize(data)
         selector == { "ismaster" => 1 }
+      end
+
+      def authentication_command?(incoming_message)
+        data = StringIO.new(incoming_message)
+        data.read(20) # header and flags
+        data.gets("\x00") # collection name
+        data.read(8) # skip/limit
+
+        selector = Moped::BSON::Document.deserialize(data)
+        selector["authenticate"] == 1
       end
     end
 

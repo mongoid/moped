@@ -328,6 +328,14 @@ module Moped
       @passive
     end
 
+    def process(operation, &callback)
+      if Threaded.executing? :pipeline
+        queue.push [operation, callback]
+      else
+        flush([[operation, callback]])
+      end
+    end
+
     # Execute a query on the node.
     #
     # @example Execute a query.
@@ -465,19 +473,8 @@ module Moped
       "<#{self.class.name} resolved_address=#{@resolved_address.inspect}>"
     end
 
-    private
-
     def auth
       @auth ||= {}
-    end
-
-    def generate_peers(info)
-      peers = []
-      peers.push(info["primary"]) if info["primary"]
-      peers.concat(info["hosts"]) if info["hosts"]
-      peers.concat(info["passives"]) if info["passives"]
-      peers.concat(info["arbiters"]) if info["arbiters"]
-      @peers = peers.map { |peer| Node.new(peer, options) }.uniq
     end
 
     def login(database, username, password)
@@ -499,6 +496,17 @@ module Moped
       raise Errors::OperationFailure.new(command, result) unless result["ok"] == 1
 
       auth.delete(database)
+    end
+
+    private
+
+    def generate_peers(info)
+      peers = []
+      peers.push(info["primary"]) if info["primary"]
+      peers.concat(info["hosts"]) if info["hosts"]
+      peers.concat(info["passives"]) if info["passives"]
+      peers.concat(info["arbiters"]) if info["arbiters"]
+      @peers = peers.map { |peer| Node.new(peer, options) }.uniq
     end
 
     def initialize_copy(_)
@@ -530,14 +538,6 @@ module Moped
     def connect
       connection.connect
       @down_at = nil
-    end
-
-    def process(operation, &callback)
-      if Threaded.executing? :pipeline
-        queue.push [operation, callback]
-      else
-        flush([[operation, callback]])
-      end
     end
 
     def queue
