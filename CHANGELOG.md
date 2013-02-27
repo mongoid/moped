@@ -4,6 +4,10 @@
 
 ### Resolved Issues
 
+* \#156 Collection#drop will raise on any error other than collection
+  does not exist.
+  (Daniel Doubrovkine)
+
 * \#152 Added `errmsg` "not master" to replica set configuration check.
   (Christos Trochalakis)
 
