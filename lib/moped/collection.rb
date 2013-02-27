@@ -38,7 +38,8 @@ module Moped
         database.session.with(consistency: :strong) do |session|
           session.context.command(database.name, drop: name)
         end
-      rescue Moped::Errors::OperationFailure
+      rescue Moped::Errors::OperationFailure => e
+        raise e unless e.details["errmsg"] == "ns not found"
         false
       end
     end
