@@ -40,6 +40,7 @@ module Moped
         end
       rescue Moped::Errors::OperationFailure => e
         raise e unless e.details["errmsg"] == "ns not found"
+        false
       end
     end
 
