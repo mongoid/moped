@@ -501,6 +501,23 @@ module Moped
       auth.delete(database)
     end
 
+    private
+
+    def generate_peers(info)
+      peers = []
+      peers.push(info["primary"]) if info["primary"]
+      peers.concat(info["hosts"]) if info["hosts"]
+      peers.concat(info["passives"]) if info["passives"]
+      peers.concat(info["arbiters"]) if info["arbiters"]
+      @peers = peers.map{ |peer| discover(peer) }.uniq
+    end
+
+    def discover(peer)
+      Node.new(peer, options).tap do |node|
+        node.send(:auth).merge!(auth)
+      end
+    end
+
     def initialize_copy(_)
       @connection = nil
     end

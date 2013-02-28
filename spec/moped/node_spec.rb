@@ -225,28 +225,71 @@ describe Moped::Node, replica_set: true do
 
   describe "#refresh" do
 
-    let(:node) do
-      described_class.new("iamnota.mongoid.org")
-    end
+    context "when the node has authentication details" do
 
-    before :each do
-      node.stub(:resolve_address).and_return(true)
-    end
-
-    context "when ensuring primary" do
-      before :each do
-        Moped::Threaded.stub(:executing?).with(:ensure_primary).and_return(true)
+      let(:node) do
+        described_class.new("127.0.0.1:27017")
       end
 
-      context "and not on the primary" do
-        before :each do
-          node.stub(:command).and_return({"secondary" => true})
+      before do
+        node.send(:auth)["moped_test"] = [ "user", "pass" ]
+      end
+
+      context "when discovering a peer" do
+
+        let(:info) do
+          {
+            "ismaster" => true,
+            "secondary" => false,
+            "hosts" => [ "127.0.0.1:27017", "127.0.0.1:27018" ],
+            "me" => "127.0.0.1:27017",
+            "maxBsonObjectSize" => 16777216,
+            "ok" => 1.0
+          }
         end
 
-        it "raises a ReplicaSetReconfigured error" do
-          expect {
-            node.refresh
-          }.to raise_error(Moped::Errors::ReplicaSetReconfigured)
+        before do
+          node.should_receive(:command).with("admin", ismaster: 1).and_return(info)
+          node.refresh
+        end
+
+        let(:peer) do
+          node.peers.last
+        end
+
+        it "add the authentication details to the peer" do
+          peer.send(:auth).should eq(node.send(:auth))
+        end
+      end
+    end
+
+    context "when refreshing a node with a bad address" do
+
+      let(:node) do
+        described_class.new("iamnota.mongoid.org")
+      end
+
+      before do
+        node.stub(:resolve_address).and_return(true)
+      end
+
+      context "when ensuring primary" do
+
+        before do
+          Moped::Threaded.stub(:executing?).with(:ensure_primary).and_return(true)
+        end
+
+        context "and not on the primary" do
+
+          before do
+            node.stub(:command).and_return("secondary" => true)
+          end
+
+          it "raises a ReplicaSetReconfigured error" do
+            expect {
+              node.refresh
+            }.to raise_error(Moped::Errors::ReplicaSetReconfigured)
+          end
         end
       end
     end
