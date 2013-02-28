@@ -31,4 +31,67 @@ describe Moped::Errors::MongoError do
       end
     end
   end
+
+  describe "#reconfiguring_replica_set?" do
+
+    context "when error code 13435" do
+
+      let(:details) do
+        { "code" => 13435 }
+      end
+
+      let(:error) do
+        Moped::Errors::PotentialReconfiguration.new({}, details)
+      end
+
+      it "returns true" do
+        error.should be_reconfiguring_replica_set
+      end
+    end
+
+    context "when 'err' is not master" do
+
+      let(:details) do
+        { "err" => "not master" }
+      end
+
+      let(:error) do
+        Moped::Errors::PotentialReconfiguration.new({}, details)
+      end
+
+      it "returns true" do
+        error.should be_reconfiguring_replica_set
+      end
+    end
+
+    context "when 'errmsg' is not master" do
+
+      let(:details) do
+        { "errmsg" => "not master" }
+      end
+
+      let(:error) do
+        Moped::Errors::PotentialReconfiguration.new({}, details)
+      end
+
+      it "returns true" do
+        error.should be_reconfiguring_replica_set
+      end
+    end
+
+    context "when errors are not matching not master" do
+
+      let(:details) do
+        { "errmsg" => "unauthorized" }
+      end
+
+      let(:error) do
+        Moped::Errors::PotentialReconfiguration.new({}, details)
+      end
+
+      it "returns false" do
+        error.should_not be_reconfiguring_replica_set
+      end
+    end
+  end
 end
