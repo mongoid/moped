@@ -53,7 +53,7 @@ describe Moped::Read do
           replica_set_node.query_failure_on_next_message!
         end
 
-        it "returns the reply" do
+        it "raises a failure error" do
           expect {
             read.execute(node)
           }.to raise_error(Moped::Read::Failure)
