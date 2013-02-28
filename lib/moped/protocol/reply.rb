@@ -67,7 +67,7 @@ module Moped
       # @since 1.2.10
       def command_failure?
         result = documents[0]
-        result["ok"] != 1 || result["err"] || result["errmsg"]
+        result["ok"] != 1 || result["err"] || result["errmsg"] || result["$err"]
       end
 
       # Was the provided cursor id not found on the server?
@@ -91,7 +91,8 @@ module Moped
       #
       # @since 1.2.0
       def query_failed?
-        flags.include?(:query_failure)
+        result = documents[0]
+        flags.include?(:query_failure) || (result && result["$err"])
       end
 
       # Is the reply an error message that we are not authorized for the query
