@@ -134,6 +134,25 @@ describe Moped::Protocol::Reply do
       end
     end
 
+    context "when an $err is present" do
+
+      let(:error) do
+        { "$err" => "message" }
+      end
+
+      let(:reply) do
+        described_class.new
+      end
+
+      before do
+        reply.documents = [ error ]
+      end
+
+      it "returns true" do
+        reply.should be_command_failure
+      end
+    end
+
     context "when no errors exist" do
 
       let(:error) do
@@ -150,6 +169,44 @@ describe Moped::Protocol::Reply do
 
       it "returns false" do
         reply.should_not be_command_failure
+      end
+    end
+  end
+
+  describe "#query_failed?" do
+
+    context "when an $err is present" do
+
+      let(:error) do
+        { "$err" => "message" }
+      end
+
+      let(:reply) do
+        described_class.new
+      end
+
+      before do
+        reply.documents = [ error ]
+      end
+
+      it "returns true" do
+        reply.should be_query_failed
+      end
+    end
+
+    context "when the query_failure flag is present" do
+
+      let(:reply) do
+        described_class.new
+      end
+
+      before do
+        reply.documents = []
+        reply.flags = [ :query_failure ]
+      end
+
+      it "returns true" do
+        reply.should be_query_failed
       end
     end
   end
