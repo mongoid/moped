@@ -132,7 +132,7 @@ describe Moped::Ring do
         described_class.new([ one, two, three ])
       end
 
-      it "returns the next primary in the ring" do
+      it "returns nil" do
         expect(ring.next_primary).to be_nil
       end
     end
@@ -217,19 +217,26 @@ describe Moped::Ring do
 
     context "when multiple nodes are secondary (replica set)" do
 
-      before do
-        one.instance_variable_set(:@secondary, false)
-        two.instance_variable_set(:@secondary, true)
-        three.instance_variable_set(:@secondary, true)
+      context "when all nodes are up" do
+
+        before do
+          one.instance_variable_set(:@secondary, false)
+          two.instance_variable_set(:@secondary, true)
+          three.instance_variable_set(:@secondary, true)
+        end
+
+        let(:ring) do
+          described_class.new([ one, two, three ])
+        end
+
+        it "returns the next secondary in the ring" do
+          expect(ring.next_secondary).to eq(two)
+          expect(ring.next_secondary).to eq(three)
+        end
       end
 
-      let(:ring) do
-        described_class.new([ one, two, three ])
-      end
+      context "when nodes need refreshing" do
 
-      it "returns the next secondary in the ring" do
-        expect(ring.next_secondary).to eq(two)
-        expect(ring.next_secondary).to eq(three)
       end
     end
 
