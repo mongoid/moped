@@ -118,6 +118,31 @@ describe Moped::Ring do
     end
   end
 
+  describe "#down_interval" do
+
+    context "when the option is provided" do
+
+      let(:ring) do
+        described_class.new(one, down_interval: 15)
+      end
+
+      it "returns the option value" do
+        expect(ring.down_interval).to eq(15)
+      end
+    end
+
+    context "when the option is not provided" do
+
+      let(:ring) do
+        described_class.new(one)
+      end
+
+      it "returns the default" do
+        expect(ring.down_interval).to eq(30)
+      end
+    end
+  end
+
   describe "#next_primary" do
 
     context "when no nodes are primary (big trouble)" do
@@ -271,6 +296,31 @@ describe Moped::Ring do
 
       it "returns nil" do
         expect(ring.next_secondary).to be_nil
+      end
+    end
+  end
+
+  describe "#refresh_interval" do
+
+    context "when the option is provided" do
+
+      let(:ring) do
+        described_class.new(one, refresh_interval: 15)
+      end
+
+      it "returns the option value" do
+        expect(ring.refresh_interval).to eq(15)
+      end
+    end
+
+    context "when the option is not provided" do
+
+      let(:ring) do
+        described_class.new(one)
+      end
+
+      it "returns the default" do
+        expect(ring.refresh_interval).to eq(300)
       end
     end
   end
