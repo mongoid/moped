@@ -122,7 +122,6 @@ module Moped
       # +ensure_connected+ block.
       return yield if Threaded.executing?(:connection)
       Threaded.begin(:connection)
-      retry_on_failure = true
 
       begin
         connect unless connected?
@@ -137,17 +136,15 @@ module Moped
         # don't necessitate disconnecting.
         raise
       rescue Errors::ConnectionFailure
-        disconnect
-        if retry_on_failure
-          # Maybe there was a hiccup -- try reconnecting one more time
-          retry_on_failure = false
-          retry
-        else
-          # Nope, we failed to connect twice. Flag the node as down and re-raise
-          # the exception.
-          down!
-          raise
-        end
+        # Failover?
+        #
+        # http://docs.mongodb.org/manual/applications/replication/#behavior
+        # When a failover occurs, all members of the set close all client connections
+        # that produce a socket error in the driver.
+        #
+        # We propagate that so a cluster.refresh is triggered
+        down!
+        raise
       rescue
         # Looks like we got an unexpected error, so we'll clean up the connection
         # and re-raise the exception.

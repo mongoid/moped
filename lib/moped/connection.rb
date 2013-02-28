@@ -198,7 +198,7 @@ module Moped
     #
     # @since 1.3.0
     def with_connection
-      connect if @sock.nil? || !@sock.alive?
+      connect if @sock.nil?
       yield @sock
     end
   end
