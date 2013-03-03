@@ -35,15 +35,15 @@ module Moped
 
       # @attribute
       # @return [String] the namespaced collection name
-      cstring  :full_collection_name
+      cstring :full_collection_name
 
       # @attribute
       # @return [Number] the number of documents to skip
-      int32    :skip
+      int32 :skip
 
       # @attribute
       # @return [Number] the number of documents to return
-      int32    :limit
+      int32 :limit
 
       # @attribute
       # @return [Hash] the selector for this query

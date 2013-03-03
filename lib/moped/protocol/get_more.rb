@@ -29,33 +29,42 @@ module Moped
       # @return [Number] the operation code of this message
       int32 :op_code
 
-      int32    :reserved # reserved for future use
+      int32 :reserved # reserved for future use
 
       # @attribute
       # @return [String] the namespaced collection name
-      cstring  :full_collection_name
+      cstring :full_collection_name
 
       # @attribute
       # @return [Number] the number of documents to return
-      int32    :limit
+      int32 :limit
 
       # @attribute
       # @return [Number] the id of the cursor to get more documents from
-      int64    :cursor_id
+      int64 :cursor_id
 
       finalize
 
-      undef op_code
-      # @return [Number] OP_GETMORE operation code (2005)
-      def op_code
-        2005
+      # @!attribute collection
+      #   @return [ String ] The collection to query.
+      # @!attribute database
+      #   @return [ String ] The database to query
+      attr_reader :collection, :database
+
+      # Determine if the provided reply message is a failure with respect to a
+      # get more operation.
+      #
+      # @example Is the reply a query failure?
+      #   get_more.failure?(reply)
+      #
+      # @param [ Reply ] reply The reply to the get more.
+      #
+      # @return [ true, false ] If the reply is a failure.
+      #
+      # @since 2.0.0
+      def failure?(reply)
+        reply.query_failure?
       end
-
-      # @return [String, Symbol] the database this insert targets
-      attr_reader :database
-
-      # @return [String, Symbol] the collection this insert targets
-      attr_reader :collection
 
       # Create a new +GetMore+ command. The +database+ and +collection+ arguments
       # are joined together to set the +full_collection_name+.
@@ -65,16 +74,37 @@ module Moped
       def initialize(database, collection, cursor_id, limit, options = {})
         @database   = database
         @collection = collection
-
         @full_collection_name = "#{database}.#{collection}"
         @cursor_id            = cursor_id
         @limit                = limit
         @request_id           = options[:request_id]
       end
 
+      # Provide the value that will be logged when the get more runs.
+      #
+      # @example Provide the log inspection.
+      #   get_more.log_inspect
+      #
+      # @return [ String ] The string value for logging.
+      #
+      # @since 1.0.0
       def log_inspect
         type = "GET_MORE"
         "%-12s database=%s collection=%s limit=%s cursor_id=%s" % [type, database, collection, limit, cursor_id]
+      end
+
+      undef op_code
+
+      # Get the code for a get more operation.
+      #
+      # @example Get the operation code.
+      #   get_more.op_code
+      #
+      # @return [ Integer ] OP_GETMORE operation code (2005).
+      #
+      # @since 1.0.0
+      def op_code
+        2005
       end
 
       # Receive replies to the message.
