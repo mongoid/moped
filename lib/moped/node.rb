@@ -329,11 +329,25 @@ module Moped
       @passive
     end
 
+    # Processes the provided operation on this node, and will execute the
+    # callback when the operation is sent to the database.
+    #
+    # @example Process a read operation.
+    #   node.process(query) do |reply|
+    #     return reply.documents
+    #   end
+    #
+    # @param [ Message ] operation The database operation.
+    # @param [ Proc ] callback The callback to run on operation completion.
+    #
+    # @return [ Object ] The result of the callback.
+    #
+    # @since 1.0.0
     def process(operation, &callback)
-      if Threaded.executing? :pipeline
-        queue.push [operation, callback]
+      if Threaded.executing?(:pipeline)
+        queue.push([ operation, callback ])
       else
-        flush([[operation, callback]])
+        flush([[ operation, callback ]])
       end
     end
 
