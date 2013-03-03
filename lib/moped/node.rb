@@ -355,7 +355,7 @@ module Moped
       operation = Protocol::Query.new(database, collection, selector, options)
 
       process(operation) do |reply|
-        if reply.query_failed?
+        if reply.query_failure?
           if reply.unauthorized? && auth.has_key?(database)
             # If we got here, most likely this is the case of Moped
             # authenticating successfully against the node originally, but the

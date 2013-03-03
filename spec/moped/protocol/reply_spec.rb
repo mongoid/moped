@@ -173,7 +173,72 @@ describe Moped::Protocol::Reply do
     end
   end
 
-  describe "#query_failed?" do
+  describe "#error?" do
+
+    let(:reply) do
+      described_class.new
+    end
+
+    before do
+      reply.documents = []
+    end
+
+    context "when no documents exist" do
+
+      it "returns false" do
+        expect(reply).to_not be_error
+      end
+    end
+
+    context "when documents exist" do
+
+      context "when the first document has an 'err' key" do
+
+        before do
+          reply.documents = [{ "err" => 1 }]
+        end
+
+        it "returns true" do
+          expect(reply).to be_error
+        end
+      end
+
+      context "when the first document has an 'errmsg' key" do
+
+        before do
+          reply.documents = [{ "errmsg" => 1 }]
+        end
+
+        it "returns true" do
+          expect(reply).to be_error
+        end
+      end
+
+      context "when the first document has an '$err' key" do
+
+        before do
+          reply.documents = [{ "$err" => 1 }]
+        end
+
+        it "returns true" do
+          expect(reply).to be_error
+        end
+      end
+
+      context "when no error keys exist" do
+
+        before do
+          reply.documents = [{}]
+        end
+
+        it "returns false" do
+          expect(reply).to_not be_error
+        end
+      end
+    end
+  end
+
+  describe "#query_failure?" do
 
     context "when an $err is present" do
 
@@ -190,7 +255,7 @@ describe Moped::Protocol::Reply do
       end
 
       it "returns true" do
-        reply.should be_query_failed
+        reply.should be_query_failure
       end
     end
 
@@ -206,7 +271,7 @@ describe Moped::Protocol::Reply do
       end
 
       it "returns true" do
-        reply.should be_query_failed
+        reply.should be_query_failure
       end
     end
   end

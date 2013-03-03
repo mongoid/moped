@@ -45,7 +45,7 @@ module Moped
     # @since 2.0.0
     def execute(node)
       node.process(operation) do |reply|
-        if reply.query_failed?
+        if reply.query_failure?
           if reply.unauthorized? && node.auth.has_key?(database)
             node.login(database, *node.auth[database])
             return execute(node)

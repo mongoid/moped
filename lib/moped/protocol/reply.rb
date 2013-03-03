@@ -66,8 +66,8 @@ module Moped
       #
       # @since 1.2.10
       def command_failure?
-        result = documents[0]
-        result["ok"] != 1 || result["err"] || result["errmsg"] || result["$err"]
+        result = documents.first
+        (result["ok"] != 1.0 && result["ok"] != true) || error?
       end
 
       # Was the provided cursor id not found on the server?
@@ -82,17 +82,29 @@ module Moped
         flags.include?(:cursor_not_found)
       end
 
+      # Check if the first returned document in the reply is an error result.
+      #
+      # @example Is the first document in the reply an error?
+      #   reply.error?
+      #
+      # @return [ true, false ] If the first document is an error.
+      #
+      # @since 2.0.0
+      def error?
+        result = documents.first
+        result && (result["err"] || result["errmsg"] || result["$err"])
+      end
+
       # Did the query fail on the server?
       #
       # @example Did the query fail?
-      #   reply.query_failed?
+      #   reply.query_failure?
       #
       # @return [ true, false ] If the query failed.
       #
       # @since 1.2.0
-      def query_failed?
-        result = documents[0]
-        flags.include?(:query_failure) || (result && result["$err"])
+      def query_failure?
+        flags.include?(:query_failure) || error?
       end
 
       # Is the reply an error message that we are not authorized for the query
