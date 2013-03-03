@@ -55,12 +55,6 @@ module Moped
 
       finalize
 
-      undef op_code
-      # @return [Number] OP_QUERY operation code (2004)
-      def op_code
-        2004
-      end
-
       # @!attribute collection
       #   @return [ String ] The collection to query.
       # @!attribute database
@@ -153,6 +147,14 @@ module Moped
         @batch_size           = options[:batch_size]
       end
 
+      # Provide the value that will be logged when the query runs.
+      #
+      # @example Provide the log inspection.
+      #   query.log_inspect
+      #
+      # @return [ String ] The string value for logging.
+      #
+      # @since 1.0.0
       def log_inspect
         type = "QUERY"
         fields = []
@@ -167,6 +169,20 @@ module Moped
         fields << ["fields=%s", self.fields.inspect]
         f, v = fields.transpose
         f.join(" ") % v
+      end
+
+      undef op_code
+
+      # Get the code for a query operation.
+      #
+      # @example Get the operation code.
+      #   query.op_code
+      #
+      # @return [ Integer ] OP_QUERY operation code (2004).
+      #
+      # @since 1.0.0
+      def op_code
+        2004
       end
 
       # Receive replies to the message.
