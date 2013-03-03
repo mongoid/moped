@@ -8,7 +8,7 @@ module Moped
       # then attempt to select a secondary. If no secondary is available then
       # an exception will be raised.
       #
-      # @example Prefer to select a primarynode from the ring.
+      # @example Prefer to select a primary node from the ring.
       #   Moped::ReadPreference::PrimaryPreferred.select(ring)
       #
       # @note If tag sets are provided then secondary selection will need to

@@ -7,6 +7,7 @@
 
     `:primary`: Will always read from a primary node.
     `:primary_preferred`: Attempt a primary first, then secondary if none available.
+    `:secondary`: Will always read from a secondary node.
 
 ## 1.4.3
 
