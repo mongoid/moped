@@ -40,7 +40,7 @@ describe Moped::ReadPreference::Primary do
       it "raises an error" do
         expect {
           described_class.select(ring)
-        }.to raise_error(Moped::ReadPreference::Primary::Unavailable)
+        }.to raise_error(Moped::ReadPreference::Unavailable)
       end
     end
   end

@@ -22,12 +22,6 @@ module Moped
         ring.next_primary || unavailable!
       end
 
-      # Raised when a primary node is not available when attempting to select
-      # one from the ring.
-      #
-      # @since 2.0.0
-      class Unavailable < RuntimeError; end
-
       private
 
       def unavailable!

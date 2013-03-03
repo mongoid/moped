@@ -43,5 +43,11 @@ module Moped
     def get(name)
       PREFERENCES.fetch(name)
     end
+
+    # Raised when attempting to select a node based on the read preference, but
+    # no node was available.
+    #
+    # @since 2.0.0
+    class Unavailable < RuntimeError; end
   end
 end
