@@ -61,13 +61,15 @@ module Moped
         2004
       end
 
-      # @!attribute batch_size
-      #   @return [ Integer ] The batch size of the results.
       # @!attribute collection
       #   @return [ String ] The collection to query.
       # @!attribute database
       #   @return [ String ] The database to query
-      attr_reader :batch_size, :collection, :database
+      attr_reader :collection, :database
+
+      # @!attribute batch_size
+      #   @return [ Integer ] The batch size of the results.
+      attr_accessor :batch_size
 
       # Get the basic selector.
       #
