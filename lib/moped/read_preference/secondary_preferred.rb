@@ -4,15 +4,32 @@ module Moped
     module SecondaryPreferred
       extend self
 
-      # Rules:
+      # Select a secondary node from the ring. If no secondary is available then
+      # use a primary. If no primary is found then an exception will be raised.
       #
-      # Attempt to read from a secondary node. If none is available then read
-      # from the primary.
+      # @example Read a secondary or primary node from the ring.
+      #   Moped::ReadPreference::SecondaryPreferred.select(ring)
       #
-      # If a tag set was included, then attempt to read from a secondary node
-      # with a matching tag. If none is found raise an error.
-      def select(cluster, tags = nil)
+      # @note If tag sets are provided then secondary selection will need to
+      #   match the provided tags.
+      #
+      # @param [ Ring ] ring The ring of nodes to select from.
+      # @param [ Array<Hash> ] tags The configured tag sets.
+      #
+      # @raise [ Unavailable ] If no secondary or primary node was available in
+      #   the ring.
+      #
+      # @return [ Node ] The selected node.
+      #
+      # @since 2.0.0
+      def select(ring, tags = nil)
+        ring.next_secondary || ring.next_primary || unavailable!
+      end
 
+      private
+
+      def unavailable!
+        raise Unavailable.new("No secondary or primary node is available for selection.")
       end
     end
   end
