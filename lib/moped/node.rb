@@ -51,6 +51,30 @@ module Moped
       self
     end
 
+    # Is the node an arbiter?
+    #
+    # @example Is the node an arbiter?
+    #   node.arbiter?
+    #
+    # @return [ true, false ] If the node is an arbiter.
+    #
+    # @since 1.0.0
+    def arbiter?
+      !!@arbiter
+    end
+
+    # Get the authentication details for this node.
+    #
+    # @example Get the authentication details.
+    #   node.auth
+    #
+    # @return [ Hash ] Get the authentication details.
+    #
+    # @since 1.0.0
+    def auth
+      @auth ||= {}
+    end
+
     # Execute a command against a database.
     #
     # @example Execute a command.
@@ -83,6 +107,9 @@ module Moped
     end
 
     # Force the node to disconnect from the server.
+    #
+    # @example Disconnect the node.
+    #   node.disconnect
     #
     # @return [ nil ] nil.
     #
@@ -273,6 +300,18 @@ module Moped
       !@refreshed_at || @refreshed_at < time
     end
 
+    # Is the node passive?
+    #
+    # @example Is the node passive?
+    #   node.passive?
+    #
+    # @return [ true, false ] If the node is passive.
+    #
+    # @since 1.0.0
+    def passive?
+      !!@passive
+    end
+
     # Execute a pipeline of commands, for example a safe mode persist.
     #
     # @example Execute a pipeline.
@@ -302,31 +341,7 @@ module Moped
     #
     # @since 1.0.0
     def primary?
-      @primary
-    end
-
-    # Is the node an arbiter?
-    #
-    # @example Is the node an arbiter?
-    #   node.arbiter?
-    #
-    # @return [ true, false ] If the node is an arbiter.
-    #
-    # @since 1.0.0
-    def arbiter?
-      @arbiter
-    end
-
-    # Is the node passive?
-    #
-    # @example Is the node passive?
-    #   node.passive?
-    #
-    # @return [ true, false ] If the node is passive.
-    #
-    # @since 1.0.0
-    def passive?
-      @passive
+      !!@primary
     end
 
     # Processes the provided operation on this node, and will execute the
@@ -471,10 +486,6 @@ module Moped
       "<#{self.class.name} resolved_address=#{@resolved_address.inspect}>"
     end
 
-    def auth
-      @auth ||= {}
-    end
-
     def login(database, username, password)
       getnonce = Protocol::Command.new(database, getnonce: 1)
       connection.write [getnonce]
@@ -492,29 +503,19 @@ module Moped
       connection.write [command]
       result = connection.read.documents.first
       raise Errors::OperationFailure.new(command, result) unless result["ok"] == 1
-
       auth.delete(database)
     end
 
     private
 
-    def generate_peers(info)
-      peers = []
-      peers.push(info["primary"]) if info["primary"]
-      peers.concat(info["hosts"]) if info["hosts"]
-      peers.concat(info["passives"]) if info["passives"]
-      peers.concat(info["arbiters"]) if info["arbiters"]
-      @peers = peers.map{ |peer| discover(peer) }.uniq
-    end
-
-    def discover(peer)
-      Node.new(peer, options).tap do |node|
-        node.send(:auth).merge!(auth)
-      end
-    end
-
-    def initialize_copy(_)
-      @connection = nil
+    # Connect to the node.
+    #
+    # Returns nothing.
+    # Raises Moped::ConnectionError if the connection times out.
+    # Raises Moped::ConnectionError if the server is unavailable.
+    def connect
+      connection.connect
+      @down_at = nil
     end
 
     def connection
@@ -530,22 +531,13 @@ module Moped
     # Returns nothing.
     def down!
       @down_at = Time.new
-
       disconnect
     end
 
-    # Connect to the node.
-    #
-    # Returns nothing.
-    # Raises Moped::ConnectionError if the connection times out.
-    # Raises Moped::ConnectionError if the server is unavailable.
-    def connect
-      connection.connect
-      @down_at = nil
-    end
-
-    def queue
-      Threaded.stack(:pipelined_operations)
+    def discover(peer)
+      Node.new(peer, options).tap do |node|
+        node.send(:auth).merge!(auth)
+      end
     end
 
     def flush(ops = queue)
@@ -563,6 +555,19 @@ module Moped
       end
     ensure
       ops.clear
+    end
+
+    def generate_peers(info)
+      peers = []
+      peers.push(info["primary"]) if info["primary"]
+      peers.concat(info["hosts"]) if info["hosts"]
+      peers.concat(info["passives"]) if info["passives"]
+      peers.concat(info["arbiters"]) if info["arbiters"]
+      @peers = peers.map{ |peer| discover(peer) }.uniq
+    end
+
+    def initialize_copy(_)
+      @connection = nil
     end
 
     def logging(operations)
@@ -588,6 +593,17 @@ module Moped
       end
     end
 
+    def parse_address
+      host, port = address.split(":")
+      @port = (port || 27017).to_i
+      @ip_address = ::Socket.getaddrinfo(host, nil, ::Socket::AF_INET, ::Socket::SOCK_STREAM).first[3]
+      @resolved_address = "#{@ip_address}:#{@port}"
+    end
+
+    def queue
+      Threaded.stack(:pipelined_operations)
+    end
+
     def resolve_address
       unless ip_address
         begin
@@ -602,13 +618,6 @@ module Moped
       else
         true
       end
-    end
-
-    def parse_address
-      host, port = address.split(":")
-      @port = (port || 27017).to_i
-      @ip_address = ::Socket.getaddrinfo(host, nil, ::Socket::AF_INET, ::Socket::SOCK_STREAM).first[3]
-      @resolved_address = "#{@ip_address}:#{@port}"
     end
   end
 end
