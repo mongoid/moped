@@ -1,5 +1,12 @@
 # Overview
 
+## 2.0.0
+
+* \#133 Moped now supports the new read preferences that the core drivers
+  provide. These include:
+
+      `primary`: Will always read from a primary node.
+
 ## 1.4.3
 
 ### Resolved Issues

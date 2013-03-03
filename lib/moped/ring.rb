@@ -167,13 +167,11 @@ module Moped
     #
     # @since 2.0.0
     def shift
-      node = nodes.shift
-      nodes.push(node)
-      # if refreshable?(node)
-        # node.refresh
-        # return shift if node.down?
-      # end
-      # nodes
+      if nodes.empty?
+        nodes
+      else
+        nodes.push(nodes.shift)
+      end
     end
   end
 end
