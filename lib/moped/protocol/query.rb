@@ -1,20 +1,9 @@
 module Moped
   module Protocol
+
     # The Protocol class for querying a collection.
     #
-    # @example Find all users named John
-    #   Query.new "moped", "users", { name: "John" }
-    #
-    # @example Find all users named John skipping 5 and returning 10
-    #   Query.new "moped", "users", { name: "John" },
-    #     skip: 5, limit: 10
-    #
-    # @example Find all users on slave node
-    #   Query.new "moped", "users", {}, flags: [:slave_ok]
-    #
-    # @example Find all user ids
-    #   Query.new "moped", "users", {}, fields: { _id: 1 }
-    #
+    # @since 1.0.0
     class Query
       include Message
 
@@ -38,11 +27,11 @@ module Moped
       #
       # @param  [Array] flags the flags for this message
       # @return [Array] the flags for this message
-      flags    :flags, tailable:          2 ** 1,
-                       slave_ok:          2 ** 2,
-                       no_cursor_timeout: 2 ** 4,
-                       await_data:        2 ** 5,
-                       exhaust:           2 ** 6
+      flags :flags, tailable:          2 ** 1,
+                    slave_ok:          2 ** 2,
+                    no_cursor_timeout: 2 ** 4,
+                    await_data:        2 ** 5,
+                    exhaust:           2 ** 6
 
       # @attribute
       # @return [String] the namespaced collection name
@@ -72,42 +61,86 @@ module Moped
         2004
       end
 
-      # @return [String, Symbol] the database to query
-      attr_reader :database
+      # @!attribute batch_size
+      #   @return [ Integer ] The batch size of the results.
+      # @!attribute collection
+      #   @return [ String ] The collection to query.
+      # @!attribute database
+      #   @return [ String ] The database to query
+      attr_reader :batch_size, :collection, :database
 
-      # @return [String, Symbol] the collection to query
-      attr_reader :collection
+      # Get the basic selector.
+      #
+      # @example Get the basic selector.
+      #   query.basic_selector
+      #
+      # @note Sometimes, like in cases of deletion we need this since MongoDB
+      #   does not understand $query in operations like DELETE.
+      #
+      # @return [ Hash ] The basic selector.
+      #
+      # @since 2.0.0
+      def basic_selector
+        selector["$query"] || selector
+      end
 
-      attr_accessor :batch_size
+      # Determine if the provided reply message is a failure with respect to a
+      # query.
+      #
+      # @example Is the reply a query failure?
+      #   query.failure?(reply)
+      #
+      # @param [ Reply ] reply The reply to the query.
+      #
+      # @return [ true, false ] If the reply is a failure.
+      #
+      # @since 2.0.0
+      def failure?(reply)
+        reply.query_failure?
+      end
 
+      # Set the option on the query to not timeout the cursor.
+      #
+      # @example Set the no timeout option.
+      #   query.no_timeout = true
+      #
+      # @param [ true, false ] enable Whether to enable the no timeout option.
+      #
+      # @since 1.3.0
       def no_timeout=(enable)
         @flags |= [:no_cursor_timeout] if enable
       end
 
-      # Create a new query command.
+      # Instantiate a new query operation.
       #
-      # @example
-      #   Query.new "moped", "users", { name: "John" },
-      #     skip: 5,
-      #     limit: 10,
-      #     request_id: 12930,
-      #     fields: { _id: -1, name: 1 }
+      # @example Find all users named John.
+      #   Query.new("moped", "users", { name: "John" })
       #
-      # @param [String, Symbol] database the database to insert into
-      # @param [String, Symbol] collection the collection to insert into
-      # @param [Hash] selector the query
-      # @param [Hash] options additional options
-      # @option options [Number] :request_id the command's request id
-      # @option options [Number] :skip the number of documents to skip
-      # @option options [Number] :limit the number of documents to return
-      # @option options [Hash] :fields the fields to return
-      # @option options [Array] :flags the flags for querying. Supported
-      #   flags: +:tailable+, +:slave_ok+, +:no_cursor_timeout+, +:await_data+,
-      #   +:exhaust+.
+      # @example Find all users named John skipping 5 and returning 10.
+      #   Query.new("moped", "users", { name: "John" }, skip: 5, limit: 10)
+      #
+      # @example Find all users on slave node.
+      #   Query.new("moped", "users", {}, flags: [ :slave_ok ])
+      #
+      # @example Find all user ids.
+      #   Query.new("moped", "users", {}, fields: { _id: 1 })
+      #
+      # @param [ String, Symbol ] database The database to query.
+      # @param [ String, Symbol ] collection The collection to query.
+      # @param [ Hash ] selector The query selector.
+      # @param [ Hash ] options The additional query options.
+      #
+      # @option options [Number] :request_id The operation's request id.
+      # @option options [Number] :skip The number of documents to skip.
+      # @option options [Number] :limit The number of documents to return.
+      # @option options [Hash] :fields The limited fields to return.
+      # @option options [Array] :flags The flags for querying. Supported flags
+      #   are: :tailable, :slave_ok, :no_cursor_timeout, :await_data, :exhaust.
+      #
+      # @since 1.0.0
       def initialize(database, collection, selector, options = {})
         @database = database
         @collection = collection
-
         @full_collection_name = "#{database}.#{collection}"
         @selector             = selector
         @request_id           = options[:request_id]
@@ -132,21 +165,6 @@ module Moped
         fields << ["fields=%s", self.fields.inspect]
         f, v = fields.transpose
         f.join(" ") % v
-      end
-
-      # Get the basic selector.
-      #
-      # @example Get the basic selector.
-      #   query.basic_selector
-      #
-      # @note Sometimes, like in cases of deletion we need this since MongoDB
-      # does not understand $query in operations like DELETE.
-      #
-      # @return [ Hash ] The basic selector.
-      #
-      # @since 2.0.0
-      def basic_selector
-        selector["$query"] || selector
       end
 
       # Receive replies to the message.

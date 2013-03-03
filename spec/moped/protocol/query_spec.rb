@@ -2,112 +2,146 @@ require "spec_helper"
 
 describe Moped::Protocol::Query do
 
-  let(:query) do
-    described_class.allocate
+  describe "#failure?" do
+
+    let(:query) do
+      described_class.new("moped", "people", { a: 1 })
+    end
+
+    let(:reply) do
+      Moped::Protocol::Reply.new
+    end
+
+    context "when the reply is a query failure" do
+
+      before do
+        reply.flags = [ :query_failure ]
+      end
+
+      it "returns true" do
+        expect(query).to be_failure(reply)
+      end
+    end
+
+    context "when the reply is not a query failure" do
+
+      before do
+        reply.documents = [{}]
+      end
+
+      it "returns true" do
+        expect(query).to_not be_failure(reply)
+      end
+    end
   end
 
   describe ".fields" do
+
     it "matches the specification's field list" do
-      described_class.fields.should eq [
-        :length,
-        :request_id,
-        :response_to,
-        :op_code,
-        :flags,
-        :full_collection_name,
-        :skip,
-        :limit,
-        :selector,
-        :fields
-      ]
+      expect(described_class.fields).to eq([
+        :length, :request_id, :response_to, :op_code, :flags, :full_collection_name,
+        :skip, :limit, :selector, :fields
+      ])
     end
   end
 
   describe "#initialize" do
+
     let(:query) do
-      described_class.new "moped", "people", {a: 1}
+      described_class.new("moped", "people", { a: 1 })
     end
 
     it "sets the database" do
-      query.database.should eq "moped"
+      expect(query.database).to eq("moped")
     end
 
     it "sets the collection" do
-      query.collection.should eq "people"
+      expect(query.collection).to eq("people")
     end
 
     it "sets the full collection name" do
-      query.full_collection_name.should eq "moped.people"
+      expect(query.full_collection_name).to eq("moped.people")
     end
 
     it "sets the selector" do
-      query.selector.should eq({a:1})
+      expect(query.selector).to eq({ a: 1 })
     end
 
-    context "with flag options" do
+    context "when flags are provided" do
+
       let(:query) do
-        described_class.new "db", "coll", {}, flags: [:slave_ok, :no_cursor_timeout]
+        described_class.new("db", "coll", {}, flags: [ :slave_ok ])
       end
 
       it "sets the flags" do
-        query.flags.should eq [:slave_ok, :no_cursor_timeout]
+        expect(query.flags).to eq([ :slave_ok ])
       end
     end
 
-    context "with a request id option" do
+    context "when a request id option is provided" do
+
       let(:query) do
-        described_class.new "db", "coll", {}, request_id: 10293
+        described_class.new("db", "coll", {}, request_id: 10293)
       end
 
       it "sets the request id" do
-        query.request_id.should eq 10293
+        expect(query.request_id).to eq(10293)
       end
     end
 
-    context "with a limit option" do
+    context "when a limit option is provided" do
+
       let(:query) do
-        described_class.new "db", "coll", {}, limit: 5
+        described_class.new("db", "coll", {}, limit: 5)
       end
 
       it "sets the limit" do
-        query.limit.should eq 5
+        expect(query.limit).to eq(5)
       end
     end
 
-    context "with a skip option" do
+    context "when a skip option is provided" do
+
       let(:query) do
-        described_class.new "db", "coll", {}, skip: 5
+        described_class.new("db", "coll", {}, skip: 5)
       end
 
       it "sets the skip" do
-        query.skip.should eq 5
+        expect(query.skip).to eq(5)
       end
     end
 
-    context "with a batch_size option" do
+    context "when a batch_size option is provided" do
+
       let(:query) do
-        described_class.new "db", "coll", {}, batch_size: 5
+        described_class.new("db", "coll", {}, batch_size: 5)
       end
 
       it "sets the batch_size" do
-        query.batch_size.should eq 5
+        expect(query.batch_size).to eq(5)
       end
     end
 
-    context "with a fields option" do
+    context "when a fields option is provided" do
+
       let(:query) do
-        described_class.new "db", "coll", {}, fields: { a: 1 }
+        described_class.new("db", "coll", {}, fields: { a: 1 })
       end
 
       it "sets the fields" do
-        query.fields.should eq({ a: 1})
+        expect(query.fields).to eq({ a: 1})
       end
     end
   end
 
   describe "#op_code" do
+
+    let(:query) do
+      described_class.allocate
+    end
+
     it "should eq 2004" do
-      query.op_code.should eq 2004
+      expect(query.op_code).to eq(2004)
     end
   end
 end
