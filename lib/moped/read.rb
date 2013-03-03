@@ -10,8 +10,8 @@ module Moped
     # @!attribute database
     #   @return [ String ] The database the read is from.
     # @!attribute operation
-    #   @return [ Protocol::Query, Protocol::GetMore, Protocol::Command,
-    #     Protocol::KillCursors ] The read operation.
+    #   @return [ Protocol::Query, Protocol::GetMore, Protocol::Command ]
+    #     The read operation.
     attr_reader :database, :operation
 
     # Instantiate the read operation.
@@ -19,8 +19,8 @@ module Moped
     # @example Instantiate the read.
     #   Read.new(get_more)
     #
-    # @param [ Protocol::Query, Protocol::GetMore, Protocol::Command,
-    #   Protocol::KillCursors ] operation The read operation.
+    # @param [ Protocol::Query, Protocol::GetMore, Protocol::Command ] operation
+    #   The read operation.
     #
     # @since 2.0.0
     def initialize(operation)
@@ -45,7 +45,7 @@ module Moped
     # @since 2.0.0
     def execute(node)
       node.process(operation) do |reply|
-        if reply.query_failure?
+        if operation.failure?(reply)
           if reply.unauthorized? && node.auth.has_key?(database)
             node.login(database, *node.auth[database])
             return execute(node)

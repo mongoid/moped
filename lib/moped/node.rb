@@ -353,24 +353,7 @@ module Moped
     # @since 1.0.0
     def query(database, collection, selector, options = {})
       operation = Protocol::Query.new(database, collection, selector, options)
-
-      process(operation) do |reply|
-        if reply.query_failure?
-          if reply.unauthorized? && auth.has_key?(database)
-            # If we got here, most likely this is the case of Moped
-            # authenticating successfully against the node originally, but the
-            # node has been reset or gone down and come back up. The most
-            # common case here is a rs.stepDown() which will reinitialize the
-            # connection. In this case we need to requthenticate and try again,
-            # otherwise we'll just raise the error to the user.
-            login(database, *auth[database])
-            query(database, collection, selector, options)
-          else
-            raise Errors::QueryFailure.new(operation, reply.documents.first)
-          end
-        end
-        reply
-      end
+      Read.new(operation).execute(self)
     end
 
     # Refresh information about the node, such as it's status in the replica
