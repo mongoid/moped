@@ -3,15 +3,7 @@ module Moped
 
     # The Protocol class for retrieving more documents from a cursor.
     #
-    # @example Get more results using database default limit
-    #   insert = GetMore.new "moped", "people", 29301021, 0
-    #
-    # @example Get more results using custom limit
-    #   insert = Insert.new "moped", "people", 29301021, 10
-    #
-    # @example Setting the request id
-    #   insert = Insert.new "moped", "people", 29301021, 10,
-    #     request_id: 123
+    # @since 1.0.0
     class GetMore
       include Message
 
@@ -66,18 +58,34 @@ module Moped
         reply.query_failure?
       end
 
-      # Create a new +GetMore+ command. The +database+ and +collection+ arguments
-      # are joined together to set the +full_collection_name+.
+      # Create a new GetMore command. The database and collection arguments
+      # are joined together to set the full_collection_name.
       #
-      # @example
-      #   GetMore.new "moped", "users", 29301021, 10, request_id: 123
+      # @example Get more results using database default limit.
+      #   GetMore.new("moped", "people", 29301021, 0)
+      #
+      # @example Get more results using custom limit.
+      #   GetMore.new("moped", "people", 29301021, 10)
+      #
+      # @example Get more with a request id.
+      #   GetMore.new("moped", "people", 29301021, 10, request_id: 123)
+      #
+      # @param [ String ] database The database name.
+      # @param [ String ] collection The collection name.
+      # @param [ Integer ] cursor_id The id of the cursor.
+      # @param [ Integer ] limit The number of documents to limit.
+      # @param [ Hash ] options The get more options.
+      #
+      # @option options [ Integer ] :request_id The operation's request id.
+      #
+      # @since 1.0.0
       def initialize(database, collection, cursor_id, limit, options = {})
-        @database   = database
+        @database = database
         @collection = collection
         @full_collection_name = "#{database}.#{collection}"
-        @cursor_id            = cursor_id
-        @limit                = limit
-        @request_id           = options[:request_id]
+        @cursor_id = cursor_id
+        @limit = limit
+        @request_id = options[:request_id]
       end
 
       # Provide the value that will be logged when the get more runs.

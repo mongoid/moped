@@ -126,11 +126,11 @@ module Moped
       # @param [ Hash ] selector The query selector.
       # @param [ Hash ] options The additional query options.
       #
-      # @option options [Number] :request_id The operation's request id.
-      # @option options [Number] :skip The number of documents to skip.
-      # @option options [Number] :limit The number of documents to return.
-      # @option options [Hash] :fields The limited fields to return.
-      # @option options [Array] :flags The flags for querying. Supported flags
+      # @option options [ Integer ] :request_id The operation's request id.
+      # @option options [ Integer ] :skip The number of documents to skip.
+      # @option options [ Integer ] :limit The number of documents to return.
+      # @option options [ Hash ] :fields The limited fields to return.
+      # @option options [ Array ] :flags The flags for querying. Supported flags
       #   are: :tailable, :slave_ok, :no_cursor_timeout, :await_data, :exhaust.
       #
       # @since 1.0.0
@@ -138,13 +138,13 @@ module Moped
         @database = database
         @collection = collection
         @full_collection_name = "#{database}.#{collection}"
-        @selector             = selector
-        @request_id           = options[:request_id]
-        @flags                = options[:flags] || []
-        @limit                = options[:limit]
-        @skip                 = options[:skip]
-        @fields               = options[:fields]
-        @batch_size           = options[:batch_size]
+        @selector = selector
+        @request_id = options[:request_id]
+        @flags = options[:flags] || []
+        @limit = options[:limit]
+        @skip = options[:skip]
+        @fields = options[:fields]
+        @batch_size = options[:batch_size]
       end
 
       # Provide the value that will be logged when the query runs.
