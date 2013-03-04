@@ -7,50 +7,50 @@ module Moped
     class Query
       include Message
 
-      # @attribute
-      # @return [Number] the length of the message
+      # @!attribute length
+      #   @return [ Integer ] the length of the message
       int32 :length
 
-      # @attribute
-      # @return [Number] the request id of the message
+      # @!attribute request_id
+      #   @return [ Integer ] the request id of the message
       int32 :request_id
 
       int32 :response_to
 
-      # @attribute
-      # @return [Number] the operation code of this message
+      # @!attribute op_code
+      #   @return [ Integer ] the operation code of this message
       int32 :op_code
 
-      # @attribute
+      # @!attribute
       # The flags for the query. Supported flags are: +:tailable+, +:slave_ok+,
       # +:no_cursor_timeout+, +:await_data+, +:exhaust+.
       #
-      # @param  [Array] flags the flags for this message
-      # @return [Array] the flags for this message
+      # @param  [ Array ] flags the flags for this message
+      # @return [ Array ] the flags for this message
       flags :flags, tailable:          2 ** 1,
                     slave_ok:          2 ** 2,
                     no_cursor_timeout: 2 ** 4,
                     await_data:        2 ** 5,
                     exhaust:           2 ** 6
 
-      # @attribute
-      # @return [String] the namespaced collection name
+      # @!attribute full_collection_name
+      #   @return [ String ] the namespaced collection name
       cstring :full_collection_name
 
-      # @attribute
-      # @return [Number] the number of documents to skip
+      # @!attribute skip
+      #   @return [ Integer ] the number of documents to skip
       int32 :skip
 
-      # @attribute
-      # @return [Number] the number of documents to return
+      # @!attribute limit
+      #   @return [ Integer ] the number of documents to return
       int32 :limit
 
-      # @attribute
-      # @return [Hash] the selector for this query
+      # @!attribute selector
+      #   @return [ Hash ] the selector for this query
       document :selector
 
-      # @attribute
-      # @return [Hash, nil] the fields to include in the reply
+      # @!attribute fields
+      #   @return [ Hash, nil ] the fields to include in the reply
       document :fields, :optional => true
 
       finalize
@@ -78,6 +78,20 @@ module Moped
       # @since 2.0.0
       def basic_selector
         selector["$query"] || selector
+      end
+
+      # Get the exception specific to a failure of this particular operation.
+      #
+      # @example Get the failure exception.
+      #   query.failure_exception(document)
+      #
+      # @param [ Hash ] details The document with the error details.
+      #
+      # @return [ Moped::Errors::QueryFailure ] The failure exception.
+      #
+      # @since 2.0.0
+      def failure_exception(details)
+        Errors::QueryFailure.new(self, details)
       end
 
       # Determine if the provided reply message is a failure with respect to a

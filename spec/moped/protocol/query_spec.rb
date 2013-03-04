@@ -35,6 +35,21 @@ describe Moped::Protocol::Query do
     end
   end
 
+  describe "#failure_exception" do
+
+    let(:query) do
+      described_class.new("moped", "people", { a: 1 })
+    end
+
+    let(:exception) do
+      query.failure_exception({})
+    end
+
+    it "returns a query failure" do
+      expect(exception).to be_a(Moped::Errors::QueryFailure)
+    end
+  end
+
   describe ".fields" do
 
     it "matches the specification's field list" do
