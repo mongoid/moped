@@ -219,9 +219,7 @@ module Moped
     # @since 1.0.0
     def get_more(database, collection, cursor_id, limit)
       operation = Protocol::GetMore.new(database, collection, cursor_id, limit)
-      reply = Read.new(operation).execute(self)
-      raise Moped::Errors::CursorNotFound.new("GET MORE", cursor_id) if reply.cursor_not_found?
-      reply
+      Read.new(operation).execute(self)
     end
 
     # Get the hash identifier for the node.
