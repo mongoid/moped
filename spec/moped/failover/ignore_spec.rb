@@ -2,21 +2,6 @@ require "spec_helper"
 
 describe Moped::Failover::Ignore do
 
-  describe "#initialize" do
-
-    let(:exception) do
-      RuntimeError.new
-    end
-
-    let(:ignore) do
-      described_class.new(exception)
-    end
-
-    it "sets the exception" do
-      expect(ignore.exception).to eq(exception)
-    end
-  end
-
   describe "#execute" do
 
     let(:exception) do
@@ -33,7 +18,7 @@ describe Moped::Failover::Ignore do
 
     it "raises the exception" do
       expect {
-        ignore.execute(node)
+        described_class.execute(exception, node)
       }.to raise_error(exception)
     end
   end

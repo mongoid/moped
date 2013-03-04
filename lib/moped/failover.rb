@@ -26,7 +26,7 @@ module Moped
     #
     # @since 2.0.0
     def get(exception)
-      STRATEGIES.fetch(exception, Ignore).new(exception)
+      STRATEGIES.fetch(exception, Ignore)
     end
   end
 end
