@@ -1,3 +1,7 @@
+# encoding: utf-8
+require "moped/failover"
+require "moped/read"
+
 module Moped
 
   # Represents a client to a node in a server cluster.
@@ -132,12 +136,21 @@ module Moped
     # @return [ nil ] nil.
     #
     # @since 1.0.0
-    def ensure_connected
+    def ensure_connected(&block)
       # Don't run the reconnection login if we're already inside an
       # +ensure_connected+ block.
       return yield if Threaded.executing?(:connection)
       Threaded.begin(:connection)
       retry_on_failure = true
+
+      # @todo: Durran: Let's get failover scenarios to look like this:
+      #
+      # begin
+        # connect unless connected?
+        # yield
+      # rescue Exception => e
+        # Failover.get(e).execute(self, &block)
+      # end
 
       begin
         connect unless connected?

@@ -23,7 +23,7 @@ module Moped
       primary_preferred: PrimaryPreferred,
       secondary: Secondary,
       secondary_preferred: SecondaryPreferred
-    }
+    }.freeze
 
     # Get a read preference for the provided name. Valid names are:
     #   - :nearest
