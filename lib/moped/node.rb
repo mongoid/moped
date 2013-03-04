@@ -91,21 +91,7 @@ module Moped
     # @since 1.0.0
     def command(database, cmd, options = {})
       operation = Protocol::Command.new(database, cmd, options)
-
-      # @todo: Durran: In the case of safe mode we need to handle the pipeline
-      # having a multi-dimensional array as the return value.
-      process(operation) do |reply|
-        result = reply.documents.first
-        if reply.command_failure?
-          if reply.unauthorized? && auth.has_key?(database)
-            login(database, *auth[database])
-            command(database, cmd, options)
-          else
-            raise Errors::OperationFailure.new(operation, result)
-          end
-        end
-        result
-      end
+      Read.new(operation).execute(self)
     end
 
     # Force the node to disconnect from the server.

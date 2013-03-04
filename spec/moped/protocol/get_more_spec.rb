@@ -147,4 +147,19 @@ describe Moped::Protocol::GetMore do
       expect(get_more.op_code).to eq(2005)
     end
   end
+
+  describe "#results" do
+
+    let(:get_more) do
+      described_class.new("moped", "people", 123, 10, request_id: 123)
+    end
+
+    let(:reply) do
+      Moped::Protocol::Reply.new
+    end
+
+    it "returns the reply" do
+      expect(get_more.results(reply)).to eq(reply)
+    end
+  end
 end

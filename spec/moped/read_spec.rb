@@ -152,12 +152,12 @@ describe Moped::Read do
 
       before(:all) do
         101.times do |n|
-          session[:tests].insert({ a: n })
+          session[collection].insert({ a: n })
         end
       end
 
       after(:all) do
-        session[:tests].find.remove_all
+        session[collection].find.remove_all
       end
 
       let(:cursor_id) do
@@ -177,7 +177,7 @@ describe Moped::Read do
       context "when the cursor is not found" do
 
         let(:not_found) do
-          Moped::Protocol::GetMore.new(database, collection, cursor_id, 13212311131)
+          Moped::Protocol::GetMore.new(database, collection, 123131231311, 10)
         end
 
         it "raises a cursor not found error" do

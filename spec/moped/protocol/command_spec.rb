@@ -74,4 +74,21 @@ describe Moped::Protocol::Command do
       expect(command.limit).to eq(-1)
     end
   end
+
+  describe "#results" do
+
+    let(:command) do
+      described_class.new(:moped, ismaster: 1)
+    end
+
+    let(:reply) do
+      Moped::Protocol::Reply.new.tap do |message|
+        message.documents = [{}]
+      end
+    end
+
+    it "returns the first document in the reply" do
+      expect(command.results(reply)).to be_empty
+    end
+  end
 end

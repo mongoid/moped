@@ -66,6 +66,21 @@ module Moped
         type = "COMMAND"
         "%-12s database=%s command=%s" % [type, database, selector.inspect]
       end
+
+      # Take the provided reply and return the expected results to api
+      # consumers. In the case of the command it's the first document.
+      #
+      # @example Get the expected results of the reply.
+      #   command.results(reply)
+      #
+      # @param [ Moped::Protocol::Reply ] reply The reply from the database.
+      #
+      # @return [ Hash ] The first document in the reply.
+      #
+      # @since 2.0.0
+      def results(reply)
+        reply.documents.first
+      end
     end
   end
 end

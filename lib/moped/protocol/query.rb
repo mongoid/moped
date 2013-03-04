@@ -212,6 +212,21 @@ module Moped
       def receive_replies(connection)
         connection.read
       end
+
+      # Take the provided reply and return the expected results to api
+      # consumers.
+      #
+      # @example Get the expected results of the reply.
+      #   query.results(reply)
+      #
+      # @param [ Moped::Protocol::Reply ] reply The reply from the database.
+      #
+      # @return [ Moped::Protocol::Reply ] The reply.
+      #
+      # @since 2.0.0
+      def results(reply)
+        reply
+      end
     end
   end
 end

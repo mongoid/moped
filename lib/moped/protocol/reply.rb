@@ -150,14 +150,11 @@ module Moped
 
       def deserialize_documents(buffer)
         documents = []
-
         count.times do
           documents << BSON::Document.deserialize(buffer)
         end
-
         @documents = documents
       end
-
     end
   end
 end

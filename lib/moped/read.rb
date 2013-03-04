@@ -53,7 +53,7 @@ module Moped
             raise operation.failure_exception(reply)
           end
         end
-        return reply
+        operation.results(reply)
       end
     end
   end

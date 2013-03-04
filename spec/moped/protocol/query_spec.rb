@@ -165,4 +165,19 @@ describe Moped::Protocol::Query do
       expect(query.op_code).to eq(2004)
     end
   end
+
+  describe "#results" do
+
+    let(:query) do
+      described_class.new("moped", "people", { a: 1 })
+    end
+
+    let(:reply) do
+      Moped::Protocol::Reply.new
+    end
+
+    it "returns the reply" do
+      expect(query.results(reply)).to eq(reply)
+    end
+  end
 end
