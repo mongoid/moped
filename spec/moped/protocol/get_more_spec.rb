@@ -46,6 +46,49 @@ describe Moped::Protocol::GetMore do
     end
   end
 
+  describe "#failure_exception" do
+
+    let(:get_more) do
+      described_class.new("moped", "people", 123, 10)
+    end
+
+    context "when the reply failure is query" do
+
+      let(:reply) do
+        Moped::Protocol::Reply.new.tap do |message|
+          message.documents = [{}]
+          message.flags = [ :query_failure ]
+        end
+      end
+
+      let(:exception) do
+        get_more.failure_exception(reply)
+      end
+
+      it "returns a cursor not found" do
+        expect(exception).to be_a(Moped::Errors::QueryFailure)
+      end
+    end
+
+    context "when the reply failure is cursor not found" do
+
+      let(:reply) do
+        Moped::Protocol::Reply.new.tap do |message|
+          message.documents = [{}]
+          message.flags = [ :cursor_not_found ]
+        end
+      end
+
+      let(:exception) do
+        get_more.failure_exception(reply)
+      end
+
+      it "returns a cursor not found" do
+        expect(exception).to be_a(Moped::Errors::CursorNotFound)
+      end
+    end
+  end
+
   describe ".fields" do
 
     it "matches the specification's field list" do

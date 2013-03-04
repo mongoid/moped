@@ -121,7 +121,7 @@ module Moped
       # @since 1.2.10
       def unauthorized?
         result = documents[0]
-        result["code"] == UNAUTHORIZED || result["assertionCode"] == UNAUTHORIZED
+        result && (result["code"] == UNAUTHORIZED || result["assertionCode"] == UNAUTHORIZED)
       end
 
       class << self

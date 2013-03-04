@@ -58,6 +58,24 @@ module Moped
         reply.cursor_not_found? || reply.query_failure?
       end
 
+      # Get the exception specific to a failure of this particular operation.
+      #
+      # @example Get the failure exception.
+      #   get_more.failure_exception(document)
+      #
+      # @param [ Moped::Protocol::Reply ] reply The reply from the database.
+      #
+      # @return [ Moped::Errors::CursorNotFound ] The failure exception.
+      #
+      # @since 2.0.0
+      def failure_exception(reply)
+        if reply.cursor_not_found?
+          Errors::CursorNotFound.new(self, cursor_id)
+        else
+          Errors::QueryFailure.new(self, reply.documents.first)
+        end
+      end
+
       # Create a new GetMore command. The database and collection arguments
       # are joined together to set the full_collection_name.
       #

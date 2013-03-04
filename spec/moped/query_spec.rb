@@ -286,7 +286,7 @@ describe Moped::Query do
     it "raises a query failure exception for invalid queries" do
       expect {
         users.find("age" => { "$in" => nil }).first
-      }.to raise_exception(Moped::Read::Failure)
+      }.to raise_exception(Moped::Errors::QueryFailure)
     end
 
     describe "#limit" do
@@ -349,7 +349,7 @@ describe Moped::Query do
       it "raises an error when hinting an invalid index" do
         expect {
           users.find(scope: scope).hint(scope: 1).to_a
-        }.to raise_error(Moped::Read::Failure, %r{failed with error 10113: "bad hint"})
+        }.to raise_error(Moped::Errors::QueryFailure, %r{failed with error 10113: "bad hint"})
       end
     end
 

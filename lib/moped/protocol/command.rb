@@ -31,13 +31,13 @@ module Moped
       # @example Get the failure exception.
       #   command.failure_exception(document)
       #
-      # @param [ Hash ] details The document with the error details.
+      # @param [ Moped::Protocol::Reply ] reply The reply from the database.
       #
       # @return [ Moped::Errors::OperationFailure ] The failure exception.
       #
       # @since 2.0.0
-      def failure_exception(details)
-        Errors::OperationFailure.new(self, details)
+      def failure_exception(reply)
+        Errors::OperationFailure.new(self, reply.documents.first)
       end
 
       # Instantiate the new command.

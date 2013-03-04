@@ -41,8 +41,14 @@ describe Moped::Protocol::Command do
       described_class.new(:moped, ismaster: 1)
     end
 
+    let(:reply) do
+      Moped::Protocol::Reply.new.tap do |message|
+        message.documents = [{}]
+      end
+    end
+
     let(:exception) do
-      command.failure_exception({})
+      command.failure_exception(reply)
     end
 
     it "returns a query failure" do

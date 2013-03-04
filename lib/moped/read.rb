@@ -50,17 +50,11 @@ module Moped
             node.login(database, *node.auth[database])
             return execute(node)
           else
-            raise Failure.new(operation, reply.documents.first)
+            raise operation.failure_exception(reply)
           end
         end
         reply
       end
     end
-
-    # This exception is raised when a query fails to execute. This could be due
-    # to some sort of reconfiguration.
-    #
-    # @since 2.0.0
-    class Failure < Errors::PotentialReconfiguration; end
   end
 end

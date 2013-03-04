@@ -85,13 +85,13 @@ module Moped
       # @example Get the failure exception.
       #   query.failure_exception(document)
       #
-      # @param [ Hash ] details The document with the error details.
+      # @param [ Moped::Protocol::Reply ] reply The reply from the database.
       #
       # @return [ Moped::Errors::QueryFailure ] The failure exception.
       #
       # @since 2.0.0
-      def failure_exception(details)
-        Errors::QueryFailure.new(self, details)
+      def failure_exception(reply)
+        Errors::QueryFailure.new(self, reply.documents.first)
       end
 
       # Determine if the provided reply message is a failure with respect to a

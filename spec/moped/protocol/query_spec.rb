@@ -41,8 +41,14 @@ describe Moped::Protocol::Query do
       described_class.new("moped", "people", { a: 1 })
     end
 
+    let(:reply) do
+      Moped::Protocol::Reply.new.tap do |message|
+        message.documents = [{}]
+      end
+    end
+
     let(:exception) do
-      query.failure_exception({})
+      query.failure_exception(reply)
     end
 
     it "returns a query failure" do
