@@ -35,6 +35,21 @@ describe Moped::Protocol::Command do
     end
   end
 
+  describe "#failure_exception" do
+
+    let(:command) do
+      described_class.new(:moped, ismaster: 1)
+    end
+
+    let(:exception) do
+      command.failure_exception({})
+    end
+
+    it "returns a query failure" do
+      expect(exception).to be_a(Moped::Errors::OperationFailure)
+    end
+  end
+
   describe "#initialize" do
 
     let(:command) do

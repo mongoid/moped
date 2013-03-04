@@ -26,6 +26,20 @@ module Moped
         reply.command_failure?
       end
 
+      # Get the exception specific to a failure of this particular operation.
+      #
+      # @example Get the failure exception.
+      #   command.failure_exception(document)
+      #
+      # @param [ Hash ] details The document with the error details.
+      #
+      # @return [ Moped::Errors::OperationFailure ] The failure exception.
+      #
+      # @since 2.0.0
+      def failure_exception(details)
+        Errors::OperationFailure.new(self, details)
+      end
+
       # Instantiate the new command.
       #
       # @example Instantiate the new command.
