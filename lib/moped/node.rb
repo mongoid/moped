@@ -92,6 +92,8 @@ module Moped
     def command(database, cmd, options = {})
       operation = Protocol::Command.new(database, cmd, options)
 
+      # @todo: Durran: In the case of safe mode we need to handle the pipeline
+      # having a multi-dimensional array as the return value.
       process(operation) do |reply|
         result = reply.documents.first
         if reply.command_failure?
