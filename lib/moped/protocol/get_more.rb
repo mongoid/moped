@@ -55,7 +55,7 @@ module Moped
       #
       # @since 2.0.0
       def failure?(reply)
-        reply.query_failure?
+        reply.cursor_not_found? || reply.query_failure?
       end
 
       # Create a new GetMore command. The database and collection arguments

@@ -12,7 +12,7 @@ describe Moped::Protocol::GetMore do
       Moped::Protocol::Reply.new
     end
 
-    context "when the reply is a get_more failure" do
+    context "when the reply is a query failure" do
 
       before do
         reply.flags = [ :query_failure ]
@@ -23,7 +23,18 @@ describe Moped::Protocol::GetMore do
       end
     end
 
-    context "when the reply is not a get_more failure" do
+    context "when the reply is a cursor not found" do
+
+      before do
+        reply.flags = [ :cursor_not_found ]
+      end
+
+      it "returns true" do
+        expect(get_more).to be_failure(reply)
+      end
+    end
+
+    context "when the reply is not a failure" do
 
       before do
         reply.documents = [{}]
