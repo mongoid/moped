@@ -2,8 +2,8 @@
 module Moped
   module Failover
 
-    # Ignore is for the case when we get exceptions we do not know about, or
-    # exceptions we deem are proper user errors and should be re-raised.
+    # Ignore is for the case when we get exceptions we deem are proper user
+    # or datbase errors and should be re-raised.
     #
     # @since 2.0.0
     module Ignore

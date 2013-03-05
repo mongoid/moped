@@ -1,4 +1,5 @@
 # encoding: utf-8
+require "moped/failover/disconnect"
 require "moped/failover/ignore"
 require "moped/failover/reconfigure"
 
@@ -16,7 +17,9 @@ module Moped
     # @since 2.0.0
     STRATEGIES = {
       Errors::OperationFailure => Reconfigure,
-      Errors::QueryFailure => Reconfigure
+      Errors::QueryFailure => Reconfigure,
+      Errors::AuthenticationFailure => Ignore,
+      Errors::CursorNotFound => Ignore
     }.freeze
 
     # Get the appropriate failover handler given the provided exception.

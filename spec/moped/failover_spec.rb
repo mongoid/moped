@@ -38,6 +38,28 @@ describe Moped::Failover do
           expect(failover).to be_a(Moped::Failover::Reconfigure)
         end
       end
+
+      context "when providing a cursor not found" do
+
+        let(:failover) do
+          described_class.get(Moped::Errors::CursorNotFound)
+        end
+
+        it "returns an ignore" do
+          expect(failover).to be_a(Moped::Failover::Ignore)
+        end
+      end
+
+      context "when providing an authentication failure" do
+
+        let(:failover) do
+          described_class.get(Moped::Errors::AuthenticationFailure)
+        end
+
+        it "returns an ignore" do
+          expect(failover).to be_a(Moped::Failover::Ignore)
+        end
+      end
     end
   end
 end
