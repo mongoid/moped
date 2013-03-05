@@ -150,50 +150,13 @@ module Moped
     #
     # @since 1.0.0
     def ensure_connected(&block)
-      # Don't run the reconnection login if we're already inside an
-      # +ensure_connected+ block.
       return yield if Threaded.executing?(:connection)
       Threaded.begin(:connection)
-      retry_on_failure = true
-
-      # @todo: Durran: Let's get failover scenarios to look like this:
-      #
-      # begin
-        # connect unless connected?
-        # yield
-      # rescue Exception => e
-        # Failover.get(e).execute(e, self, &block)
-      # end
-
       begin
         connect unless connected?
         yield
-      rescue Errors::PotentialReconfiguration => e
-        if e.reconfiguring_replica_set?
-          raise Errors::ReplicaSetReconfigured.new(e.command, e.details)
-        end
-        raise
-      rescue Errors::DoNotDisconnect
-        # These exceptions are "expected" in the normal course of events, and
-        # don't necessitate disconnecting.
-        raise
-      rescue Errors::ConnectionFailure
-        disconnect
-        if retry_on_failure
-          # Maybe there was a hiccup -- try reconnecting one more time
-          retry_on_failure = false
-          retry
-        else
-          # Nope, we failed to connect twice. Flag the node as down and re-raise
-          # the exception.
-          down!
-          raise
-        end
-      rescue
-        # Looks like we got an unexpected error, so we'll clean up the connection
-        # and re-raise the exception.
-        disconnect
-        raise $!.extend(Errors::SocketError)
+      rescue Exception => e
+        Failover.get(e).execute(e, self, &block)
       end
     ensure
       Threaded.end(:connection)

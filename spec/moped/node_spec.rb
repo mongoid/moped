@@ -75,14 +75,20 @@ describe Moped::Node, replica_set: true do
       it "raises a connection error" do
         lambda do
           node.ensure_connected do
+            p "Executing command..."
             node.command("admin", ping: 1)
           end
         end.should raise_exception(Moped::Errors::ConnectionFailure)
       end
 
       it "marks the node as down" do
-        node.ensure_connected {} rescue nil
-        node.should be_down
+        begin
+          node.ensure_connected do
+            node.command("admin", ping: 1)
+          end
+        rescue Moped::Errors::ConnectionFailure
+          node.should be_down
+        end
       end
     end
 
@@ -143,7 +149,7 @@ describe Moped::Node, replica_set: true do
     context "when there is a reconfiguration" do
 
       let(:potential_reconfiguration_error) do
-        Moped::Errors::PotentialReconfiguration.new("", {})
+        Moped::Errors::QueryFailure.new("", {})
       end
 
       before do

@@ -21,12 +21,36 @@ describe Moped::Failover::Retry do
 
     context "when the retry fails" do
 
+      before do
+        node.send(:connect)
+      end
+
       it "re-raises the exception" do
         expect {
           described_class.execute(exception, node) do
             raise(exception)
           end
         }.to raise_error(exception)
+      end
+
+      it "disconnects the node" do
+        begin
+          described_class.execute(exception, node) do
+            raise(exception)
+          end
+        rescue Exception => e
+          expect(node).to_not be_connected
+        end
+      end
+
+      it "flags the node as down" do
+        begin
+          described_class.execute(exception, node) do
+            raise(exception)
+          end
+        rescue Exception => e
+          expect(node).to be_down
+        end
       end
     end
   end
