@@ -1,5 +1,6 @@
 # encoding: utf-8
 require "moped/failover/ignore"
+require "moped/failover/reconfigure"
 
 module Moped
 
@@ -13,7 +14,10 @@ module Moped
     # Hash lookup for the failover classes based off the exception type.
     #
     # @since 2.0.0
-    STRATEGIES = {}.freeze
+    STRATEGIES = {
+      Errors::OperationFailure => Reconfigure,
+      Errors::QueryFailure => Reconfigure
+    }.freeze
 
     # Get the appropriate failover handler given the provided exception.
     #

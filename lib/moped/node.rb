@@ -149,7 +149,7 @@ module Moped
         # connect unless connected?
         # yield
       # rescue Exception => e
-        # Failover.get(e).execute(self, &block)
+        # Failover.get(e).execute(e, self, &block)
       # end
 
       begin
