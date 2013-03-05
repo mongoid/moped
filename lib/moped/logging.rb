@@ -1,26 +1,45 @@
+# encoding: utf-8
 module Moped
 
   # Contains behaviour for logging.
+  #
+  # @since 1.0.0
   module Logging
 
+    # Log the provided operations.
+    #
+    # @example Log the operations.
+    #   Logging.log_operations("MOPED", {}, 30)
+    #
+    # @param [ String ] prefix The prefix for all operations in the log.
+    # @param [ Array ] ops The operations.
+    # @param [ String ] runtime The runtime in formatted ms.
+    #
+    # @since 2.0.0
     def self.log_operations(prefix, ops, runtime)
       indent  = " "*prefix.length
-
       if ops.length == 1
-        Moped.logger.debug [prefix, ops.first.log_inspect, "runtime: #{runtime}"].join(' ')
-
+        Moped.logger.debug([ prefix, ops.first.log_inspect, "runtime: #{runtime}" ].join(' '))
       else
         first, *middle, last = ops
-
-        Moped.logger.debug [prefix, first.log_inspect].join(' ')
-        middle.each { |m| Moped.logger.debug [indent, m.log_inspect].join(' ') }
-        Moped.logger.debug [indent, last.log_inspect, "runtime: #{runtime}"].join(' ')
-
+        Moped.logger.debug([ prefix, first.log_inspect ].join(' '))
+        middle.each { |m| Moped.logger.debug([ indent, m.log_inspect ].join(' ')) }
+        Moped.logger.debug([ indent, last.log_inspect, "runtime: #{runtime}" ].join(' '))
       end
     end
 
+    # Log the payload to debug.
+    #
+    # @example Log to debug.
+    #   Logging.debug("MOPED", payload "30.012ms")
+    #
+    # @param [ String ] prefix The log prefix.
+    # @param [ String ] payload The log operations.
+    # @param [ String ] runtime The runtime in formatted ms.
+    #
+    # @since 2.0.0
     def self.debug(prefix, payload, runtime)
-      Moped.logger.debug [prefix, payload, "runtime: #{runtime}"].join(' ')
+      Moped.logger.debug([ prefix, payload, "runtime: #{runtime}" ].join(' '))
     end
 
     # Get the logger.

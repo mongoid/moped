@@ -75,7 +75,6 @@ describe Moped::Node, replica_set: true do
       it "raises a connection error" do
         lambda do
           node.ensure_connected do
-            p "Executing command..."
             node.command("admin", ping: 1)
           end
         end.should raise_exception(Moped::Errors::ConnectionFailure)

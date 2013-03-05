@@ -546,7 +546,7 @@ module Moped
     end
 
     def logging(operations)
-      @instrumenter.instrument('moped.operations', prefix: "  MOPED: #{resolved_address}", ops: operations) do
+      instrument('moped.operations', prefix: "  MOPED: #{resolved_address}", ops: operations) do
         yield
       end
     end
@@ -567,7 +567,7 @@ module Moped
         begin
           parse_address and true
         rescue SocketError
-          @instrumenter.instrument('moped.warn', prefix: "  MOPED:", message: "Could not resolve IP address for #{address}")
+          instrument('moped.warn', prefix: "  MOPED:", message: "Could not resolve IP address for #{address}")
           @down_at = Time.new
           false
         end
