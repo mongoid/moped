@@ -33,7 +33,7 @@ module Moped
     #
     # @since 2.0.0
     def get(exception)
-      STRATEGIES.fetch(exception, Ignore)
+      STRATEGIES.fetch(exception, Disconnect)
     end
   end
 end

@@ -10,8 +10,8 @@ describe Moped::Failover do
         described_class.get(RuntimeError)
       end
 
-      it "returns ignore" do
-        expect(failover).to be_a(Moped::Failover::Ignore)
+      it "returns disconnect" do
+        expect(failover).to be_a(Moped::Failover::Disconnect)
       end
     end
 
