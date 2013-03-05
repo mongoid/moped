@@ -13,7 +13,7 @@ module Moped
       # the exception that was thrown previously.
       #
       # @example Execute the ignore strategy.
-      #   ignore.execute(exception, node)
+      #   Moped::Failover::Ignore.execute(exception, node)
       #
       # @param [ Exception ] exception The raised exception.
       # @param [ Node ] node The node the exception got raised on.

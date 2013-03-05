@@ -123,6 +123,19 @@ module Moped
       @down_at
     end
 
+    # Mark the node as down.
+    #
+    # @example Mark the node as down.
+    #   node.down!
+    #
+    # @return [ nil ] Nothing.
+    #
+    # @since 2.0.0
+    def down!
+      @down_at = Time.new
+      disconnect
+    end
+
     # Yields the block if a connection can be established, retrying when a
     # connection error is raised.
     #
@@ -523,14 +536,6 @@ module Moped
 
     def connected?
       connection.connected?
-    end
-
-    # Mark the node as down.
-    #
-    # Returns nothing.
-    def down!
-      @down_at = Time.new
-      disconnect
     end
 
     def discover(peer)

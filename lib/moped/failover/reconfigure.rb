@@ -14,7 +14,7 @@ module Moped
       # raise a new error if appropriate.
       #
       # @example Execute the reconfigure strategy.
-      #   recondifure.execute(exception, node)
+      #   Moped::Failover::Reconfigure.execute(exception, node)
       #
       # @param [ Exception ] exception The raised exception.
       # @param [ Node ] node The node the exception got raised on.

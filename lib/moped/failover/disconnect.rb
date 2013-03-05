@@ -14,7 +14,7 @@ module Moped
       # disconnect.
       #
       # @example Execute the disconnect strategy.
-      #   disconnect.execute(exception, node)
+      #   Moped::Failover::Disconnect.execute(exception, node)
       #
       # @param [ Exception ] exception The raised exception.
       # @param [ Node ] node The node the exception got raised on.

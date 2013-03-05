@@ -2,6 +2,7 @@
 require "moped/failover/disconnect"
 require "moped/failover/ignore"
 require "moped/failover/reconfigure"
+require "moped/failover/retry"
 
 module Moped
 
@@ -16,10 +17,11 @@ module Moped
     #
     # @since 2.0.0
     STRATEGIES = {
-      Errors::OperationFailure => Reconfigure,
-      Errors::QueryFailure => Reconfigure,
       Errors::AuthenticationFailure => Ignore,
-      Errors::CursorNotFound => Ignore
+      Errors::ConnectionFailure => Retry,
+      Errors::CursorNotFound => Ignore,
+      Errors::OperationFailure => Reconfigure,
+      Errors::QueryFailure => Reconfigure
     }.freeze
 
     # Get the appropriate failover handler given the provided exception.

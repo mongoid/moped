@@ -60,6 +60,17 @@ describe Moped::Failover do
           expect(failover).to be_a(Moped::Failover::Ignore)
         end
       end
+
+      context "when providing a connection failure" do
+
+        let(:failover) do
+          described_class.get(Moped::Errors::ConnectionFailure)
+        end
+
+        it "returns a retry" do
+          expect(failover).to be_a(Moped::Failover::Retry)
+        end
+      end
     end
   end
 end
