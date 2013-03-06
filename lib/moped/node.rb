@@ -154,7 +154,7 @@ module Moped
     # @since 1.0.0
     def ensure_connected(&block)
       return yield if Threaded.executing?(:connection)
-      Threaded.begin(:connection)
+      Threaded.begin_execution(:connection)
       begin
         connect unless connected?
         yield
@@ -162,7 +162,7 @@ module Moped
         Failover.get(e).execute(e, self, &block)
       end
     ensure
-      Threaded.end(:connection)
+      Threaded.end_execution(:connection)
     end
 
     # Set a flag on the node for the duration of provided block so that an
@@ -177,10 +177,10 @@ module Moped
     #
     # @since 1.0.0
     def ensure_primary
-      Threaded.begin(:ensure_primary)
+      Threaded.begin_execution(:ensure_primary)
       yield
     ensure
-      Threaded.end(:ensure_primary)
+      Threaded.end_execution(:ensure_primary)
     end
 
     # Execute a get more operation on the node.
@@ -306,11 +306,11 @@ module Moped
     #
     # @since 1.0.0
     def pipeline
-      Threaded.begin(:pipeline)
+      Threaded.begin_execution(:pipeline)
       begin
         yield
       ensure
-        Threaded.end(:pipeline)
+        Threaded.end_execution(:pipeline)
       end
       flush unless Threaded.executing?(:pipeline)
     end
