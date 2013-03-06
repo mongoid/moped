@@ -35,7 +35,7 @@ describe Moped::Node, replica_set: true do
          "setName"   => "moped_dev",
          "ismaster"  => true,
          "secondary" => false,
-         "hosts"     => [ "127.0.0.1:27017", "localhost:27017" ],
+         "hosts"     => [ "127.0.0.1:27017", "localhost:27018" ],
          "primary"   => "127.0.0.1:27017",
          "me"        => "127.0.0.1:27017",
          "ok"        => 1.0

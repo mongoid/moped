@@ -15,12 +15,14 @@ module Moped
     # @attribute [r] address The address of the node.
     # @attribute [r] down_at The time the server node went down.
     # @attribute [r] ip_address The node's ip.
-    # @attribute [r] peers Other peers in the replica set.
     # @attribute [r] port The connection port.
     # @attribute [r] resolved_address The host/port pair.
     # @attribute [r] timeout The connection timeout.
     # @attribute [r] options Additional options for the node (ssl).
-    attr_reader :address, :down_at, :ip_address, :peers, :port, :resolved_address, :timeout, :options
+    attr_reader :address, :down_at, :ip_address, :port, :resolved_address, :timeout, :options
+
+    # forward instrument in this class to @instrumenter.
+    def_delegator :@instrumenter, :instrument
 
     # Is this node equal to another?
     #
@@ -101,17 +103,58 @@ module Moped
       Operation::Read.new(operation).execute(self)
     end
 
+    # Connect the node on the underlying connection.
+    #
+    # @example Connect the node.
+    #   node.connect
+    #
+    # @raise [ Errors::ConnectionFailure ] If connection failed.
+    #
+    # @return [ true ] If the connection suceeded.
+    #
+    # @since 2.0.0
+    def connect
+      connection.connect
+      @down_at = nil
+      true
+    end
+
+    # Is the node currently connected?
+    #
+    # @example Is the node connected?
+    #   node.connected?
+    #
+    # @return [ true, false ] If the node is connected or not.
+    #
+    # @since 2.0.0
+    def connected?
+      connection.connected?
+    end
+
+    # Get the underlying connection for the node.
+    #
+    # @example Get the node's connection.
+    #   node.connection
+    #
+    # @return [ Connection ] The connection.
+    #
+    # @since 2.0.0
+    def connection
+      @connection ||= Connection.new(ip_address, port, timeout, options)
+    end
+
     # Force the node to disconnect from the server.
     #
     # @example Disconnect the node.
     #   node.disconnect
     #
-    # @return [ nil ] nil.
+    # @return [ true ] If the disconnection succeeded.
     #
     # @since 1.2.0
     def disconnect
       auth.clear
       connection.disconnect
+      true
     end
 
     # Is the node down?
@@ -170,7 +213,7 @@ module Moped
     #
     # @example Ensure this node is primary.
     #   node.ensure_primary do
-    #     #...
+    #     node.command(ismaster: 1)
     #   end
     #
     # @return [ nil ] nil.
@@ -213,10 +256,6 @@ module Moped
     def hash
       resolved_address.hash
     end
-
-    # forward instrument in this class to @instrumenter, for those unfamilier
-    # with forwardable.
-    def_delegator :@instrumenter, :instrument
 
     # Creat the new node.
     #
@@ -293,6 +332,19 @@ module Moped
     # @since 1.0.0
     def passive?
       !!@passive
+    end
+
+    # Get all the other nodes in the replica set according to the server
+    # information.
+    #
+    # @example Get the node's peers.
+    #   node.peers
+    #
+    # @return [ Array<Node> ] The peers.
+    #
+    # @since 2.0.0
+    def peers
+      @peers ||= []
     end
 
     # Execute a pipeline of commands, for example a safe mode persist.
@@ -388,23 +440,15 @@ module Moped
         begin
           info = command("admin", ismaster: 1)
           @refreshed_at = Time.now
-          primary = true   if info["ismaster"]
-          secondary = true if info["secondary"]
-          generate_peers(info)
-
-          @primary, @secondary = primary, secondary
-          @arbiter = info["arbiterOnly"]
-          @passive = info["passive"]
-
-          if !primary && Threaded.executing?(:ensure_primary)
+          configure(info)
+          if !primary? && Threaded.executing?(:ensure_primary)
             raise Errors::ReplicaSetReconfigured.new("#{inspect} is no longer the primary node.", {})
-          elsif !primary && !secondary
+          elsif !primary? && !secondary?
             # not primary or secondary so mark it as down, since it's probably
             # a recovering node withing the replica set
             down!
           end
         rescue Timeout::Error
-          @peers = []
           down!
         end
       end
@@ -491,30 +535,6 @@ module Moped
 
     private
 
-    # Connect to the node.
-    #
-    # Returns nothing.
-    # Raises Moped::ConnectionError if the connection times out.
-    # Raises Moped::ConnectionError if the server is unavailable.
-    def connect
-      connection.connect
-      @down_at = nil
-    end
-
-    def connection
-      @connection ||= Connection.new(ip_address, port, timeout, options)
-    end
-
-    def connected?
-      connection.connected?
-    end
-
-    def discover(peer)
-      Node.new(peer, options).tap do |node|
-        node.send(:auth).merge!(auth)
-      end
-    end
-
     def flush(ops = queue)
       operations, callbacks = ops.transpose
 
@@ -532,13 +552,31 @@ module Moped
       ops.clear
     end
 
-    def generate_peers(info)
-      peers = []
-      peers.push(info["primary"]) if info["primary"]
-      peers.concat(info["hosts"]) if info["hosts"]
-      peers.concat(info["passives"]) if info["passives"]
-      peers.concat(info["arbiters"]) if info["arbiters"]
-      @peers = peers.map{ |peer| discover(peer) }.uniq
+    # @todo Move into refresh operation.
+    def configure(settings)
+      @arbiter = settings["arbiterOnly"]
+      @passive = settings["passive"]
+      @primary = settings["ismaster"]
+      @secondary = settings["secondary"]
+      configure_peers(settings)
+    end
+
+    # @todo Move into refresh operation.
+    def configure_peers(info)
+      discover(info["primary"])
+      discover(info["hosts"])
+      discover(info["passives"])
+      discover(info["arbiters"])
+    end
+
+    def discover(*nodes)
+      nodes.flatten.compact.each do |peer|
+        node = Node.new(peer, options)
+        if self != node && !peers.include?(node)
+          node.auth.merge!(auth)
+          peers.push(node)
+        end
+      end
     end
 
     def initialize_copy(_)
@@ -551,6 +589,11 @@ module Moped
       end
     end
 
+    def queue
+      Threaded.stack(:pipelined_operations)
+    end
+
+    # @todo: Move address parsing out of node.
     def parse_address
       host, port = address.split(":")
       @port = (port || 27017).to_i
@@ -558,10 +601,7 @@ module Moped
       @resolved_address = "#{@ip_address}:#{@port}"
     end
 
-    def queue
-      Threaded.stack(:pipelined_operations)
-    end
-
+    # @todo: Move address parsing out of node.
     def resolve_address
       unless ip_address
         begin
