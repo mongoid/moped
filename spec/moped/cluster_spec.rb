@@ -58,7 +58,7 @@ describe Moped::Cluster, replica_set: true do
 
       it "connects and yields the primary node" do
         cluster.with_primary do |node|
-          node.address.should eq @primary.address
+          node.address.original.should eq @primary.address
         end
       end
     end
@@ -67,7 +67,7 @@ describe Moped::Cluster, replica_set: true do
 
       it "connects and yields a secondary node" do
         cluster.with_secondary do |node|
-          @secondaries.map(&:address).should include node.address
+          @secondaries.map(&:address).should include node.address.original
         end
       end
     end
@@ -93,7 +93,7 @@ describe Moped::Cluster, replica_set: true do
 
         it "connects and yields a secondary node" do
           cluster.with_secondary do |node|
-            @secondaries.map(&:address).should include node.address
+            @secondaries.map(&:address).should include node.address.original
           end
         end
       end
@@ -109,7 +109,7 @@ describe Moped::Cluster, replica_set: true do
 
         it "connects and yields the primary node" do
           cluster.with_primary do |node|
-            node.address.should eq @primary.address
+            node.address.original.should eq @primary.address
           end
         end
       end
@@ -118,7 +118,7 @@ describe Moped::Cluster, replica_set: true do
 
         it "connects and yields a secondary node" do
           cluster.with_secondary do |node|
-            node.address.should eq @secondaries.last.address
+            node.address.original.should eq @secondaries.last.address
           end
         end
       end
@@ -134,7 +134,7 @@ describe Moped::Cluster, replica_set: true do
 
         it "connects and yields the primary node" do
           cluster.with_primary do |node|
-            node.address.should eq @primary.address
+            node.address.original.should eq @primary.address
           end
         end
       end
@@ -143,7 +143,7 @@ describe Moped::Cluster, replica_set: true do
 
         it "connects and yields the primary node" do
           cluster.with_secondary do |node|
-            node.address.should eq @primary.address
+            node.address.original.should eq @primary.address
           end
         end
       end
@@ -160,7 +160,7 @@ describe Moped::Cluster, replica_set: true do
 
       it "connects and yields the primary node" do
         cluster.with_primary do |node|
-          node.address.should eq @primary.address
+          node.address.original.should eq @primary.address
         end
       end
     end
@@ -169,7 +169,7 @@ describe Moped::Cluster, replica_set: true do
 
       it "connects and yields a secondary node" do
         cluster.with_secondary do |node|
-          @secondaries.map(&:address).should include node.address
+          @secondaries.map(&:address).should include node.address.original
         end
       end
     end
@@ -195,7 +195,7 @@ describe Moped::Cluster, replica_set: true do
 
         it "connects and yields a secondary node" do
           cluster.with_secondary do |node|
-            @secondaries.map(&:address).should include node.address
+            @secondaries.map(&:address).should include node.address.original
           end
         end
       end
@@ -211,7 +211,7 @@ describe Moped::Cluster, replica_set: true do
 
         it "connects and yields the primary node" do
           cluster.with_primary do |node|
-            node.address.should eq @primary.address
+            node.address.original.should eq @primary.address
           end
         end
       end
@@ -221,7 +221,7 @@ describe Moped::Cluster, replica_set: true do
         it "connects and yields a secondary node" do
           cluster.with_secondary do |node|
             node.command "admin", ping: 1
-            node.address.should eq @secondaries.last.address
+            node.address.original.should eq @secondaries.last.address
           end
         end
       end
@@ -237,7 +237,7 @@ describe Moped::Cluster, replica_set: true do
 
         it "connects and yields the primary node" do
           cluster.with_primary do |node|
-            node.address.should eq @primary.address
+            node.address.original.should eq @primary.address
           end
         end
       end
@@ -247,7 +247,7 @@ describe Moped::Cluster, replica_set: true do
         it "connects and yields the primary node" do
           cluster.with_secondary do |node|
             node.command "admin", ping: 1
-            node.address.should eq @primary.address
+            node.address.original.should eq @primary.address
           end
         end
       end
@@ -273,7 +273,7 @@ describe Moped::Cluster, replica_set: true do
         it "connects and yields the primary node" do
           cluster.with_secondary do |node|
             node.command "admin", ping: 1
-            node.address.should eq @primary.address
+            node.address.original.should eq @primary.address
           end
         end
       end
@@ -290,7 +290,7 @@ describe Moped::Cluster, replica_set: true do
 
             cluster.with_secondary do |node|
               node.command "admin", ping: 1
-              node.address.should eq @primary.address
+              node.address.original.should eq @primary.address
             end
           end
         end
@@ -301,7 +301,7 @@ describe Moped::Cluster, replica_set: true do
             Time.stub(:new).and_return(Time.now + 10)
             cluster.with_secondary do |node|
               node.command "admin", ping: 1
-              @secondaries.map(&:address).should include node.address
+              @secondaries.map(&:address).should include node.address.original
             end
           end
         end
@@ -319,7 +319,7 @@ describe Moped::Cluster, replica_set: true do
 
       it "connects and yields the primary node" do
         cluster.with_primary do |node|
-          node.address.should eq @primary.address
+          node.address.original.should eq @primary.address
         end
       end
     end
@@ -328,7 +328,7 @@ describe Moped::Cluster, replica_set: true do
 
       it "connects and yields a secondary node" do
         cluster.with_secondary do |node|
-          @secondaries.map(&:address).should include node.address
+          @secondaries.map(&:address).should include node.address.original
         end
       end
     end
@@ -344,7 +344,7 @@ describe Moped::Cluster, replica_set: true do
 
       it "connects and yields the primary node" do
         cluster.with_primary do |node|
-          node.address.should eq @primary.address
+          node.address.original.should eq @primary.address
         end
       end
     end
@@ -353,7 +353,7 @@ describe Moped::Cluster, replica_set: true do
 
       it "connects and yields a secondary node" do
         cluster.with_secondary do |node|
-          @secondaries.map(&:address).should include node.address
+          @secondaries.map(&:address).should include node.address.original
         end
       end
     end

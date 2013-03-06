@@ -1,4 +1,5 @@
 # encoding: utf-8
+require "moped/address"
 require "moped/failover"
 require "moped/instrumentable"
 require "moped/operation"
@@ -11,13 +12,13 @@ module Moped
   class Node
     include Instrumentable
 
-    # @attribute [r] address The address of the node.
-    # @attribute [r] down_at The time the server node went down.
-    # @attribute [r] ip_address The node's ip.
-    # @attribute [r] port The connection port.
-    # @attribute [r] resolved_address The host/port pair.
-    # @attribute [r] options Additional options for the node (ssl).
-    attr_reader :address, :down_at, :ip_address, :port, :resolved_address, :options
+    # @!attribute address
+    #   @return [ Address ] The address.
+    # @!attribute down_at
+    #   @return [ Time ] The time the node was marked as down.
+    # @!attribute options
+    #   @return [ Hash ] The node options.
+    attr_reader :address, :down_at, :options
 
     # Is this node equal to another?
     #
@@ -30,7 +31,8 @@ module Moped
     #
     # @since 1.0.0
     def ==(other)
-      resolved_address == other.resolved_address
+      return false unless other.is_a?(Node)
+      address.resolved == other.address.resolved
     end
     alias :eql? :==
 
@@ -135,7 +137,7 @@ module Moped
     #
     # @since 2.0.0
     def connection
-      @connection ||= Connection.new(ip_address, port, timeout, options)
+      @connection ||= Connection.new(address.ip, address.port, timeout, options)
     end
 
     # Force the node to disconnect from the server.
@@ -174,7 +176,7 @@ module Moped
     # @since 2.0.0
     def down!
       @down_at = Time.new
-      disconnect
+      disconnect if connected?
     end
 
     # Yields the block if a connection can be established, retrying when a
@@ -249,7 +251,7 @@ module Moped
     #
     # @since 1.0.0
     def hash
-      resolved_address.hash
+      address.resolved.hash
     end
 
     # Creat the new node.
@@ -262,14 +264,14 @@ module Moped
     #
     # @since 1.0.0
     def initialize(address, options = {})
-      @address = address
+      @address = Address.new(address)
       @options = options
       @down_at = nil
       @refreshed_at = nil
       @primary = nil
       @secondary = nil
       @instrumenter = options[:instrumenter] || Instrumentable::Log
-      resolve_address
+      @address.resolve(self)
     end
 
     # Insert documents into the database.
@@ -430,7 +432,7 @@ module Moped
     #
     # @since 1.0.0
     def refresh
-      if resolve_address
+      if address.resolve(self)
         begin
           info = command("admin", ismaster: 1)
           @refreshed_at = Time.now
@@ -581,41 +583,19 @@ module Moped
       ops.clear
     end
 
+    # @todo: This can be removed with connection pool.
     def initialize_copy(_)
       @connection = nil
     end
 
     def logging(operations)
-      instrument(TOPIC, prefix: "  MOPED: #{resolved_address}", ops: operations) do
+      instrument(TOPIC, prefix: "  MOPED: #{address.resolved}", ops: operations) do
         yield if block_given?
       end
     end
 
     def queue
       Threaded.stack(:pipelined_operations)
-    end
-
-    # @todo: Move address parsing out of node.
-    def parse_address
-      host, port = address.split(":")
-      @port = (port || 27017).to_i
-      @ip_address = ::Socket.getaddrinfo(host, nil, ::Socket::AF_INET, ::Socket::SOCK_STREAM).first[3]
-      @resolved_address = "#{@ip_address}:#{@port}"
-    end
-
-    # @todo: Move address parsing out of node.
-    def resolve_address
-      unless ip_address
-        begin
-          parse_address and true
-        rescue SocketError
-          instrument(WARN, prefix: "  MOPED:", message: "Could not resolve IP address for #{address}")
-          @down_at = Time.new
-          false
-        end
-      else
-        true
-      end
     end
   end
 end
