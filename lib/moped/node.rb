@@ -1,7 +1,7 @@
 # encoding: utf-8
 require "forwardable"
 require "moped/failover"
-require "moped/instrumenters/logging_instrumenter"
+require "moped/instrumentable"
 require "moped/operation"
 
 module Moped
@@ -11,6 +11,7 @@ module Moped
   # @api private
   class Node
     extend Forwardable
+    include Instrumentable
 
     # @attribute [r] address The address of the node.
     # @attribute [r] down_at The time the server node went down.
@@ -20,9 +21,6 @@ module Moped
     # @attribute [r] timeout The connection timeout.
     # @attribute [r] options Additional options for the node (ssl).
     attr_reader :address, :down_at, :ip_address, :port, :resolved_address, :timeout, :options
-
-    # forward instrument in this class to @instrumenter.
-    def_delegator :@instrumenter, :instrument
 
     # Is this node equal to another?
     #
@@ -274,7 +272,7 @@ module Moped
       @refreshed_at = nil
       @primary = nil
       @secondary = nil
-      @instrumenter = options[:instrumenter] || Instrumenters::LoggingInstrumenter
+      @instrumenter = options[:instrumenter] || Instrumentable::Log
       resolve_address
     end
 
@@ -584,8 +582,8 @@ module Moped
     end
 
     def logging(operations)
-      instrument('moped.operations', prefix: "  MOPED: #{resolved_address}", ops: operations) do
-        yield
+      instrument(TOPIC, prefix: "  MOPED: #{resolved_address}", ops: operations) do
+        yield if block_given?
       end
     end
 
