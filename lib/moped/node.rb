@@ -535,12 +535,10 @@ module Moped
 
     def flush(ops = queue)
       operations, callbacks = ops.transpose
-
       logging(operations) do
         ensure_connected do
-          connection.write operations
+          connection.write(operations)
           replies = connection.receive_replies(operations)
-
           replies.zip(callbacks).map do |reply, callback|
             callback ? callback[reply] : reply
           end.last
