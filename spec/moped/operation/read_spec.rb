@@ -1,6 +1,6 @@
 require "spec_helper"
 
-describe Moped::Read do
+describe Moped::Operation::Read do
 
   shared_examples_for "a read operation with failover" do
 

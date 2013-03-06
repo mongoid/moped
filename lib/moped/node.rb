@@ -2,7 +2,7 @@
 require "forwardable"
 require "moped/failover"
 require "moped/instrumenters/logging_instrumenter"
-require "moped/read"
+require "moped/operation"
 
 module Moped
 
@@ -98,7 +98,7 @@ module Moped
     # @since 1.0.0
     def command(database, cmd, options = {})
       operation = Protocol::Command.new(database, cmd, options)
-      Read.new(operation).execute(self)
+      Operation::Read.new(operation).execute(self)
     end
 
     # Force the node to disconnect from the server.
@@ -199,7 +199,7 @@ module Moped
     # @since 1.0.0
     def get_more(database, collection, cursor_id, limit)
       operation = Protocol::GetMore.new(database, collection, cursor_id, limit)
-      Read.new(operation).execute(self)
+      Operation::Read.new(operation).execute(self)
     end
 
     # Get the hash identifier for the node.
@@ -366,7 +366,7 @@ module Moped
     # @since 1.0.0
     def query(database, collection, selector, options = {})
       operation = Protocol::Query.new(database, collection, selector, options)
-      Read.new(operation).execute(self)
+      Operation::Read.new(operation).execute(self)
     end
 
     # Refresh information about the node, such as it's status in the replica
