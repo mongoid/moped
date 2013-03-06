@@ -17,17 +17,16 @@ module Moped
       #
       # @param [ Exception ] exception The raised exception.
       # @param [ Node ] node The node the exception got raised on.
-      # @param [ Proc ] block The optional block.
       #
       # @raise [ Errors::ConnectionFailure ] If the retry fails.
       #
       # @return [ Object ] The result of the block yield.
       #
       # @since 2.0.0
-      def execute(exception, node, &block)
+      def execute(exception, node)
         node.disconnect
         begin
-          yield
+          yield if block_given?
         rescue Exception => e
           node.down!
           raise(e)

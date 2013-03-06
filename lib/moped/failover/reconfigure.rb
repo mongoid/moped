@@ -18,17 +18,14 @@ module Moped
       #
       # @param [ Exception ] exception The raised exception.
       # @param [ Node ] node The node the exception got raised on.
-      # @param [ Proc ] block The optional block.
       #
       # @raise [ Exception, Errors::ReplicaSetReconfigure ] The exception that
       #   was previously thrown or a reconfiguration error.
       #
       # @since 2.0.0
-      def execute(exception, node, &block)
+      def execute(exception, node)
         if exception.reconfiguring_replica_set?
-          raise(
-            Errors::ReplicaSetReconfigured.new(exception.command, exception.details)
-          )
+          raise(Errors::ReplicaSetReconfigured.new(exception.command, exception.details))
         end
         raise(exception)
       end

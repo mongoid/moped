@@ -17,12 +17,11 @@ module Moped
       #
       # @param [ Exception ] exception The raised exception.
       # @param [ Node ] node The node the exception got raised on.
-      # @param [ Proc ] block The optional block.
       #
       # @raise [ Exception ] The exception that was previously thrown.
       #
       # @since 2.0.0
-      def execute(exception, node, &block)
+      def execute(exception, node)
         raise(exception)
       end
     end
