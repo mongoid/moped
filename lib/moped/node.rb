@@ -605,7 +605,7 @@ module Moped
         begin
           parse_address and true
         rescue SocketError
-          instrument('moped.warn', prefix: "  MOPED:", message: "Could not resolve IP address for #{address}")
+          instrument(WARN, prefix: "  MOPED:", message: "Could not resolve IP address for #{address}")
           @down_at = Time.new
           false
         end

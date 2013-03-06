@@ -10,6 +10,11 @@ module Moped
     # @since 2.0.0
     TOPIC = "moped.operations"
 
+    # Topic for warning instrumentation.
+    #
+    # @since 2.0.0
+    WARN = "moped.warn"
+
     # @!attribute instrumenter
     #   @return [ Object ] The instrumenter
     attr_reader :instrumenter
