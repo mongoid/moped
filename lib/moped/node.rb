@@ -1,5 +1,4 @@
 # encoding: utf-8
-require "forwardable"
 require "moped/failover"
 require "moped/instrumentable"
 require "moped/operation"
@@ -8,9 +7,8 @@ module Moped
 
   # Represents a client to a node in a server cluster.
   #
-  # @api private
+  # @since 1.0.0
   class Node
-    extend Forwardable
     include Instrumentable
 
     # @attribute [r] address The address of the node.
@@ -18,9 +16,8 @@ module Moped
     # @attribute [r] ip_address The node's ip.
     # @attribute [r] port The connection port.
     # @attribute [r] resolved_address The host/port pair.
-    # @attribute [r] timeout The connection timeout.
     # @attribute [r] options Additional options for the node (ssl).
-    attr_reader :address, :down_at, :ip_address, :port, :resolved_address, :timeout, :options
+    attr_reader :address, :down_at, :ip_address, :port, :resolved_address, :options
 
     # Is this node equal to another?
     #
@@ -267,7 +264,6 @@ module Moped
     def initialize(address, options = {})
       @address = address
       @options = options
-      @timeout = options[:timeout] || 5
       @down_at = nil
       @refreshed_at = nil
       @primary = nil
@@ -481,6 +477,18 @@ module Moped
       @secondary
     end
 
+    # Get the timeout, in seconds, for this node.
+    #
+    # @example Get the timeout in seconds.
+    #   node.timeout
+    #
+    # @return [ Integer ] The configured timeout or the default of 5.
+    #
+    # @since 1.0.0
+    def timeout
+      @timeout ||= (options[:timeout] || 5)
+    end
+
     # Execute an update command for the provided selector.
     #
     # @example Update documents.
@@ -533,22 +541,6 @@ module Moped
 
     private
 
-    def flush(ops = queue)
-      operations, callbacks = ops.transpose
-      logging(operations) do
-        ensure_connected do
-          connection.write(operations)
-          replies = connection.receive_replies(operations)
-          replies.zip(callbacks).map do |reply, callback|
-            callback ? callback[reply] : reply
-          end.last
-        end
-      end
-    ensure
-      ops.clear
-    end
-
-    # @todo Move into refresh operation.
     def configure(settings)
       @arbiter = settings["arbiterOnly"]
       @passive = settings["passive"]
@@ -557,7 +549,6 @@ module Moped
       configure_peers(settings)
     end
 
-    # @todo Move into refresh operation.
     def configure_peers(info)
       discover(info["primary"])
       discover(info["hosts"])
@@ -573,6 +564,21 @@ module Moped
           peers.push(node)
         end
       end
+    end
+
+    def flush(ops = queue)
+      operations, callbacks = ops.transpose
+      logging(operations) do
+        ensure_connected do
+          connection.write(operations)
+          replies = connection.receive_replies(operations)
+          replies.zip(callbacks).map do |reply, callback|
+            callback ? callback[reply] : reply
+          end.last
+        end
+      end
+    ensure
+      ops.clear
     end
 
     def initialize_copy(_)
