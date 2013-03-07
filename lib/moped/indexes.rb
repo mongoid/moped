@@ -21,7 +21,7 @@ module Moped
     #
     # @since 1.0.0
     def [](key)
-      database[:"system.indexes"].find(ns: namespace, key: key).one
+      database[:"system.indexes"].find(ns: namespace, key: normalize_key_types(key)).one
     end
 
     # Create an index unless it already exists.
@@ -53,6 +53,7 @@ module Moped
     #
     # @since 1.0.0
     def create(key, options = {})
+      key = normalize_key_types(key)
       spec = options.merge(ns: namespace, key: key)
       spec[:name] ||= key.to_a.join("_")
       database[:"system.indexes"].insert(spec)
@@ -114,6 +115,34 @@ module Moped
     def initialize(database, collection_name)
       @database, @collection_name = database, collection_name
       @namespace = "#{database.name}.#{collection_name}"
+    end
+
+    private
+
+    # Normalize the index key types for MongoDB's allowed types
+    #
+    # @api private
+    #
+    # @example
+    #   indexes.normalize_key_types(name: :asc)
+    #
+    # @param [ Hash ] key The 'free form' key
+    #
+    # @return [ Hash ] The normalized key
+    #
+    # @since 1.3.1
+    def normalize_key_types(key)
+      key.inject({}) do |normalized, (name, direction)|
+        normalized[name] =  case direction
+                            when :asc, :ascending
+                              1
+                            when :desc, :descending
+                              -1
+                            else
+                              direction
+                            end
+        normalized
+      end
     end
   end
 end
