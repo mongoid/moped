@@ -531,16 +531,16 @@ module Moped
     #
     # @since 1.0.0
     def inspect
-      "<#{self.class.name} resolved_address=#{@resolved_address.inspect}>"
+      "<#{self.class.name} resolved_address=#{address.resolved.inspect}>"
     end
 
     def login(database, username, password)
       getnonce = Protocol::Command.new(database, getnonce: 1)
-      connection.write [getnonce]
+      connection.write([ getnonce ])
       result = connection.read.documents.first
       raise Errors::OperationFailure.new(getnonce, result) unless result["ok"] == 1
       authenticate = Protocol::Commands::Authenticate.new(database, username, password, result["nonce"])
-      connection.write [authenticate]
+      connection.write([ authenticate ])
       result = connection.read.documents.first
       raise Errors::AuthenticationFailure.new(authenticate, result) unless result["ok"] == 1
       auth[database] = [username, password]
@@ -548,7 +548,7 @@ module Moped
 
     def logout(database)
       command = Protocol::Command.new(database, logout: 1)
-      connection.write [command]
+      connection.write([ command ])
       result = connection.read.documents.first
       raise Errors::OperationFailure.new(command, result) unless result["ok"] == 1
       auth.delete(database)
