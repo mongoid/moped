@@ -304,6 +304,20 @@ module Moped
       process(Protocol::KillCursors.new(cursor_ids))
     end
 
+    # Can we send messages to this node in normal cirucmstances? This is true
+    # only if the node is a primary or secondary node - arbiters or passives
+    # cannot be sent anything.
+    #
+    # @example Is the node messagable?
+    #   node.messagable?
+    #
+    # @return [ true, false ] If messages can be sent to the node.
+    #
+    # @since 2.0.0
+    def messagable?
+      primary? || secondary?
+    end
+
     # Does the node need to be refreshed?
     #
     # @example Does the node require refreshing?
@@ -434,12 +448,11 @@ module Moped
     def refresh
       if address.resolve(self)
         begin
-          info = command("admin", ismaster: 1)
+          configure(command("admin", ismaster: 1))
           @refreshed_at = Time.now
-          configure(info)
           if !primary? && Threaded.executing?(:ensure_primary)
             raise Errors::ReplicaSetReconfigured.new("#{inspect} is no longer the primary node.", {})
-          elsif !primary? && !secondary?
+          elsif !messagable?
             # not primary or secondary so mark it as down, since it's probably
             # a recovering node withing the replica set
             down!

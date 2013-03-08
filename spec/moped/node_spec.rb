@@ -220,6 +220,57 @@ describe Moped::Node, replica_set: true do
     end
   end
 
+  describe "#messagable?" do
+
+    let(:node) do
+      Moped::Node.new("127.0.0.1:27017")
+    end
+
+    context "when the node is primary" do
+
+      before do
+        node.instance_variable_set(:@primary, true)
+      end
+
+      it "returns true" do
+        expect(node).to be_messagable
+      end
+    end
+
+    context "when the node is secondary" do
+
+      before do
+        node.instance_variable_set(:@secondary, true)
+      end
+
+      it "returns true" do
+        expect(node).to be_messagable
+      end
+    end
+
+    context "when the node is an arbiter" do
+
+      before do
+        node.instance_variable_set(:@arbiter, true)
+      end
+
+      it "returns false" do
+        expect(node).to_not be_messagable
+      end
+    end
+
+    context "when the node is passive" do
+
+      before do
+        node.instance_variable_set(:@passive, true)
+      end
+
+      it "returns false" do
+        expect(node).to_not be_messagable
+      end
+    end
+  end
+
   describe "#refresh" do
 
     context "when the node has authentication details" do
