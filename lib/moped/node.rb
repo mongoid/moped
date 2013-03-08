@@ -536,21 +536,17 @@ module Moped
 
     def login(database, username, password)
       getnonce = Protocol::Command.new(database, getnonce: 1)
-      connection.write([ getnonce ])
-      result = connection.read.documents.first
-      raise Errors::OperationFailure.new(getnonce, result) unless result["ok"] == 1
+      result = Operation::Read.new(getnonce).execute(self)
       authenticate = Protocol::Commands::Authenticate.new(database, username, password, result["nonce"])
       connection.write([ authenticate ])
-      result = connection.read.documents.first
-      raise Errors::AuthenticationFailure.new(authenticate, result) unless result["ok"] == 1
+      document = connection.read.documents.first
+      raise Errors::AuthenticationFailure.new(authenticate, document) unless document["ok"] == 1
       auth[database] = [username, password]
     end
 
     def logout(database)
       command = Protocol::Command.new(database, logout: 1)
-      connection.write([ command ])
-      result = connection.read.documents.first
-      raise Errors::OperationFailure.new(command, result) unless result["ok"] == 1
+      Operation::Read.new(command).execute(self)
       auth.delete(database)
     end
 
