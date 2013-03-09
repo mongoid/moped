@@ -194,15 +194,14 @@ module Moped
     # @since 1.0.0
     def ensure_connected(&block)
       return yield if Threaded.executing?(:connection)
-      Threaded.begin_execution(:connection)
-      begin
-        connect unless connected?
-        yield
-      rescue Exception => e
-        Failover.get(e).execute(e, self, &block)
+      ensure_execution(:connection) do
+        begin
+          connect unless connected?
+          yield(self)
+        rescue Exception => e
+          Failover.get(e).execute(e, self, &block)
+        end
       end
-    ensure
-      Threaded.end_execution(:connection)
     end
 
     # Set a flag on the node for the duration of provided block so that an
@@ -217,10 +216,9 @@ module Moped
     #
     # @since 1.0.0
     def ensure_primary
-      Threaded.begin_execution(:ensure_primary)
-      yield
-    ensure
-      Threaded.end_execution(:ensure_primary)
+      ensure_execution(:ensure_primary) do
+        yield(self)
+      end
     end
 
     # Execute a get more operation on the node.
@@ -368,11 +366,8 @@ module Moped
     #
     # @since 1.0.0
     def pipeline
-      Threaded.begin_execution(:pipeline)
-      begin
-        yield
-      ensure
-        Threaded.end_execution(:pipeline)
+      ensure_execution(:pipeline) do
+        yield(self)
       end
       flush unless Threaded.executing?(:pipeline)
     end
@@ -574,6 +569,15 @@ module Moped
           node.auth.merge!(auth)
           peers.push(node)
         end
+      end
+    end
+
+    def ensure_execution(name)
+      Threaded.begin_execution(name)
+      begin
+        yield(self)
+      ensure
+        Threaded.end_execution(name)
       end
     end
 

@@ -115,7 +115,7 @@ describe Moped::Operation::Read do
     end
 
     let(:session) do
-      Moped::Session.new(@replica_set.nodes.map(&:address), database: database)
+      Moped::Session.new([ "127.0.0.1:27017" ], database: database)
     end
 
     context "when the operation is a query" do
@@ -151,13 +151,13 @@ describe Moped::Operation::Read do
       end
 
       before(:all) do
-        101.times do |n|
-          session[collection].insert({ a: n })
+        200.times do |n|
+          session.with(safe: true)[collection].insert({ a: n })
         end
       end
 
       after(:all) do
-        session[collection].find.remove_all
+        session.with(safe: true)[collection].find.remove_all
       end
 
       let(:cursor_id) do
