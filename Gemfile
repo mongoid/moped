@@ -1,4 +1,4 @@
-source :rubygems
+source 'https://rubygems.org'
 
 platforms :ruby do
   group :development do
