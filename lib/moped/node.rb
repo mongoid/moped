@@ -1,5 +1,6 @@
 # encoding: utf-8
 require "moped/address"
+require "moped/executable"
 require "moped/failover"
 require "moped/instrumentable"
 require "moped/operation"
@@ -10,6 +11,7 @@ module Moped
   #
   # @since 1.0.0
   class Node
+    include Executable
     include Instrumentable
 
     # @!attribute address
@@ -193,8 +195,8 @@ module Moped
     #
     # @since 1.0.0
     def ensure_connected(&block)
-      return yield if Threaded.executing?(:connection)
-      ensure_execution(:connection) do
+      return yield if executing?(:connection)
+      execute(:connection) do
         begin
           connect unless connected?
           yield(self)
@@ -216,7 +218,7 @@ module Moped
     #
     # @since 1.0.0
     def ensure_primary
-      ensure_execution(:ensure_primary) do
+      execute(:ensure_primary) do
         yield(self)
       end
     end
@@ -366,10 +368,10 @@ module Moped
     #
     # @since 1.0.0
     def pipeline
-      ensure_execution(:pipeline) do
+      execute(:pipeline) do
         yield(self)
       end
-      flush unless Threaded.executing?(:pipeline)
+      flush unless executing?(:pipeline)
     end
 
     # Is the node the replica set primary?
@@ -399,7 +401,7 @@ module Moped
     #
     # @since 1.0.0
     def process(operation, &callback)
-      if Threaded.executing?(:pipeline)
+      if executing?(:pipeline)
         queue.push([ operation, callback ])
       else
         flush([[ operation, callback ]])
@@ -445,7 +447,7 @@ module Moped
         begin
           configure(command("admin", ismaster: 1))
           @refreshed_at = Time.now
-          if !primary? && Threaded.executing?(:ensure_primary)
+          if !primary? && executing?(:ensure_primary)
             raise Errors::ReplicaSetReconfigured.new("#{inspect} is no longer the primary node.", {})
           elsif !messagable?
             # not primary or secondary so mark it as down, since it's probably
@@ -569,15 +571,6 @@ module Moped
           node.auth.merge!(auth)
           peers.push(node)
         end
-      end
-    end
-
-    def ensure_execution(name)
-      Threaded.begin_execution(name)
-      begin
-        yield(self)
-      ensure
-        Threaded.end_execution(name)
       end
     end
 
