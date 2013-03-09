@@ -23,7 +23,7 @@ describe Moped::Operation::Read do
         context "when credentials exist on the node" do
 
           before do
-            node.instance_variable_set(:@auth, { database => [ user, pass ]})
+            node.instance_variable_set(:@credentials, { database => [ user, pass ]})
             replica_set_node.unauthorized_on_next_message!
           end
 
@@ -35,7 +35,7 @@ describe Moped::Operation::Read do
         context "when no credentials exist on the node" do
 
           before do
-            node.instance_variable_set(:@auth, {})
+            node.instance_variable_set(:@credentials, {})
             replica_set_node.unauthorized_on_next_message!
           end
 

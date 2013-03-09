@@ -1,5 +1,6 @@
 # encoding: utf-8
 require "moped/address"
+require "moped/authenticatable"
 require "moped/executable"
 require "moped/failover"
 require "moped/instrumentable"
@@ -11,6 +12,7 @@ module Moped
   #
   # @since 1.0.0
   class Node
+    include Authenticatable
     include Executable
     include Instrumentable
 
@@ -38,27 +40,6 @@ module Moped
     end
     alias :eql? :==
 
-    # Apply the authentication details to this node.
-    #
-    # @example Apply authentication.
-    #   node.apply_auth([ :db, "user", "pass" ])
-    #
-    # @param [ Array<String> ] credentials The db, username, and password.
-    #
-    # @return [ Node ] The authenticated node.
-    #
-    # @since 1.0.0
-    def apply_auth(credentials)
-      unless auth == credentials
-        logouts = auth.keys - credentials.keys
-        logouts.each { |database| logout(database) }
-        credentials.each do |database, (username, password)|
-          login(database, username, password) unless auth[database] == [username, password]
-        end
-      end
-      self
-    end
-
     # Is the node an arbiter?
     #
     # @example Is the node an arbiter?
@@ -69,18 +50,6 @@ module Moped
     # @since 1.0.0
     def arbiter?
       !!@arbiter
-    end
-
-    # Get the authentication details for this node.
-    #
-    # @example Get the authentication details.
-    #   node.auth
-    #
-    # @return [ Hash ] Get the authentication details.
-    #
-    # @since 1.0.0
-    def auth
-      @auth ||= {}
     end
 
     # Execute a command against a database.
@@ -151,7 +120,7 @@ module Moped
     #
     # @since 1.2.0
     def disconnect
-      auth.clear
+      credentials.clear
       connection.disconnect
       true
     end
@@ -531,22 +500,6 @@ module Moped
       "<#{self.class.name} resolved_address=#{address.resolved.inspect}>"
     end
 
-    def login(database, username, password)
-      getnonce = Protocol::Command.new(database, getnonce: 1)
-      result = Operation::Read.new(getnonce).execute(self)
-      authenticate = Protocol::Commands::Authenticate.new(database, username, password, result["nonce"])
-      connection.write([ authenticate ])
-      document = connection.read.documents.first
-      raise Errors::AuthenticationFailure.new(authenticate, document) unless document["ok"] == 1
-      auth[database] = [username, password]
-    end
-
-    def logout(database)
-      command = Protocol::Command.new(database, logout: 1)
-      Operation::Read.new(command).execute(self)
-      auth.delete(database)
-    end
-
     private
 
     def configure(settings)
@@ -568,7 +521,7 @@ module Moped
       nodes.flatten.compact.each do |peer|
         node = Node.new(peer, options)
         if self != node && !peers.include?(node)
-          node.auth.merge!(auth)
+          node.credentials.merge!(credentials)
           peers.push(node)
         end
       end

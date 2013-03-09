@@ -209,7 +209,7 @@ module Moped
       if node = nodes.find(&:primary?)
         begin
           node.ensure_primary do
-            return yield node.apply_auth(auth)
+            return yield node.apply_credentials(auth)
           end
         rescue Errors::ConnectionFailure, Errors::ReplicaSetReconfigured
           # Fall through to the code below if our connection was dropped or the
@@ -250,7 +250,7 @@ module Moped
 
       while node = available_nodes.shift
         begin
-          return yield node.apply_auth(auth)
+          return yield node.apply_credentials(auth)
         rescue Errors::ConnectionFailure
           # That node's no good, so let's try the next one.
           next

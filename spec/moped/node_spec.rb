@@ -280,7 +280,7 @@ describe Moped::Node, replica_set: true do
       end
 
       before do
-        node.send(:auth)["moped_test"] = [ "user", "pass" ]
+        node.credentials["moped_test"] = [ "user", "pass" ]
       end
 
       context "when discovering a peer" do
@@ -306,7 +306,7 @@ describe Moped::Node, replica_set: true do
         end
 
         it "add the authentication details to the peer" do
-          peer.send(:auth).should eq(node.send(:auth))
+          peer.credentials.should eq(node.credentials)
         end
       end
     end
