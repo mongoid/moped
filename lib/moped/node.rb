@@ -336,6 +336,7 @@ module Moped
     # @return [ nil ] nil.
     #
     # @since 1.0.0
+    # @todo: Remove with piggbacked gle.
     def pipeline
       execute(:pipeline) do
         yield(self)
@@ -370,6 +371,7 @@ module Moped
     #
     # @since 1.0.0
     def process(operation, &callback)
+      # @todo: Remove with piggbacked gle.
       if executing?(:pipeline)
         queue.push([ operation, callback ])
       else
@@ -520,6 +522,7 @@ module Moped
     def discover(*nodes)
       nodes.flatten.compact.each do |peer|
         node = Node.new(peer, options)
+        # @todo: The ring will handle this check.
         if self != node && !peers.include?(node)
           node.credentials.merge!(credentials)
           peers.push(node)
@@ -529,6 +532,7 @@ module Moped
 
     def flush(ops = queue)
       operations, callbacks = ops.transpose
+      # @todo: Piggybacked commands need to be logged properly here.
       logging(operations) do
         ensure_connected do
           connection.write(operations)
@@ -553,6 +557,7 @@ module Moped
       end
     end
 
+    # @todo: Remove with piggbacked gle.
     def queue
       Threaded.stack(:pipelined_operations)
     end

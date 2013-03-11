@@ -35,6 +35,77 @@ module Moped
     #
     module Message
 
+      # @!attribute piggybacked
+      #   @return [ Message ] The piggybacked message.
+      attr_reader :piggybacked
+
+      # Piggbacks a message onto this message, so that when we serialize and
+      # send over the wire it's done in a single network call.
+      #
+      # @example Piggyback a message onto this one.
+      #   message.piggyback(command)
+      #
+      # @note This is used for propagating write concerns - so the getlasterror
+      #   command is send in the same call as the original.
+      #
+      # @param [ Message ] message The message to annex.
+      #
+      # @return [ Message ] This message.
+      #
+      # @since 2.0.0
+      def piggyback(message)
+        @piggybacked = message and self
+      end
+
+      # Is this message piggybacked with another message?
+      #
+      # @example Is the message piggybacked?
+      #   message.piggybacked?
+      #
+      # @return [ true, false ] If the message is piggybacked.
+      #
+      # @since 2.0.0
+      def piggybacked?
+        !!@piggybacked
+      end
+
+      # Default implementation for a message is to do nothing when receiving
+      # replies.
+      #
+      # @example Receive replies.
+      #   message.receive_replies(connection)
+      #
+      # @param [ Connection ] connection The connection.
+      #
+      # @return [ nil ] nil.
+      #
+      # @since 1.0.0
+      def receive_replies(connection); end
+
+      # Serializes the message and all of its fields to a new buffer or to the
+      # provided buffer.
+      #
+      # @example Serliaze the message.
+      #   message.serialize
+      #
+      # @param [ String ] buffer A buffer to serialize to.
+      #
+      # @return [ String ] The result of serliazing this message
+      #
+      # @since 1.0.0
+      def serialize(buffer = "")
+        raise NotImplementedError, "This method is generated after calling #finalize on a message class"
+      end
+      alias :to_s :serialize
+
+      # @return [String] the nicely formatted version of the message
+      def inspect
+        fields = self.class.fields.map do |field|
+          "@#{field}=" + __send__(field).inspect
+        end
+        "#<#{self.class.name}\n" <<
+        "  #{fields * "\n  "}>"
+      end
       class << self
 
         # Extends the including class with +ClassMethods+.
@@ -42,10 +113,8 @@ module Moped
         # @param [Class] subclass the inheriting class
         def included(base)
           super
-
-          base.extend ClassMethods
+          base.extend(ClassMethods)
         end
-
         private :included
       end
 
@@ -277,14 +346,13 @@ module Moped
           class_eval <<-EOS, __FILE__, __LINE__ + 1
             def serialize(buffer = "")
               start = buffer.bytesize
-
               #{fields.map { |f| "serialize_#{f}(buffer)" }.join("\n")}
-
               self.length = buffer.bytesize - start
-              buffer[start, 4] = serialize_length ""
+              buffer[start, 4] = serialize_length("")
+              piggybacked.serialize(buffer) if piggybacked?
               buffer
             end
-            alias to_s serialize
+            alias :to_s :serialize
           EOS
         end
 
@@ -294,44 +362,9 @@ module Moped
         # identical fields.
         def inherited(subclass)
           super
-
-          subclass.fields.replace fields
+          subclass.fields.replace(fields)
         end
-
       end
-
-      # Default implementation for a message is to do nothing when receiving
-      # replies.
-      #
-      # @example Receive replies.
-      #   message.receive_replies(connection)
-      #
-      # @param [ Connection ] connection The connection.
-      #
-      # @since 1.0.0
-      #
-      # @return [ nil ] nil.
-      def receive_replies(connection); end
-
-      # Serializes the message and all of its fields to a new buffer or to the
-      # provided buffer.
-      #
-      # @param [String] buffer a buffer to serialize to
-      # @return [String] the result of serliazing this message
-      def serialize(buffer = "")
-        raise NotImplementedError, "This method is generated after calling #finalize on a message class"
-      end
-      alias to_s serialize
-
-      # @return [String] the nicely formatted version of the message
-      def inspect
-        fields = self.class.fields.map do |field|
-          "@#{field}=" + __send__(field).inspect
-        end
-        "#<#{self.class.name}\n" <<
-        "  #{fields * "\n  "}>"
-      end
-
     end
   end
 end

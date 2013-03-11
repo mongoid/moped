@@ -11,7 +11,7 @@ module Moped
       end
 
       def execute(node)
-        node.process(operation)
+        # node.process(operation)
         # Check our write concern and then do the right thing.
       end
     end
