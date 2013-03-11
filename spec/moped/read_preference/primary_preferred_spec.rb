@@ -4,6 +4,10 @@ describe Moped::ReadPreference::PrimaryPreferred do
 
   describe "#select", replica_set: true do
 
+    let(:preference) do
+      described_class.new
+    end
+
     let(:nodes) do
       @replica_set.nodes
     end
@@ -27,7 +31,7 @@ describe Moped::ReadPreference::PrimaryPreferred do
       end
 
       let(:node) do
-        described_class.select(ring)
+        preference.select(ring)
       end
 
       it "returns the primary" do
@@ -48,7 +52,7 @@ describe Moped::ReadPreference::PrimaryPreferred do
         end
 
         let(:node) do
-          described_class.select(ring)
+          preference.select(ring)
         end
 
         it "returns the secondary" do
@@ -64,7 +68,7 @@ describe Moped::ReadPreference::PrimaryPreferred do
 
         it "raises an error" do
           expect {
-            described_class.select(ring)
+            preference.select(ring)
           }.to raise_error(Moped::ReadPreference::Unavailable)
         end
       end

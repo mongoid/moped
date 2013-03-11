@@ -1,8 +1,12 @@
 # encoding: utf-8
 module Moped
   module ReadPreference
-    module PrimaryPreferred
-      extend self
+
+    # Encapsulates behaviour around a primary preferred read preference.
+    #
+    # @since 2.0.0
+    class PrimaryPreferred
+      include Taggable
 
       # Select a primary node from the ring. If no primary node is available
       # then attempt to select a secondary. If no secondary is available then
@@ -15,14 +19,13 @@ module Moped
       #   match the provided tags.
       #
       # @param [ Ring ] ring The ring of nodes to select from.
-      # @param [ Array<Hash> ] tags The configured tag sets.
       #
       # @raise [ Unavailable ] If no primary or secondary node was available in the ring.
       #
       # @return [ Node ] The selected node.
       #
       # @since 2.0.0
-      def select(ring, tags = nil)
+      def select(ring)
         ring.next_primary || ring.next_secondary || unavailable!
       end
 

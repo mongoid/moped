@@ -10,12 +10,8 @@ describe Moped::ReadPreference do
         described_class.get(:nearest)
       end
 
-      let(:nearest) do
-        Moped::ReadPreference::Nearest
-      end
-
       it "returns the nearest read preference" do
-        expect(preference).to eq(nearest)
+        expect(preference).to be_a(Moped::ReadPreference::Nearest)
       end
     end
 
@@ -25,12 +21,8 @@ describe Moped::ReadPreference do
         described_class.get("nearest")
       end
 
-      let(:nearest) do
-        Moped::ReadPreference::Nearest
-      end
-
       it "returns the nearest read preference" do
-        expect(preference).to eq(nearest)
+        expect(preference).to be_a(Moped::ReadPreference::Nearest)
       end
     end
 
@@ -40,12 +32,8 @@ describe Moped::ReadPreference do
         described_class.get(:primary)
       end
 
-      let(:primary) do
-        Moped::ReadPreference::Primary
-      end
-
       it "returns the primary read preference" do
-        expect(preference).to eq(primary)
+        expect(preference).to be_a(Moped::ReadPreference::Primary)
       end
     end
 
@@ -55,12 +43,8 @@ describe Moped::ReadPreference do
         described_class.get(:primary_preferred)
       end
 
-      let(:primary_preferred) do
-        Moped::ReadPreference::PrimaryPreferred
-      end
-
       it "returns the primary preferred read preference" do
-        expect(preference).to eq(primary_preferred)
+        expect(preference).to be_a(Moped::ReadPreference::PrimaryPreferred)
       end
     end
 
@@ -70,12 +54,8 @@ describe Moped::ReadPreference do
         described_class.get(:secondary)
       end
 
-      let(:secondary) do
-        Moped::ReadPreference::Secondary
-      end
-
       it "returns the secondary read preference" do
-        expect(preference).to eq(secondary)
+        expect(preference).to be_a(Moped::ReadPreference::Secondary)
       end
     end
 
@@ -85,12 +65,8 @@ describe Moped::ReadPreference do
         described_class.get(:secondary_preferred)
       end
 
-      let(:secondary_preferred) do
-        Moped::ReadPreference::SecondaryPreferred
-      end
-
       it "returns the secondary preferred read preference" do
-        expect(preference).to eq(secondary_preferred)
+        expect(preference).to be_a(Moped::ReadPreference::SecondaryPreferred)
       end
     end
   end

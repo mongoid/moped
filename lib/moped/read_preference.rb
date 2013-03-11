@@ -1,4 +1,5 @@
 # encoding: utf-8
+require "moped/read_preference/taggable"
 require "moped/read_preference/nearest"
 require "moped/read_preference/primary"
 require "moped/read_preference/primary_preferred"
@@ -42,7 +43,7 @@ module Moped
     #
     # @since 2.0.0
     def get(name, tags = nil)
-      PREFERENCES.fetch(name.to_sym)
+      PREFERENCES.fetch(name.to_sym).new(tags)
     end
 
     # Raised when attempting to select a node based on the read preference, but

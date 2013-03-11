@@ -1,8 +1,12 @@
 # encoding: utf-8
 module Moped
   module ReadPreference
-    module Nearest
-      extend self
+
+    # Encapsulates behaviour around a nearest read preference.
+    #
+    # @since 2.0.0
+    class Nearest
+      include Taggable
 
       # Rules:
       #
@@ -11,7 +15,7 @@ module Moped
       #
       # If a tag set is provided, then read from the closest matching, raising
       # an error if none match.
-      def select(ring, tags = nil)
+      def select(ring)
 
       end
     end
