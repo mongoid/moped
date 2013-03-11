@@ -1,11 +1,8 @@
-source 'https://rubygems.org'
+source "https://rubygems.org"
 
 platforms :ruby do
   group :development do
     gem "perftools.rb"
-    gem "rdiscount"
-    gem "simplecov", require: false
-    gem "yard"
   end
 end
 
