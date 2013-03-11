@@ -41,7 +41,7 @@ module Moped
     #
     # @since 2.0.0
     def get(name)
-      PREFERENCES.fetch(name)
+      PREFERENCES.fetch(name.to_sym)
     end
 
     # Raised when attempting to select a node based on the read preference, but

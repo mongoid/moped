@@ -1,5 +1,6 @@
 # encoding: utf-8
 require "moped/read_preference"
+require "moped/write_concern"
 
 module Moped
 
