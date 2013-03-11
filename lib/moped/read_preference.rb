@@ -36,11 +36,12 @@ module Moped
     #   Moped::ReadPreference.get(:primary)
     #
     # @param [ Symbol ] name The name of the preference.
+    # @param [ Array<Hash> ] tags The tag sets to match the node on.
     #
     # @return [ Object ] The appropriate read preference.
     #
     # @since 2.0.0
-    def get(name)
+    def get(name, tags = nil)
       PREFERENCES.fetch(name.to_sym)
     end
 
