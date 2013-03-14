@@ -8,6 +8,18 @@ module Moped
     class SecondaryPreferred
       include Taggable
 
+      # Get the name for the read preference on the server side.
+      #
+      # @example Get the name of the read preference.
+      #   secondary_preferred.name
+      #
+      # @return [ Symbol ] :secondaryPreferred.
+      #
+      # @since 2.0.0
+      def name
+        :secondaryPreferred
+      end
+
       # Select a secondary node from the ring. If no secondary is available then
       # use a primary. If no primary is found then an exception will be raised.
       #

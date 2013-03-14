@@ -8,6 +8,18 @@ module Moped
     class PrimaryPreferred
       include Taggable
 
+      # Get the name for the read preference on the server side.
+      #
+      # @example Get the name of the read preference.
+      #   primary_preferred.name
+      #
+      # @return [ Symbol ] :primaryPreferred.
+      #
+      # @since 2.0.0
+      def name
+        :primaryPreferred
+      end
+
       # Select a primary node from the ring. If no primary node is available
       # then attempt to select a secondary. If no secondary is available then
       # an exception will be raised.

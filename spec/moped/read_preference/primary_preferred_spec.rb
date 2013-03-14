@@ -2,6 +2,17 @@ require "spec_helper"
 
 describe Moped::ReadPreference::PrimaryPreferred do
 
+  describe "#name" do
+
+    let(:preference) do
+      described_class.new
+    end
+
+    it "returns primaryPreferred" do
+      expect(preference.name).to eq(:primaryPreferred)
+    end
+  end
+
   describe "#select", replica_set: true do
 
     let(:preference) do

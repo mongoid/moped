@@ -106,6 +106,31 @@ describe Moped::Session do
     end
   end
 
+  describe "#read_preference" do
+
+    context "when a read option is provided" do
+
+      let(:secondary) do
+        described_class.new([ "127.0.0.1:27017" ], read: :secondary)
+      end
+
+      it "returns the corresponding read preference" do
+        expect(secondary.read_preference).to be_a(Moped::ReadPreference::Secondary)
+      end
+    end
+
+    context "when no read option is provided" do
+
+      let(:primary) do
+        described_class.new([ "127.0.0.1:27017" ])
+      end
+
+      it "returns the primary read preference" do
+        expect(primary.read_preference).to be_a(Moped::ReadPreference::Primary)
+      end
+    end
+  end
+
   describe "#use" do
 
     after do
@@ -149,6 +174,31 @@ describe Moped::Session do
       it "does not modify the original session" do
         session.with(database: "other")
         session.options[:database].should eq "moped_test"
+      end
+    end
+  end
+
+  describe "#write_concern" do
+
+    context "when a write option is provided" do
+
+      let(:unverified) do
+        described_class.new([ "127.0.0.1:27017" ], write: :unverified)
+      end
+
+      it "returns the corresponding write concern" do
+        expect(unverified.write_concern).to be_a(Moped::WriteConcern::Unverified)
+      end
+    end
+
+    context "when no write option is provided" do
+
+      let(:propagate) do
+        described_class.new([ "127.0.0.1:27017" ])
+      end
+
+      it "returns the propagate write concern" do
+        expect(propagate.write_concern).to be_a(Moped::WriteConcern::Propagate)
       end
     end
   end

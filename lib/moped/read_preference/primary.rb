@@ -8,6 +8,18 @@ module Moped
     class Primary
       include Taggable
 
+      # Get the name for the read preference on the server side.
+      #
+      # @example Get the name of the read preference.
+      #   primary.name
+      #
+      # @return [ Symbol ] :primary.
+      #
+      # @since 2.0.0
+      def name
+        :primary
+      end
+
       # Select a primary node from the ring. If no primary node is available
       # then an exception will be raised.
       #

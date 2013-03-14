@@ -8,6 +8,18 @@ module Moped
     class Nearest
       include Taggable
 
+      # Get the name for the read preference on the server side.
+      #
+      # @example Get the name of the read preference.
+      #   nearest.name
+      #
+      # @return [ Symbol ] :nearest.
+      #
+      # @since 2.0.0
+      def name
+        :nearest
+      end
+
       # Rules:
       #
       # Read from the nearest member in the set, based on ping time (primary

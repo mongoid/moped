@@ -251,6 +251,19 @@ module Moped
       end
     end
 
+    # Get the read preference for the session. Will default to primary if none
+    # was provided.
+    #
+    # @example Get the session's read preference.
+    #   session.read_preference
+    #
+    # @return [ Object ] The read preference.
+    #
+    # @since 2.0.0
+    def read_preference
+      ReadPreference.get(options[:read] || :primary)
+    end
+
     # Is the session operating in safe mode?
     #
     # @example Is the session operating in safe mode?
@@ -329,6 +342,19 @@ module Moped
       else
         session
       end
+    end
+
+    # Get the write concern for the session. Will default to propagate if none
+    # was provided.
+    #
+    # @example Get the session's write concern.
+    #   session.write_concern
+    #
+    # @return [ Object ] The write concern.
+    #
+    # @since 2.0.0
+    def write_concern
+      WriteConcern.get(options[:write] || :propagate)
     end
 
     class << self
