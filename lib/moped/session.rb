@@ -261,7 +261,7 @@ module Moped
     #
     # @since 2.0.0
     def read_preference
-      ReadPreference.get(options[:read] || :primary)
+      @read_preference ||= ReadPreference.get(options[:read] || :primary)
     end
 
     # Is the session operating in safe mode?
@@ -354,7 +354,7 @@ module Moped
     #
     # @since 2.0.0
     def write_concern
-      WriteConcern.get(options[:write] || :propagate)
+      @write_concern ||= WriteConcern.get(options[:write] || :propagate)
     end
 
     class << self
@@ -380,7 +380,7 @@ module Moped
     private
 
     def current_database
-      return @current_database if defined?(@current_database)
+      return @current_database if @current_database
       if database = options[:database]
         set_current_database(database)
       else
@@ -389,15 +389,15 @@ module Moped
     end
 
     def current_database_name
-      defined?(@current_database) ? current_database.name : :none
+      @current_database ? current_database.name : :none
     end
 
     def initialize_copy(_)
       @context = Context.new(self)
       @options = @options.dup
-      if defined?(@current_database)
-        remove_instance_variable(:@current_database)
-      end
+      @current_database = nil
+      @read_preference = nil
+      @write_concern = nil
     end
 
     def set_current_database(database)

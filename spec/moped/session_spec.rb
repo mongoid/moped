@@ -166,14 +166,64 @@ describe Moped::Session do
 
     context "when called without a block" do
 
-      it "returns a session with the provided options" do
-        safe = session.with(safe: true)
-        safe.options[:safe].should eq true
+      context "when changing safe mode options" do
+
+        let(:safe) do
+          session.with(safe: true)
+        end
+
+        it "returns a session with the provided options" do
+          expect(safe.options[:safe]).to eq(true)
+        end
       end
 
-      it "does not modify the original session" do
-        session.with(database: "other")
-        session.options[:database].should eq "moped_test"
+      context "when changing database options" do
+
+        before do
+          session.with(database: "other")
+        end
+
+        it "does not modify the original session" do
+          expect(session.options[:database]).to eq("moped_test")
+        end
+      end
+
+      context "when changing a read preference" do
+
+        before do
+          session.read_preference
+        end
+
+        let!(:second) do
+          session.with(read: "secondary")
+        end
+
+        it "changes the read preference in the new session" do
+          expect(second.read_preference).to be_a(Moped::ReadPreference::Secondary)
+        end
+
+        it "does not modify the original session" do
+          expect(session.read_preference).to be_a(Moped::ReadPreference::Primary)
+        end
+      end
+
+      context "when changing a write concern" do
+
+        before do
+          session.write_concern
+        end
+
+        let!(:unverify) do
+          session.with(write: "unverified")
+        end
+
+        it "changes the write concern in the new session" do
+          expect(unverify.write_concern).to be_a(Moped::WriteConcern::Unverified)
+        end
+
+        it "does not modify the original session" do
+          expect(session.write_concern).to be_a(Moped::WriteConcern::Propagate)
+        end
       end
     end
   end
