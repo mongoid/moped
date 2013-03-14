@@ -145,6 +145,12 @@ describe Moped::Ring do
 
   describe "#next_primary" do
 
+    before do
+      one.instance_variable_set(:@refreshed_at, Time.now)
+      two.instance_variable_set(:@refreshed_at, Time.now)
+      three.instance_variable_set(:@refreshed_at, Time.now)
+    end
+
     context "when no nodes are primary (big trouble)" do
 
       before do
@@ -210,6 +216,12 @@ describe Moped::Ring do
   end
 
   describe "#next_secondary" do
+
+    before do
+      one.instance_variable_set(:@refreshed_at, Time.now)
+      two.instance_variable_set(:@refreshed_at, Time.now)
+      three.instance_variable_set(:@refreshed_at, Time.now)
+    end
 
     context "when all nodes are secondary (replica set reconfiguring)" do
 

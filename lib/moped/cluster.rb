@@ -5,22 +5,24 @@ module Moped
 
   # The cluster represents a cluster of MongoDB server nodes, either a single
   # node, a replica set, or a mongos server.
+  #
+  # @since 1.0.0
   class Cluster
 
     # @attribute [r] options The cluster options.
     # @attribute [r] seeds The seeds the cluster was initialized with.
     attr_reader :options, :seeds
 
-    # Get the authentication details for the cluster.
+    # Get the credentials for the cluster.
     #
-    # @example Get the authentication details.
-    #   cluster.auth
+    # @example Get the applied credentials.
+    #   node.credentials
     #
-    # @return [ Hash ] the cached authentication credentials for this cluster.
+    # @return [ Hash ] The credentials.
     #
-    # @since 1.0.0
-    def auth
-      @auth ||= {}
+    # @since 2.0.0
+    def credentials
+      @credentials ||= {}
     end
 
     # Disconnects all nodes in the cluster. This should only be used in cases
@@ -31,6 +33,7 @@ module Moped
     #
     # @since 1.2.0
     def disconnect
+      # ring.disconnect
       nodes(include_arbiters: true).each { |node| node.disconnect } and true
     end
 
@@ -44,6 +47,7 @@ module Moped
     #
     # @since 1.2.7
     def down_interval
+      # @todo: Can be removed as belongs in ring.
       options[:down_interval]
     end
 
@@ -69,6 +73,7 @@ module Moped
     #
     # @since 1.2.7
     def refresh_interval
+      # @todo: Push down into ring.
       options[:refresh_interval]
     end
 
@@ -102,9 +107,12 @@ module Moped
     # @since 1.0.0
     def initialize(hosts, options)
       @seeds = hosts
+      # @ring = Ring.new(hosts.map{ |host| Node.new(host, options) }, options)
+      # @todo: Next two lines can go.
       @nodes = hosts.map { |host| Node.new(host, options) }
       @peers = []
 
+      # @todo: Make the defaults constants.
       @options = {
         down_interval: 30,
         max_retries: 20,
@@ -209,7 +217,7 @@ module Moped
       if node = nodes.find(&:primary?)
         begin
           node.ensure_primary do
-            return yield node.apply_credentials(auth)
+            return yield node.apply_credentials(credentials)
           end
         rescue Errors::ConnectionFailure, Errors::ReplicaSetReconfigured
           # Fall through to the code below if our connection was dropped or the
@@ -250,7 +258,7 @@ module Moped
 
       while node = available_nodes.shift
         begin
-          return yield node.apply_credentials(auth)
+          return yield node.apply_credentials(credentials)
         rescue Errors::ConnectionFailure
           # That node's no good, so let's try the next one.
           next

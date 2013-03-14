@@ -27,11 +27,11 @@ module Moped
       end
 
       def login(database, username, password)
-        cluster.auth[database.to_s] = [username, password]
+        cluster.credentials[database.to_s] = [username, password]
       end
 
       def logout(database)
-        cluster.auth.delete(database.to_s)
+        cluster.credentials.delete(database.to_s)
       end
 
       def query(database, collection, selector, options = {})

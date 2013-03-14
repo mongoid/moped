@@ -40,6 +40,10 @@ module Moped
       end and self
     end
 
+    def disconnect
+
+    end
+
     # Get the interval at which a node should be flagged as down before
     # retrying.
     #
@@ -96,6 +100,14 @@ module Moped
       end
     end
 
+    def refresh
+
+    end
+
+    def size
+
+    end
+
     # Get the interval in which the node list should be refreshed.
     #
     # @example Get the refresh interval, in seconds.
@@ -121,7 +133,7 @@ module Moped
     #
     # @since 2.0.0
     def down_boundary
-      Time.new - down_interval
+      Time.now - down_interval
     end
 
     # Get the standard refresh boundary to discover new nodes.
@@ -135,7 +147,7 @@ module Moped
     #
     # @since 2.0.0
     def refresh_boundary
-      Time.new - refresh_interval
+      Time.now - refresh_interval
     end
 
     # Is the provided node refreshable? This is in the case where the refresh
@@ -170,7 +182,12 @@ module Moped
       if nodes.empty?
         nodes
       else
-        nodes.push(nodes.shift)
+        node = nodes.shift
+        if refreshable?(node)
+          node.refresh
+          add(node.peers)
+        end
+        nodes.push(node)
       end
     end
   end
