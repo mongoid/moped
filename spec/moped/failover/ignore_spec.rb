@@ -15,7 +15,7 @@ describe Moped::Failover::Ignore do
     it "raises the exception" do
       expect {
         described_class.execute(exception, node)
-      }.to raise_error(exception)
+      }.to raise_error(exception.class)
     end
   end
 end

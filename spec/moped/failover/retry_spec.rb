@@ -30,7 +30,7 @@ describe Moped::Failover::Retry do
           described_class.execute(exception, node) do
             raise(exception)
           end
-        }.to raise_error(exception)
+        }.to raise_error(exception.class)
       end
 
       it "disconnects the node" do
