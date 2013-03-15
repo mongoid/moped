@@ -150,13 +150,13 @@ describe Moped::Operation::Read do
         Moped::Protocol::Query.new(database, collection, {}, {})
       end
 
-      before(:all) do
+      before do
         200.times do |n|
           session.with(safe: true)[collection].insert({ a: n })
         end
       end
 
-      after(:all) do
+      after do
         session.with(safe: true)[collection].find.remove_all
       end
 

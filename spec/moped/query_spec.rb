@@ -42,7 +42,7 @@ describe Moped::Query do
       session[:capped_events]
     end
 
-    before(:all) do
+    before do
       begin
         session.command(
           create: "capped_events",
@@ -56,11 +56,11 @@ describe Moped::Query do
 
     context "when the collection is capped" do
 
-      before(:all) do
+      before do
         events.insert({ "name" => "create" })
       end
 
-      after(:all) do
+      after do
         events.drop
       end
 
@@ -74,7 +74,7 @@ describe Moped::Query do
 
       context "when inserting another document" do
 
-        before(:all) do
+        before do
           events.insert({ "name" => "delete" })
         end
 
@@ -949,7 +949,7 @@ describe Moped::Query do
 
   context "with a remote connection", mongohq: :auth do
 
-    before(:all) do
+    before do
       @session = Support::MongoHQ.auth_session
     end
 
@@ -967,7 +967,7 @@ describe Moped::Query do
   context "with a remote replica set connection with eventual consistency",
     mongohq: :replica_set do
 
-    before(:all) do
+    before do
       @session = Support::MongoHQ.replica_set_session.with(safe: true, consistency: :eventual)
       @session.command ping: 1
     end
@@ -986,7 +986,7 @@ describe Moped::Query do
   context "with a remote replica set connection with eventual consistency and ssl",
     mongohq: :replica_set_ssl do
 
-    before(:all) do
+    before do
       @session = Support::MongoHQ.ssl_replica_set_session.with(
         safe: true, consistency: :eventual
       )
@@ -1007,7 +1007,7 @@ describe Moped::Query do
   context "with a remote replica set connection with strong consistency",
     mongohq: :replica_set do
 
-    before(:all) do
+    before do
       @session = Support::MongoHQ.replica_set_session.with(safe: true, consistency: :strong)
     end
 
@@ -1026,7 +1026,7 @@ describe Moped::Query do
   context "with a remote replica set connection with strong consistency and ssl",
     mongohq: :replica_set_ssl do
 
-    before(:all) do
+    before do
       @session = Support::MongoHQ.ssl_replica_set_session.with(
         safe: true, consistency: :strong
       )
