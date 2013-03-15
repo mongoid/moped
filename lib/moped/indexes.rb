@@ -55,7 +55,10 @@ module Moped
     def create(key, options = {})
       spec = options.merge(ns: namespace, key: key)
       spec[:name] ||= key.to_a.join("_")
-      database[:"system.indexes"].insert(spec)
+
+      database.session.with(safe: true) do |_s|
+        _s[:"system.indexes"].insert(spec)
+      end
     end
 
     # Drop an index, or all indexes.
