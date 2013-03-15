@@ -79,6 +79,7 @@ describe Moped::Query do
         end
 
         it "keeps the cursor open" do
+          pending
           cursor.next["name"].should eq("delete")
           Thread.new do
             events.insert({ "name" => "new" })
