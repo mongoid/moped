@@ -44,7 +44,9 @@ module Moped
           node.query(database, collection, selector, options)
         end
         # query = Protocol::Query.new(database, collection, selector, options)
-        # Operation::Read.new(query).execute(read_preference.select(ring))
+        # read_preference.with_node do |node|
+        #   Operation::Read.new(query).execute(node)
+        # end
       end
 
       def command(database, command)
@@ -54,7 +56,9 @@ module Moped
           node.command(database, command, options)
         end
         # command = Protocol::Command.new(database, cmd, options)
-        # Operation::Read.new(command).execute(read_preference.select(ring))
+        # read_preference.with_node do |node|
+        #   Operation::Read.new(command).execute(node)
+        # end
       end
 
       def insert(database, collection, documents, options = {})
@@ -70,7 +74,9 @@ module Moped
           end
         end
         # insert = Protocol::Insert.new(database.name, name, documents, options)
-        # Operation::Write.new(insert, concern).execute(ring.next_primary)
+        # cluster.with_primary do |node|
+        #   Operation::Write.new(insert, concern).execute(node)
+        # end
       end
 
       def update(database, collection, selector, change, options = {})
@@ -86,7 +92,9 @@ module Moped
           end
         end
         # update = Protocol::Update.new(database, collection, selector, change, options))
-        # Operation::Write.new(update, concern).execute(ring.next_primary)
+        # cluster.with_primary do |node|
+        #   Operation::Write.new(update, concern).execute(node)
+        # end
       end
 
       def remove(database, collection, selector, options = {})
@@ -102,7 +110,9 @@ module Moped
           end
         end
         # delete = Protocol::Delete.new(database, collection, selector, options)
-        # Operation::Write.new(delete, concern).execute(ring.next_primary)
+        # cluster.with_primary do |node|
+        #   Operation::Write.new(delete, concern).execute(node)
+        # end
       end
 
       # @todo: This goes away.
