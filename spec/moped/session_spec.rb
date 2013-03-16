@@ -263,7 +263,7 @@ describe Moped::Session do
     end
 
     let(:nodes) do
-      session_with_bad_node.cluster.instance_variable_get(:@nodes)
+      session_with_bad_node.cluster.seeds
     end
 
     it "flags the node as down" do

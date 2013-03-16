@@ -370,29 +370,7 @@ describe Moped::Cluster, replica_set: true do
 
       it "gets removed from the available nodes and configured nodes" do
         cluster.nodes.size.should eq(2)
-        cluster.instance_variable_get(:@nodes).size.should eq(2)
-      end
-    end
-  end
-
-  describe "#refresh_peers" do
-
-    let(:cluster) do
-      described_class.new([ "127.0.0.1:27017" ], {})
-    end
-
-    let(:node) do
-      stub
-    end
-
-    context "when a node has no peers" do
-
-      before do
-        node.should_receive(:peers).and_return(nil)
-      end
-
-      it "does not raise an error" do
-        cluster.send(:refresh_peers, node)
+        cluster.seeds.size.should eq(2)
       end
     end
   end
