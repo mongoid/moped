@@ -35,7 +35,7 @@ module Moped
     # @since 1.0.0
     def drop
       begin
-        database.session.with(consistency: :strong) do |session|
+        database.session.with(read: :primary) do |session|
           session.context.command(database.name, drop: name)
         end
       rescue Moped::Errors::OperationFailure => e
@@ -102,9 +102,7 @@ module Moped
     # @since 1.0.0
     def insert(documents, flags = nil)
       documents = [documents] unless documents.is_a?(Array)
-      database.session.with(consistency: :strong) do |session|
-        session.context.insert(database.name, name, documents, flags: flags || [])
-      end
+      database.session.context.insert(database.name, name, documents, flags: flags || [])
     end
 
     # Call aggregate function over the collection.

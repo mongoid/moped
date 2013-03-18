@@ -13,7 +13,18 @@ describe Moped::ReadPreference::Primary do
     end
   end
 
-  describe "#select", replica_set: true do
+  describe "#query_options" do
+
+    let(:preference) do
+      described_class.new
+    end
+
+    it "returns the provided options" do
+      expect(preference.query_options({})).to be_empty
+    end
+  end
+
+  describe "#with_node", replica_set: true do
 
     let(:preference) do
       described_class.new
@@ -23,39 +34,33 @@ describe Moped::ReadPreference::Primary do
       @replica_set.nodes
     end
 
-    let(:primary) do
-      Moped::Node.new(@primary.address)
-    end
-
     context "when a primary is available" do
 
-      let(:ring) do
-        Moped::Ring.new([ primary ])
-      end
-
-      before do
-        primary.refresh
+      let(:cluster) do
+        Moped::Cluster.new([ @primary.address ], {})
       end
 
       let(:node) do
-        preference.select(ring)
+        preference.with_node(cluster)
       end
 
-      it "returns the primary" do
-        expect(node).to eq(primary)
+      it "yields the primary" do
+        preference.with_node(cluster) do |node|
+          expect(node).to be_primary
+        end
       end
     end
 
     context "when a primary is not available" do
 
-      let(:ring) do
-        Moped::Ring.new([])
+      let(:cluster) do
+        Moped::Cluster.new([], {})
       end
 
       it "raises an error" do
         expect {
-          preference.select(ring)
-        }.to raise_error(Moped::ReadPreference::Unavailable)
+          preference.with_node(cluster) {}
+        }.to raise_error(Moped::Errors::ConnectionFailure)
       end
     end
   end

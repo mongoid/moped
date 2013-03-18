@@ -252,7 +252,7 @@ module Moped
       command[:fields] = operation.fields if operation.fields
       command[:update] = change unless options[:remove]
 
-      result = session.with(consistency: :strong) do |sess|
+      result = session.with(read: :primary) do |sess|
         sess.command(command)["value"]
       end
 
@@ -269,14 +269,12 @@ module Moped
     #
     # @since 1.0.0
     def remove
-      session.with(consistency: :strong) do |session|
-        session.context.remove(
-          operation.database,
-          operation.collection,
-          operation.basic_selector,
-          flags: [ :remove_first ]
-        )
-      end
+      session.context.remove(
+        operation.database,
+        operation.collection,
+        operation.basic_selector,
+        flags: [ :remove_first ]
+      )
     end
 
     # Remove multiple documents matching the query's selector.
@@ -288,13 +286,11 @@ module Moped
     #
     # @since 1.0.0
     def remove_all
-      session.with(consistency: :strong) do |session|
-        session.context.remove(
-          operation.database,
-          operation.collection,
-          operation.basic_selector
-        )
-      end
+      session.context.remove(
+        operation.database,
+        operation.collection,
+        operation.basic_selector
+      )
     end
 
     # Set the fields to include or exclude from the query.
@@ -369,15 +365,13 @@ module Moped
     #
     # @since 1.0.0
     def update(change, flags = nil)
-      session.with(consistency: :strong) do |session|
-        session.context.update(
-          operation.database,
-          operation.collection,
-          operation.selector["$query"] || operation.selector,
-          change,
-          flags: flags
-        )
-      end
+      session.context.update(
+        operation.database,
+        operation.collection,
+        operation.selector["$query"] || operation.selector,
+        change,
+        flags: flags
+      )
     end
 
     # Update multiple documents matching the query's selector.

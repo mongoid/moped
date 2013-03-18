@@ -111,7 +111,7 @@ module Moped
     #
     # @since 1.2.7
     def max_retries
-      @max_retries ||= options[:max_retries] || seeds.size * 2
+      @max_retries ||= options[:max_retries] || seeds.size
     end
 
     # Returns the list of available nodes, refreshing 1) any nodes which were
@@ -156,21 +156,16 @@ module Moped
     def refresh(nodes_to_refresh = seeds)
       refreshed_nodes = []
       seen = {}
-
       # Set up a recursive lambda function for refreshing a node and it's peers.
       refresh_node = ->(node) do
         unless seen[node]
           seen[node] = true
-
           # Add the node to the global list of known nodes.
           seeds.push(node) unless seeds.include?(node)
-
           begin
             node.refresh
-
             # This node is good, so add it to the list of nodes to return.
             refreshed_nodes.push(node) unless refreshed_nodes.include?(node)
-
             # Now refresh any newly discovered peer nodes - this will also
             # remove nodes that are not included in the peer list.
             refresh_peers(node, &refresh_node)
@@ -225,29 +220,16 @@ module Moped
     # @return [ Object ] The result of the yield.
     #
     # @since 1.0.0
-    def with_primary(retries = max_retries, &block)
+    def with_primary(&block)
       if node = nodes.find(&:primary?)
         begin
           node.ensure_primary do
             return yield(node.apply_credentials(credentials))
           end
         rescue Errors::ConnectionFailure, Errors::ReplicaSetReconfigured
-          # Fall through to the code below if our connection was dropped or the
-          # node is no longer the primary.
         end
       end
-
-      if retries > 0
-        # We couldn't find a primary node, so refresh the list and try again.
-        sleep(retry_interval)
-        refresh
-        with_primary(retries - 1, &block)
-      else
-        raise(
-          Errors::ConnectionFailure,
-          "Could not connect to a primary node for replica set #{inspect}"
-        )
-      end
+      raise Errors::ConnectionFailure, "Could not connect to a primary node for replica set #{inspect}"
     end
 
     # Yields a secondary node if available, otherwise the primary node. This
@@ -265,30 +247,16 @@ module Moped
     # @return [ Object ] The result of the yield.
     #
     # @since 1.0.0
-    def with_secondary(retries = max_retries, &block)
-      available_nodes = nodes.shuffle!.partition(&:secondary?).flatten
-
+    def with_secondary(&block)
+      available_nodes = nodes.select(&:secondary?).shuffle!
       while node = available_nodes.shift
         begin
           return yield(node.apply_credentials(credentials))
         rescue Errors::ConnectionFailure
-          # That node's no good, so let's try the next one.
           next
         end
       end
-
-      if retries > 0
-        # We couldn't find a secondary or primary node, so refresh the list and
-        # try again.
-        sleep(retry_interval)
-        refresh
-        with_secondary(retries - 1, &block)
-      else
-        raise(
-          Errors::ConnectionFailure,
-          "Could not connect to any secondary or primary nodes for replica set #{inspect}"
-        )
-      end
+      raise Errors::ConnectionFailure, "Could not connect to a secondary node for replica set #{inspect}"
     end
 
     private

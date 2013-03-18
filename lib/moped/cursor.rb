@@ -127,15 +127,13 @@ module Moped
     #
     # @since 1.0.0
     def load_docs
-      consistency = session.consistency
-      @options[:flags] |= [:slave_ok] if consistency == :eventual
       @options[:flags] |= [:no_cursor_timeout] if @options[:no_timeout]
-
       options = @options.clone
       options[:limit] = request_limit
+      read_preference = session.context.read_preference
 
-      reply, @node = session.context.with_node do |node|
-        [ node.query(@database, @collection, @selector, options), node ]
+      reply, @node = read_preference.with_node(session.cluster) do |node|
+        [ node.query(@database, @collection, @selector, read_preference.query_options(options)), node ]
       end
 
       @limit -= reply.count if limited?

@@ -964,11 +964,11 @@ describe Moped::Query do
     include_examples "Query"
   end
 
-  context "with a remote replica set connection with eventual consistency",
+  context "with a remote replica set connection with secondary preferred",
     mongohq: :replica_set do
 
     before do
-      @session = Support::MongoHQ.replica_set_session.with(safe: true, consistency: :eventual)
+      @session = Support::MongoHQ.replica_set_session.with(safe: true, read: :secondary_preferred)
       @session.command ping: 1
     end
 
@@ -983,13 +983,11 @@ describe Moped::Query do
     include_examples "Query"
   end
 
-  context "with a remote replica set connection with eventual consistency and ssl",
+  context "with a remote replica set connection with secondary preferred and ssl",
     mongohq: :replica_set_ssl do
 
     before do
-      @session = Support::MongoHQ.ssl_replica_set_session.with(
-        safe: true, consistency: :eventual
-      )
+      @session = Support::MongoHQ.ssl_replica_set_session.with(read: :secondary_preferred)
       @session.command ping: 1
     end
 
@@ -1004,11 +1002,11 @@ describe Moped::Query do
     include_examples "Query"
   end
 
-  context "with a remote replica set connection with strong consistency",
+  context "with a remote replica set connection with read primary",
     mongohq: :replica_set do
 
     before do
-      @session = Support::MongoHQ.replica_set_session.with(safe: true, consistency: :strong)
+      @session = Support::MongoHQ.replica_set_session.with(safe: true, read: :primary)
     end
 
     let(:users) do
@@ -1023,12 +1021,12 @@ describe Moped::Query do
     include_examples "Query"
   end
 
-  context "with a remote replica set connection with strong consistency and ssl",
+  context "with a remote replica set connection with read primary and ssl",
     mongohq: :replica_set_ssl do
 
     before do
       @session = Support::MongoHQ.ssl_replica_set_session.with(
-        safe: true, consistency: :strong
+        safe: true, read: :primary
       )
     end
 
@@ -1059,11 +1057,11 @@ describe Moped::Query do
       session.command ping: 1
     end
 
-    context "when running with eventual consistency" do
+    context "when running with secondary preferred" do
 
       let(:stats) do
         Support::Stats.collect do
-          session.with(consistency: :eventual)[:users].find(scope: scope).entries
+          session.with(read: :secondary_preferred)[:users].find(scope: scope).entries
         end
       end
 
@@ -1089,11 +1087,11 @@ describe Moped::Query do
       end
     end
 
-    context "when running with strong consistency" do
+    context "when running with read primary" do
 
       let(:stats) do
         Support::Stats.collect do
-          session.with(consistency: :strong)[:users].find(scope: scope).entries
+          session.with(read: :primary)[:users].find(scope: scope).entries
         end
       end
 

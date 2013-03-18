@@ -6,7 +6,7 @@ module Moped
     #
     # @since 2.0.0
     class Nearest
-      include Taggable
+      include Selectable
 
       # Get the name for the read preference on the server side.
       #
@@ -27,7 +27,7 @@ module Moped
       #
       # If a tag set is provided, then read from the closest matching, raising
       # an error if none match.
-      def select(ring)
+      def with_node(cluster, &block)
 
       end
     end

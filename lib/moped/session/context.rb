@@ -10,16 +10,12 @@ module Moped
         @session = session
       end
 
-      def safety
-        session.safety
+      def read_preference
+        session.read_preference
       end
 
-      def safe?
-        session.safe?
-      end
-
-      def consistency
-        session.consistency
+      def write_concern
+        session.write_concern
       end
 
       def cluster
@@ -35,97 +31,62 @@ module Moped
       end
 
       def query(database, collection, selector, options = {})
-        # @todo: This goes away.
-        if consistency == :eventual
-          options[:flags] ||= []
-          options[:flags] |= [:slave_ok]
+        opts = read_preference.query_options(options)
+        read_preference.with_node(cluster) do |node|
+          node.query(database, collection, selector, opts)
         end
-        with_node do |node|
-          node.query(database, collection, selector, options)
-        end
-        # query = Protocol::Query.new(database, collection, selector, options)
-        # read_preference.with_node do |node|
-        #   Operation::Read.new(query).execute(node)
-        # end
       end
 
       def command(database, command)
-        # @todo: This goes away.
-        options = consistency == :eventual ? { :flags => [:slave_ok] } : {}
-        with_node do |node|
+        options = read_preference.query_options({})
+        read_preference.with_node(cluster) do |node|
           node.command(database, command, options)
         end
-        # command = Protocol::Command.new(database, cmd, options)
-        # read_preference.with_node do |node|
-        #   Operation::Read.new(command).execute(node)
-        # end
       end
 
       def insert(database, collection, documents, options = {})
-        # @todo: This goes away.
-        with_node do |node|
-          if safe?
+        cluster.with_primary do |node|
+          if propagate?
             node.pipeline do
               node.insert(database, collection, documents, options)
-              node.command(database, { getlasterror: 1 }.merge(safety))
+              node.command(database, write_concern.operation)
             end
           else
             node.insert(database, collection, documents, options)
           end
         end
-        # insert = Protocol::Insert.new(database.name, name, documents, options)
-        # cluster.with_primary do |node|
-        #   Operation::Write.new(insert, concern).execute(node)
-        # end
       end
 
       def update(database, collection, selector, change, options = {})
-        # @todo: This goes away.
-        with_node do |node|
-          if safe?
+        cluster.with_primary do |node|
+          if propagate?
             node.pipeline do
               node.update(database, collection, selector, change, options)
-              node.command(database, { getlasterror: 1 }.merge(safety))
+              node.command(database, write_concern.operation)
             end
           else
             node.update(database, collection, selector, change, options)
           end
         end
-        # update = Protocol::Update.new(database, collection, selector, change, options))
-        # cluster.with_primary do |node|
-        #   Operation::Write.new(update, concern).execute(node)
-        # end
       end
 
       def remove(database, collection, selector, options = {})
-        # @todo: This goes away.
-        with_node do |node|
-          if safe?
+        cluster.with_primary do |node|
+          if propagate?
             node.pipeline do
               node.remove(database, collection, selector, options)
-              node.command(database, { getlasterror: 1 }.merge(safety))
+              node.command(database, write_concern.operation)
             end
           else
             node.remove(database, collection, selector, options)
           end
         end
-        # delete = Protocol::Delete.new(database, collection, selector, options)
-        # cluster.with_primary do |node|
-        #   Operation::Write.new(delete, concern).execute(node)
-        # end
       end
 
-      # @todo: This goes away.
-      def with_node
-        if consistency == :eventual
-          cluster.with_secondary do |node|
-            yield node
-          end
-        else
-          cluster.with_primary do |node|
-            yield node
-          end
-        end
+      private
+
+      def propagate?
+        write_concern.is_a?(WriteConcern::Propagate)
       end
     end
   end

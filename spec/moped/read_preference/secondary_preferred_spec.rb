@@ -13,40 +13,25 @@ describe Moped::ReadPreference::SecondaryPreferred do
     end
   end
 
-  describe "#select", replica_set: true do
+  describe "#with_node", replica_set: true do
 
     let(:preference) do
       described_class.new
     end
 
-    let(:nodes) do
-      @replica_set.nodes
-    end
-
-    let(:primary) do
-      Moped::Node.new(@primary.address)
-    end
-
-    let(:secondary) do
-      Moped::Node.new(@secondaries.first.address)
-    end
-
     context "when a secondary is available" do
 
-      let(:ring) do
-        Moped::Ring.new([ secondary ])
-      end
-
-      before do
-        secondary.refresh
+      let(:cluster) do
+        Moped::Cluster.new(@secondaries.map(&:address), {})
       end
 
       let(:node) do
-        preference.select(ring)
       end
 
       it "returns the secondary" do
-        expect(node).to eq(secondary)
+        preference.with_node(cluster) do |node|
+          expect(node).to be_secondary
+        end
       end
     end
 
@@ -54,33 +39,31 @@ describe Moped::ReadPreference::SecondaryPreferred do
 
       context "when a primary is available" do
 
-        let(:ring) do
-          Moped::Ring.new([ primary ])
+        let(:cluster) do
+          Moped::Cluster.new([ @primary.address ], {})
         end
 
         before do
-          primary.refresh
-        end
-
-        let(:node) do
-          preference.select(ring)
+          @secondaries.each(&:stop)
         end
 
         it "returns the primary" do
-          expect(node).to eq(primary)
+          preference.with_node(cluster) do |node|
+            expect(node).to be_primary
+          end
         end
       end
 
       context "when a primary is not available" do
 
-        let(:ring) do
-          Moped::Ring.new([])
+        let(:cluster) do
+          Moped::Cluster.new([], {})
         end
 
         it "raises an error" do
           expect {
-            preference.select(ring)
-          }.to raise_error(Moped::ReadPreference::Unavailable)
+            preference.with_node(cluster) {}
+          }.to raise_error(Moped::Errors::ConnectionFailure)
         end
       end
     end

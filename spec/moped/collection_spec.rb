@@ -125,7 +125,7 @@ describe Moped::Collection do
       end
 
       before do
-        session[:users].insert(documents, [ :continue_on_error ])
+        session.with(write: :unverified)[:users].insert(documents, [ :continue_on_error ])
       end
 
       it "inserts all valid documents" do
@@ -179,6 +179,10 @@ describe Moped::Collection do
 
     before do
       session[:zips].insert(documents)
+    end
+
+    after do
+      session[:zips].find.remove_all
     end
 
     context "with one group operation" do

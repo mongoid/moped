@@ -85,7 +85,7 @@ module Moped
     #
     # @since 1.0.0
     def drop
-      session.with(consistency: :strong) do |session|
+      session.with(read: :primary) do |session|
         session.context.command(name, dropDatabase: 1)
       end
     end

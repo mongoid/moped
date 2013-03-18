@@ -99,7 +99,7 @@ describe Moped::Session do
       5.times.map do
         Thread.new do
           session.new do |new_session|
-            new_session.command ping: 1
+            new_session.command(ping: 1)
           end
         end
       end.each(&:join)

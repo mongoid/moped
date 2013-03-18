@@ -168,18 +168,6 @@ module Moped
       current_database.logout
     end
 
-    # Get the session's consistency.
-    #
-    # @example Get the session consistency.
-    #   session.consistency
-    #
-    # @return [ :strong, :eventual ] The session's consistency.
-    #
-    # @since 1.0.0
-    def consistency
-      options[:consistency]
-    end
-
     # Initialize a new database session.
     #
     # @example Initialize a new session.
@@ -203,10 +191,9 @@ module Moped
     #
     # @since 1.0.0
     def initialize(seeds, options = {})
+      @options = options
       @cluster = Cluster.new(seeds, options)
       @context = Context.new(self)
-      @options = options
-      @options[:consistency] ||= :eventual
     end
 
     # Create a new session with +options+ and use new socket connections.
@@ -262,31 +249,6 @@ module Moped
     # @since 2.0.0
     def read_preference
       @read_preference ||= ReadPreference.get(options[:read] || :primary)
-    end
-
-    # Is the session operating in safe mode?
-    #
-    # @example Is the session operating in safe mode?
-    #   session.safe?
-    #
-    # @return [ true, false ] Whether the current session requires safe
-    #   operations.
-    #
-    # @since 1.0.0
-    def safe?
-      !!safety
-    end
-
-    # Get the safety level for the session.
-    #
-    # @example Get the safety level.
-    #   session.safety
-    #
-    # @return [ Boolean, Hash ] The safety level for this session.
-    #
-    # @since 1.0.0
-    def safety
-      options[:safe].__safe_options__
     end
 
     # Switch the session's current database.
@@ -393,11 +355,11 @@ module Moped
     end
 
     def initialize_copy(_)
-      @context = Context.new(self)
       @options = @options.dup
       @current_database = nil
       @read_preference = nil
       @write_concern = nil
+      @context = Context.new(self)
     end
 
     def set_current_database(database)

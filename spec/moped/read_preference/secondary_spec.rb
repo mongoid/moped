@@ -19,43 +19,33 @@ describe Moped::ReadPreference::Secondary do
       described_class.new
     end
 
-    let(:nodes) do
-      @replica_set.nodes
-    end
-
-    let(:secondary) do
-      Moped::Node.new(@secondaries.first.address)
-    end
-
     context "when a secondary is available" do
 
-      let(:ring) do
-        Moped::Ring.new([ secondary ])
-      end
-
-      before do
-        secondary.refresh
-      end
-
-      let(:node) do
-        preference.select(ring)
+      let(:cluster) do
+        Moped::Cluster.new(@secondaries.map(&:address), {})
       end
 
       it "returns the secondary" do
-        expect(node).to eq(secondary)
+        preference.with_node(cluster) do |node|
+          expect(node).to be_secondary
+        end
       end
     end
 
     context "when a secondary is not available" do
 
-      let(:ring) do
-        Moped::Ring.new([])
+      let(:cluster) do
+        Moped::Cluster.new([ @primary.address ], {})
+      end
+
+      before do
+        @secondaries.each(&:stop)
       end
 
       it "raises an error" do
         expect {
-          preference.select(ring)
-        }.to raise_error(Moped::ReadPreference::Unavailable)
+          preference.with_node(cluster) {}
+        }.to raise_error(Moped::Errors::ConnectionFailure)
       end
     end
   end

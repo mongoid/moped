@@ -141,10 +141,10 @@ describe Moped::Cluster, replica_set: true do
 
       describe "#with_secondary" do
 
-        it "connects and yields the primary node" do
-          cluster.with_secondary do |node|
-            node.address.original.should eq @primary.address
-          end
+        it "raises a connection faiure" do
+          expect {
+            cluster.with_secondary {}
+          }.to raise_error(Moped::Errors::ConnectionFailure)
         end
       end
     end
@@ -244,11 +244,12 @@ describe Moped::Cluster, replica_set: true do
 
       describe "#with_secondary" do
 
-        it "connects and yields the primary node" do
-          cluster.with_secondary do |node|
-            node.command "admin", ping: 1
-            node.address.original.should eq @primary.address
-          end
+        it "raises a connection failure" do
+          expect {
+            cluster.with_secondary do |node|
+              node.command("admin", ping: 1)
+            end
+          }.to raise_error(Moped::Errors::ConnectionFailure)
         end
       end
     end
@@ -270,11 +271,12 @@ describe Moped::Cluster, replica_set: true do
 
       describe "#with_secondary" do
 
-        it "connects and yields the primary node" do
-          cluster.with_secondary do |node|
-            node.command "admin", ping: 1
-            node.address.original.should eq @primary.address
-          end
+        it "raises a connection failure" do
+          expect {
+            cluster.with_secondary do |node|
+              node.command("admin", ping: 1)
+            end
+          }.to raise_error(Moped::Errors::ConnectionFailure)
         end
       end
 
@@ -286,12 +288,12 @@ describe Moped::Cluster, replica_set: true do
 
         describe "#with_secondary" do
 
-          it "connects and yields the primary node" do
-
-            cluster.with_secondary do |node|
-              node.command "admin", ping: 1
-              node.address.original.should eq @primary.address
-            end
+          it "raises an error" do
+            expect {
+              cluster.with_secondary do |node|
+                node.command "admin", ping: 1
+              end
+            }.to raise_error(Moped::Errors::ConnectionFailure)
           end
         end
 
