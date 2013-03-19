@@ -4,7 +4,7 @@ module Moped
   # Parses MongoDB uri
   #
   # @api public
-  class MongoUri
+  class Uri
 
     SCHEME = /(mongodb:\/\/)/
     USER = /([-.\w:]+)/
@@ -102,7 +102,7 @@ For options, use query string syntax with the option value:
     #
     # @since 1.3.0
     def options
-      options_string, options = @match[10], {database: database}
+      options_string, options = @match[10], { database: database }
 
       unless options_string.nil?
         options_string.split(/\&/).each do |option_string|

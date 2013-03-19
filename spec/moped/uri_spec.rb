@@ -1,6 +1,6 @@
 require "spec_helper"
 
-describe Moped::MongoUri do
+describe Moped::Uri do
 
   let(:single) do
     "mongodb://user:pass@localhost:27017/mongoid_test"

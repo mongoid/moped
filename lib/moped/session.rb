@@ -331,7 +331,7 @@ module Moped
       #
       # @since 3.0.0
       def connect(uri)
-        uri = MongoUri.new(uri)
+        uri = Uri.new(uri)
         session = new(*uri.moped_arguments)
         session.login(uri.username, uri.password) if uri.auth_provided?
         session
