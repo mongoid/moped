@@ -30,10 +30,6 @@ describe Moped::ReadPreference::Primary do
       described_class.new
     end
 
-    let(:nodes) do
-      @replica_set.nodes
-    end
-
     context "when a primary is available" do
 
       let(:cluster) do

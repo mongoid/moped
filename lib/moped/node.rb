@@ -151,6 +151,7 @@ module Moped
     # @since 2.0.0
     def down!
       @down_at = Time.new
+      @latency = nil
       disconnect if connected?
     end
 
