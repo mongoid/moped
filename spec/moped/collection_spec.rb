@@ -125,7 +125,7 @@ describe Moped::Collection do
       end
 
       before do
-        session.with(write: :unverified)[:users].insert(documents, [ :continue_on_error ])
+        session.with(write: { w: 0 })[:users].insert(documents, [ :continue_on_error ])
       end
 
       it "inserts all valid documents" do

@@ -315,7 +315,7 @@ module Moped
     #
     # @since 2.0.0
     def write_concern
-      @write_concern ||= WriteConcern.get(options[:write] || :propagate)
+      @write_concern ||= WriteConcern.get(options[:write] || { w: 1 })
     end
 
     class << self

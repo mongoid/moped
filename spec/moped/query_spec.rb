@@ -886,7 +886,7 @@ describe Moped::Query do
   context "with a local connection" do
 
     let(:session) do
-      Moped::Session.new([ "127.0.0.1:27017" ], database: "moped_test")
+      Moped::Session.new([ "127.0.0.1:27017" ], database: "moped_test", write: { w: 0 })
     end
 
     let(:users) do
@@ -949,7 +949,7 @@ describe Moped::Query do
 
   context "with a remote connection", mongohq: :auth do
 
-    before do
+    before(:all) do
       @session = Support::MongoHQ.auth_session
     end
 
@@ -967,8 +967,8 @@ describe Moped::Query do
   context "with a remote replica set connection with secondary preferred",
     mongohq: :replica_set do
 
-    before do
-      @session = Support::MongoHQ.replica_set_session.with(write: :propagate, read: :secondary_preferred)
+    before(:all) do
+      @session = Support::MongoHQ.replica_set_session.with(read: :secondary_preferred)
       @session.command ping: 1
     end
 
@@ -986,7 +986,7 @@ describe Moped::Query do
   context "with a remote replica set connection with secondary preferred and ssl",
     mongohq: :replica_set_ssl do
 
-    before do
+    before(:all) do
       @session = Support::MongoHQ.ssl_replica_set_session.with(read: :secondary_preferred)
       @session.command ping: 1
     end
@@ -1005,7 +1005,7 @@ describe Moped::Query do
   context "with a remote replica set connection with read primary",
     mongohq: :replica_set do
 
-    before do
+    before(:all) do
       @session = Support::MongoHQ.replica_set_session.with(read: :primary)
     end
 
@@ -1024,7 +1024,7 @@ describe Moped::Query do
   context "with a remote replica set connection with read primary and ssl",
     mongohq: :replica_set_ssl do
 
-    before do
+    before(:all) do
       @session = Support::MongoHQ.ssl_replica_set_session.with(read: :primary)
     end
 
@@ -1043,7 +1043,7 @@ describe Moped::Query do
   context "with a local replica set w/ failover", replica_set: true do
 
     let(:session) do
-      Moped::Session.new seeds, database: "moped_test"
+      Moped::Session.new(seeds, database: "moped_test")
     end
 
     let(:scope) do

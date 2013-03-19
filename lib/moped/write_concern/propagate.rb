@@ -21,8 +21,7 @@ module Moped
       #
       # @since 2.0.0
       def initialize(options)
-        operation = options.is_a?(Hash) ? options : {}
-        @operation = { getlasterror: 1 }.merge!(operation)
+        @operation = { getlasterror: 1 }.merge!(options)
       end
     end
   end

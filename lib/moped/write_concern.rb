@@ -22,7 +22,7 @@ module Moped
     #
     # @since 2.0.0
     def get(value)
-      if value == "unverified" || value == :unverified
+      if value[:w] == 0 || value[:w] == -1
         Unverified.new
       else
         Propagate.new(value)

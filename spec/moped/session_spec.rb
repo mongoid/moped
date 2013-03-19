@@ -14,7 +14,7 @@ describe Moped::Session do
   describe ".connect" do
 
     let(:from_uri) do
-      described_class.connect("mongodb://localhost:27017/moped_test?write=propagate")
+      described_class.connect("mongodb://localhost:27017/moped_test?w=1")
     end
 
     it "returns the session with the correct database" do
@@ -22,7 +22,7 @@ describe Moped::Session do
     end
 
     it "sets the options" do
-      from_uri.options[:write].should eq(:propagate)
+      from_uri.options[:write].should eq(w: 1)
     end
   end
 
@@ -152,8 +152,8 @@ describe Moped::Session do
       end
 
       it "yields a session with the provided options" do
-        session.with(write: :propagate) do |safe|
-          safe.options[:write].should eq(:propagate)
+        session.with(write: { w: 1 }) do |safe|
+          safe.options[:write].should eq(w: 1)
         end
       end
 
@@ -169,11 +169,11 @@ describe Moped::Session do
       context "when changing safe mode options" do
 
         let(:safe) do
-          session.with(write: :propagate)
+          session.with(write: { w: 1 })
         end
 
         it "returns a session with the provided options" do
-          expect(safe.options[:write]).to eq(:propagate)
+          expect(safe.options[:write]).to eq(w: 1)
         end
       end
 
@@ -214,7 +214,7 @@ describe Moped::Session do
         end
 
         let!(:unverify) do
-          session.with(write: "unverified")
+          session.with(write: { w: 0 })
         end
 
         it "changes the write concern in the new session" do
@@ -233,7 +233,7 @@ describe Moped::Session do
     context "when a write option is provided" do
 
       let(:unverified) do
-        described_class.new([ "127.0.0.1:27017" ], write: :unverified)
+        described_class.new([ "127.0.0.1:27017" ], write: { w: 0 })
       end
 
       it "returns the corresponding write concern" do

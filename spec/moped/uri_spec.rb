@@ -51,12 +51,74 @@ describe Moped::Uri do
   end
 
   describe "#invalid" do
+
     let(:uri) do
       described_class.new(invalid)
     end
 
     it "raises informative error" do
       lambda { uri }.should raise_exception(Moped::Errors::InvalidMongoURI)
+    end
+  end
+
+  describe "#options" do
+
+    context "when providing write concern options" do
+
+      context "when providing w=-1" do
+
+        let(:uri) do
+          described_class.new("mongodb://127.0.0.1:27017/mongoid_test?w=-1")
+        end
+
+        it "sets the write concern options" do
+          expect(uri.options).to include(write: { w: -1 })
+        end
+      end
+
+      context "when providing w=0" do
+
+        let(:uri) do
+          described_class.new("mongodb://127.0.0.1:27017/mongoid_test?w=0")
+        end
+
+        it "sets the write concern options" do
+          expect(uri.options).to include(write: { w: 0 })
+        end
+      end
+
+      context "when providing w=1" do
+
+        let(:uri) do
+          described_class.new("mongodb://127.0.0.1:27017/mongoid_test?w=1")
+        end
+
+        it "sets the write concern options" do
+          expect(uri.options).to include(write: { w: 1 })
+        end
+      end
+
+      context "when providing w=n" do
+
+        let(:uri) do
+          described_class.new("mongodb://127.0.0.1:27017/mongoid_test?w=3")
+        end
+
+        it "sets the write concern options" do
+          expect(uri.options).to include(write: { w: 3 })
+        end
+      end
+
+      context "when providing w=majority" do
+
+        let(:uri) do
+          described_class.new("mongodb://127.0.0.1:27017/mongoid_test?w=majority")
+        end
+
+        it "sets the write concern options" do
+          expect(uri.options).to include(write: { w: "majority" })
+        end
+      end
     end
   end
 
@@ -130,7 +192,7 @@ describe Moped::Uri do
     end
 
     let(:full_monty) do
-      "mongodb://utest:ptest@host1:27017,host2:27018/full_monthy?read=primary&ssl=false&write=propagate&retry_interval=35&timeout=7"
+      "mongodb://utest:ptest@host1:27017,host2:27018/full_monthy?read=primary&ssl=false&w=1&retry_interval=35&timeout=7"
     end
 
     it "accepts stock uri" do
@@ -165,7 +227,7 @@ describe Moped::Uri do
           database: "full_monthy",
           read: :primary,
           ssl: false,
-          write: :propagate,
+          write: { w: 1 },
           retry_interval: 35,
           timeout: 7
         ).and_return(login)

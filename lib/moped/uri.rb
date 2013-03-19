@@ -75,40 +75,33 @@ module Moped
     #
     # @since 1.3.1
     def invalid_uri!(string)
-      msg = %{
-The given connection string is invalid:
-  #{string.gsub(/[^:]+@/, '<password>@')}
-
-MongoDB connection strings must be of the format:
-  mongodb://host:port/database
-
-For authentication, include username and password before host:
-  mongodb://username:password@host:port/database
-
-For Replica Sets, include multiple host:port entries:
-  mongodb://host:port,host2:port2/database
-
-For options, use query string syntax with the option value:
-  mongodb://host:port/database?write=propagate&max_retries=30&timeout=5
-      }
-      raise Errors::InvalidMongoURI, msg
+      scrubbed = string.gsub(/[^:]+@/, '<password>@')
+      raise Errors::InvalidMongoURI, "The provided connection string is not a value URI: #{scrubbed}"
     end
 
     # Get the options provided in the URI.
+    #
     # @example Get the options
     #   uri.options
     #
+    # @note The options provided in the URI string must match the MongoDB
+    #   specification.
+    #
     # @return [ Hash ] Options hash usable by Moped
+    #
+    # @see http://docs.mongodb.org/manual/reference/connection-string/#connections-connection-options
     #
     # @since 1.3.0
     def options
-      options_string, options = @match[10], { database: database }
+      options_string, options = match[10], { database: database }
 
       unless options_string.nil?
         options_string.split(/\&/).each do |option_string|
           key, value = option_string.split(/=/)
 
-          if value == "true"
+          if key == "w"
+            options[:write] = { w: (value == "majority") ? value : value.to_i }
+          elsif value == "true"
             options[key.to_sym] = true
           elsif value == "false"
             options[key.to_sym] = false
