@@ -14,15 +14,13 @@ module Moped
 
       # Get the gle command associated with this write concern.
       #
-      # @example Get the gle command.
-      #   propagate.command(database)
-      #
-      # @param [ String ] database The database to execute on.
+      # @example Get the gle operation.
+      #   unverified.operation
       #
       # @return [ nil ] nil, since unverified writes perform no gle.
       #
       # @since 2.0.0
-      def command(database)
+      def operation
         NOOP
       end
     end

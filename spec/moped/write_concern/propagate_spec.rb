@@ -2,22 +2,14 @@ require "spec_helper"
 
 describe Moped::WriteConcern::Propagate do
 
-  describe "#command" do
+  describe "#operation" do
 
     let(:concern) do
       described_class.new(:propagate)
     end
 
-    let(:database) do
-      "moped_test"
-    end
-
-    let(:command) do
-      concern.command(database)
-    end
-
     it "returns the gle command" do
-      expect(command.selector).to eq(getlasterror: 1)
+      expect(concern.operation).to eq(getlasterror: 1)
     end
   end
 

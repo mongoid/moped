@@ -12,20 +12,6 @@ module Moped
       #   @return [ Hash ] The gle operation.
       attr_reader :operation
 
-      # Get the gle command associated with this write concern.
-      #
-      # @example Get the gle command.
-      #   propagate.command(database)
-      #
-      # @param [ String ] database The database to execute on.
-      #
-      # @return [ Protocol::Command ] The gle command.
-      #
-      # @since 2.0.0
-      def command(database)
-        Protocol::Command.new(database, operation)
-      end
-
       # Initialize the propagating write concern.
       #
       # @example Instantiate the write concern.
