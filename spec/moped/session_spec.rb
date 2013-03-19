@@ -14,7 +14,7 @@ describe Moped::Session do
   describe ".connect" do
 
     let(:from_uri) do
-      described_class.connect("mongodb://localhost:27017/moped_test?safe=true")
+      described_class.connect("mongodb://localhost:27017/moped_test?write=propagate")
     end
 
     it "returns the session with the correct database" do
@@ -22,7 +22,7 @@ describe Moped::Session do
     end
 
     it "sets the options" do
-      from_uri.options[:safe].should be_true
+      from_uri.options[:write].should eq(:propagate)
     end
   end
 
@@ -152,8 +152,8 @@ describe Moped::Session do
       end
 
       it "yields a session with the provided options" do
-        session.with(safe: true) do |safe|
-          safe.options[:safe].should eq true
+        session.with(write: :propagate) do |safe|
+          safe.options[:write].should eq(:propagate)
         end
       end
 
@@ -169,11 +169,11 @@ describe Moped::Session do
       context "when changing safe mode options" do
 
         let(:safe) do
-          session.with(safe: true)
+          session.with(write: :propagate)
         end
 
         it "returns a session with the provided options" do
-          expect(safe.options[:safe]).to eq(true)
+          expect(safe.options[:write]).to eq(:propagate)
         end
       end
 

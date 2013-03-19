@@ -176,11 +176,10 @@ module Moped
     # @param [ Array ] seeds an of host:port pairs
     # @param [ Hash ] options
     #
-    # @option options [ Boolean ] :safe (false) Ensure writes are persisted.
-    # @option options [ Hash ] :safe Ensure writes are persisted with the
+    # @option options [ Symbol ] :write (:propagate/:unverified) Ensure writes are persisted.
+    # @option options [ Hash ] :write Ensure writes are persisted with the
     #   specified safety level e.g., "fsync: true", or "w: 2, wtimeout: 5".
     # @option options [ Symbol, String ] :database The database to use.
-    # @option options [ :strong, :eventual ] :consistency (:eventual).
     # @option options [ Boolean ] :ssl Connect using SSL.
     # @option options [ Integer ] :max_retries The maximum number of attempts
     #   to retry an operation. (30)
@@ -199,10 +198,10 @@ module Moped
     # Create a new session with +options+ and use new socket connections.
     #
     # @example Change safe mode
-    #   session.with(safe: { w: 2 })[:people].insert(name: "Joe")
+    #   session.with(write: { w: 2 })[:people].insert(name: "Joe")
     #
     # @example Change safe mode with block
-    #   session.with(safe: { w: 2 }) do |session|
+    #   session.with(write: { w: 2 }) do |session|
     #     session[:people].insert(name: "Joe")
     #   end
     #
@@ -268,10 +267,10 @@ module Moped
     # Create a new session with +options+ reusing existing connections.
     #
     # @example Change safe mode
-    #   session.with(safe: { w: 2 })[:people].insert(name: "Joe")
+    #   session.with(write: { w: 2 })[:people].insert(name: "Joe")
     #
     # @example Change safe mode with block
-    #   session.with(safe: { w: 2 }) do |session|
+    #   session.with(write: { w: 2 }) do |session|
     #     session[:people].insert(name: "Joe")
     #   end
     #

@@ -130,7 +130,7 @@ describe Moped::MongoUri do
     end
 
     let(:full_monty) do
-      "mongodb://utest:ptest@host1:27017,host2:27018/full_monthy?read=primary&ssl=false&safe=true&retry_interval=35&timeout=7"
+      "mongodb://utest:ptest@host1:27017,host2:27018/full_monthy?read=primary&ssl=false&write=propagate&retry_interval=35&timeout=7"
     end
 
     it "accepts stock uri" do
@@ -165,7 +165,7 @@ describe Moped::MongoUri do
           database: "full_monthy",
           read: :primary,
           ssl: false,
-          safe: true,
+          write: :propagate,
           retry_interval: 35,
           timeout: 7
         ).and_return(login)

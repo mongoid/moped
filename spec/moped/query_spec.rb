@@ -968,7 +968,7 @@ describe Moped::Query do
     mongohq: :replica_set do
 
     before do
-      @session = Support::MongoHQ.replica_set_session.with(safe: true, read: :secondary_preferred)
+      @session = Support::MongoHQ.replica_set_session.with(write: :propagate, read: :secondary_preferred)
       @session.command ping: 1
     end
 
@@ -1006,7 +1006,7 @@ describe Moped::Query do
     mongohq: :replica_set do
 
     before do
-      @session = Support::MongoHQ.replica_set_session.with(safe: true, read: :primary)
+      @session = Support::MongoHQ.replica_set_session.with(read: :primary)
     end
 
     let(:users) do
@@ -1025,9 +1025,7 @@ describe Moped::Query do
     mongohq: :replica_set_ssl do
 
     before do
-      @session = Support::MongoHQ.ssl_replica_set_session.with(
-        safe: true, read: :primary
-      )
+      @session = Support::MongoHQ.ssl_replica_set_session.with(read: :primary)
     end
 
     let(:users) do

@@ -89,7 +89,7 @@ For Replica Sets, include multiple host:port entries:
   mongodb://host:port,host2:port2/database
 
 For options, use query string syntax with the option value:
-  mongodb://host:port/database?safe=true&max_retries=30&timeout=5
+  mongodb://host:port/database?write=propagate&max_retries=30&timeout=5
       }
       raise Errors::InvalidMongoURI, msg
     end

@@ -56,7 +56,7 @@ module Moped
       spec = options.merge(ns: namespace, key: key)
       spec[:name] ||= key.to_a.join("_")
 
-      database.session.with(safe: true) do |_s|
+      database.session.with(write: :propagate) do |_s|
         _s[:"system.indexes"].insert(spec)
       end
     end

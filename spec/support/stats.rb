@@ -5,7 +5,7 @@ module Support
   #   Support::Stats.install!
   #
   #   stats = Support::Stats.collect do
-  #     session.with(safe: true)[:users].insert({})
+  #     session.with(write: :propagate)[:users].insert({})
   #   end
   #
   #   ops = stats["127.0.0.1:27017"]

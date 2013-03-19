@@ -9,10 +9,6 @@ module Moped
           io << key.to_bson_cstring
           io << NULL_BYTE
         end
-
-        def __safe_options__
-          false
-        end
       end
     end
   end

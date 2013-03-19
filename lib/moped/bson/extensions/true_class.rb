@@ -9,10 +9,6 @@ module Moped
           io << key.to_bson_cstring
           io << Types::TRUE
         end
-
-        def __safe_options__
-          { safe: true }
-        end
       end
     end
   end

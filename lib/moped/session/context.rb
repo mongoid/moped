@@ -46,10 +46,10 @@ module Moped
 
       def insert(database, collection, documents, options = {})
         cluster.with_primary do |node|
-          if propagate?
+          if operation = write_concern.operation
             node.pipeline do
               node.insert(database, collection, documents, options)
-              node.command(database, write_concern.operation)
+              node.command(database, operation)
             end
           else
             node.insert(database, collection, documents, options)
@@ -59,10 +59,10 @@ module Moped
 
       def update(database, collection, selector, change, options = {})
         cluster.with_primary do |node|
-          if propagate?
+          if operation = write_concern.operation
             node.pipeline do
               node.update(database, collection, selector, change, options)
-              node.command(database, write_concern.operation)
+              node.command(database, operation)
             end
           else
             node.update(database, collection, selector, change, options)
@@ -72,21 +72,15 @@ module Moped
 
       def remove(database, collection, selector, options = {})
         cluster.with_primary do |node|
-          if propagate?
+          if operation = write_concern.operation
             node.pipeline do
               node.remove(database, collection, selector, options)
-              node.command(database, write_concern.operation)
+              node.command(database, operation)
             end
           else
             node.remove(database, collection, selector, options)
           end
         end
-      end
-
-      private
-
-      def propagate?
-        write_concern.is_a?(WriteConcern::Propagate)
       end
     end
   end

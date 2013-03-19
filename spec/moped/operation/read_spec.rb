@@ -152,12 +152,12 @@ describe Moped::Operation::Read do
 
       before do
         200.times do |n|
-          session.with(safe: true)[collection].insert({ a: n })
+          session[collection].insert({ a: n })
         end
       end
 
       after do
-        session.with(safe: true)[collection].find.remove_all
+        session[collection].find.remove_all
       end
 
       let(:cursor_id) do
