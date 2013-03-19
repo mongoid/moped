@@ -163,7 +163,7 @@ module Moped
       #
       # @since 1.0.0
       def to_s
-        data.unpack("H*")[0].force_encoding(UTF8_ENCODING)
+        data.unpack("H*")[0].force_encoding(Moped::BSON::UTF8_ENCODING)
       end
       alias :to_str :to_s
 
