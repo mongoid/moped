@@ -370,56 +370,6 @@ describe Moped::Protocol::Message do
     end
   end
 
-  describe "#piggyback" do
-
-    let(:database) do
-      "moped_test"
-    end
-
-    let(:collection) do
-      "users"
-    end
-
-    let(:document) do
-      { name: "test" }
-    end
-
-    let(:options) do
-      {}
-    end
-
-    let(:message) do
-      Moped::Protocol::Insert.new(database, collection, [ document ], options)
-    end
-
-    let(:command) do
-      Moped::Protocol::Command.new(database, { getlasterror: 1 }, options)
-    end
-
-    context "when serializing the message" do
-
-      let!(:original) do
-        message.serialize
-      end
-
-      let!(:annexed) do
-        command.serialize
-      end
-
-      let(:piggybacked) do
-        message.piggyback(command)
-      end
-
-      let(:serialized) do
-        piggybacked.serialize
-      end
-
-      it "includes the piggybacked message on the end" do
-        expect(serialized).to eq(original + annexed)
-      end
-    end
-  end
-
   describe "#serialize" do
     let(:message_class) do
       Class.new do

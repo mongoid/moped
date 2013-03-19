@@ -35,40 +35,6 @@ module Moped
     #
     module Message
 
-      # @!attribute piggybacked
-      #   @return [ Message ] The piggybacked message.
-      attr_reader :piggybacked
-
-      # Piggbacks a message onto this message, so that when we serialize and
-      # send over the wire it's done in a single network call.
-      #
-      # @example Piggyback a message onto this one.
-      #   message.piggyback(command)
-      #
-      # @note This is used for propagating write concerns - so the getlasterror
-      #   command is send in the same call as the original.
-      #
-      # @param [ Message ] message The message to annex.
-      #
-      # @return [ Message ] This message.
-      #
-      # @since 2.0.0
-      def piggyback(message)
-        @piggybacked = message and self
-      end
-
-      # Is this message piggybacked with another message?
-      #
-      # @example Is the message piggybacked?
-      #   message.piggybacked?
-      #
-      # @return [ true, false ] If the message is piggybacked.
-      #
-      # @since 2.0.0
-      def piggybacked?
-        !!@piggybacked
-      end
-
       # Default implementation for a message is to do nothing when receiving
       # replies.
       #
@@ -349,7 +315,6 @@ module Moped
               #{fields.map { |f| "serialize_#{f}(buffer)" }.join("\n")}
               self.length = buffer.bytesize - start
               buffer[start, 4] = serialize_length("")
-              piggybacked.serialize(buffer) if piggybacked?
               buffer
             end
             alias :to_s :serialize

@@ -377,7 +377,6 @@ module Moped
     #
     # @since 1.0.0
     def process(operation, &callback)
-      # @todo: Remove with piggbacked gle.
       if executing?(:pipeline)
         queue.push([ operation, callback ])
       else
@@ -535,7 +534,6 @@ module Moped
 
     def flush(ops = queue)
       operations, callbacks = ops.transpose
-      # @todo: Piggybacked commands need to be logged properly here.
       logging(operations) do
         ensure_connected do
           connection.write(operations)
@@ -560,7 +558,6 @@ module Moped
       end
     end
 
-    # @todo: Remove with piggbacked gle.
     def queue
       Threaded.stack(:pipelined_operations)
     end

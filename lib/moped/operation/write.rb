@@ -42,8 +42,10 @@ module Moped
       #
       # @since 2.0.0
       def execute(node)
-        message = operation.piggyback(concern.command(database))
-        node.process(message)
+        node.pipeline do
+          node.process(message)
+          node.command(database, concern.operation)
+        end
       end
     end
   end
