@@ -24,6 +24,31 @@ describe Moped::Node, replica_set: true do
     end
   end
 
+  describe "#latency" do
+
+    let(:node) do
+      Moped::Node.new("127.0.0.1:27017")
+    end
+
+    context "when the node is not connected" do
+
+      it "returns nil" do
+        expect(node.latency).to be_nil
+      end
+    end
+
+    context "when the node is connected" do
+
+      before do
+        node.connect
+      end
+
+      it "returns the latency in seconds" do
+        expect(node.latency < 1).to be_true
+      end
+    end
+  end
+
   describe "#peers" do
 
     let(:node) do
@@ -49,8 +74,8 @@ describe Moped::Node, replica_set: true do
         node.refresh
       end
 
-      it "does not contain duplicate nodes" do
-        node.peers.size.should eq(1)
+      it "allows duplicates in the peers" do
+        node.peers.size.should eq(3)
       end
     end
   end

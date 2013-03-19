@@ -20,9 +20,11 @@ module Moped
     #   @return [ Address ] The address.
     # @!attribute down_at
     #   @return [ Time ] The time the node was marked as down.
+    # @!attribute latency
+    #   @return [ Integer ] The latency in milliseconds.
     # @!attribute options
     #   @return [ Hash ] The node options.
-    attr_reader :address, :down_at, :options
+    attr_reader :address, :down_at, :latency, :options
 
     # Is this node equal to another?
     #
@@ -82,7 +84,9 @@ module Moped
     #
     # @since 2.0.0
     def connect
+      start = Time.now
       connection.connect
+      @latency = Time.now - start
       @down_at = nil
       true
     end
@@ -237,6 +241,7 @@ module Moped
       @options = options
       @down_at = nil
       @refreshed_at = nil
+      @latency = nil
       @primary = nil
       @secondary = nil
       @instrumenter = options[:instrumenter] || Instrumentable::Log
@@ -522,11 +527,8 @@ module Moped
     def discover(*nodes)
       nodes.flatten.compact.each do |peer|
         node = Node.new(peer, options)
-        # @todo: The ring will handle this check.
-        if self != node && !peers.include?(node)
-          node.credentials.merge!(credentials)
-          peers.push(node)
-        end
+        node.credentials.merge!(credentials)
+        peers.push(node)
       end
     end
 
