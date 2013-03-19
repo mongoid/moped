@@ -22,15 +22,15 @@ module Moped
         end
 
         def to_utf8_binary
-          encode(UTF8_ENCODING).force_encoding(BINARY_ENCODING)
+          encode(Moped::BSON::UTF8_ENCODING).force_encoding(Moped::BSON::BINARY_ENCODING)
         rescue EncodingError
-          data = dup.force_encoding(UTF8_ENCODING)
+          data = dup.force_encoding(Moped::BSON::UTF8_ENCODING)
           raise unless data.valid_encoding?
-          data.force_encoding(BINARY_ENCODING)
+          data.force_encoding(Moped::BSON::BINARY_ENCODING)
         end
 
         def from_utf8_binary
-          force_encoding(UTF8_ENCODING).encode!
+          force_encoding(Moped::BSON::UTF8_ENCODING).encode!
         end
 
         module ClassMethods
