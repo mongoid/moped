@@ -12,25 +12,20 @@ module Moped
   #
   # @example Single database (console-style)
   #   session = Moped::Session.new(["127.0.0.1:27017"])
-  #   session.use :moped
-  #   session[:users].find.one # => { name: "John" }
+  #   session.use(:moped)
+  #   session[:users].find.one
   #
   # @example Multiple databases
   #   session = Moped::Session.new(["127.0.0.1:27017"])
-  #
   #   session.with(database: :admin) do |admin|
-  #     admin.command ismaster: 1
-  #   end
-  #
-  #   session.with(database: :moped) do |moped|
-  #     moped[:users].find.one # => { name: "John" }
+  #     admin.command(ismaster: 1)
   #   end
   #
   # @example Authentication
-  #
   #   session = Moped::Session.new %w[127.0.0.1:27017],
   #   session.with(database: "admin").login("admin", "s3cr3t")
   #
+  # @since 1.0.0
   class Session
 
     # @attribute [r] cluster The session cluster.
