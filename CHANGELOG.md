@@ -13,8 +13,8 @@
 
     Sample syntax:
 
-      Moped::Session.new([ "127.0.0.1:27017" ], read: :secondary)
-      session.with(read: :nearest)[:users].find
+        Moped::Session.new([ "127.0.0.1:27017" ], read: :secondary)
+        session.with(read: :nearest)[:users].find
 
     The `:consistency` option is no longer valid and will be ignored.
 
@@ -29,8 +29,8 @@
 
     Sample syntax:
 
-      Moped::Session.new([ "127.0.0.1:27017" ], write: { w: 0 })
-      session.with(write: { w: -1 })[:users].insert(document)
+        Moped::Session.new([ "127.0.0.1:27017" ], write: { w: 0 })
+        session.with(write: { w: -1 })[:users].insert(document)
 
     The `:safe` option is no longer invalid and will be ignored.
 
