@@ -1,6 +1,7 @@
 # encoding: utf-8
 require "moped/address"
 require "moped/authenticatable"
+require "moped/connection"
 require "moped/executable"
 require "moped/failover"
 require "moped/instrumentable"

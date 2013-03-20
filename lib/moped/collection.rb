@@ -1,3 +1,6 @@
+# encoding: utf-8
+require "moped/query"
+
 module Moped
 
   # The class for interacting with a MongoDB collection.

@@ -1,6 +1,11 @@
 # encoding: utf-8
 require "moped/read_preference"
+require "moped/readable"
 require "moped/write_concern"
+require "moped/collection"
+require "moped/cluster"
+require "moped/database"
+require "moped/session/context"
 
 module Moped
 

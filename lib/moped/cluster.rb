@@ -1,5 +1,5 @@
 # encoding: utf-8
-require "moped/ring"
+require "moped/node"
 
 module Moped
 

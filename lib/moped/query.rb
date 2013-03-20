@@ -1,3 +1,6 @@
+# encoding: utf-8
+require "moped/cursor"
+
 module Moped
 
   # The +Query+ class encapsulates all of the logic related to building
