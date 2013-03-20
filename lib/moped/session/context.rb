@@ -22,14 +22,6 @@ module Moped
         session.cluster
       end
 
-      def login(database, username, password)
-        cluster.credentials[database.to_s] = [username, password]
-      end
-
-      def logout(database)
-        cluster.credentials.delete(database.to_s)
-      end
-
       def query(database, collection, selector, options = {})
         read_preference.with_node(cluster) do |node|
           node.query(database, collection, selector, query_options(options))

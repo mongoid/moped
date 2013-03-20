@@ -77,6 +77,23 @@ module Moped
       current_database.command(op)
     end
 
+    # Get the database that the session is currently using.
+    #
+    # @example Get the current database.
+    #   session.current_database
+    #
+    # @return [ Database ] The current database or nil.
+    #
+    # @since 2.0.0
+    def current_database
+      return @current_database if @current_database
+      if database = options[:database]
+        set_current_database(database)
+      else
+        raise "No database set for session. Call #use or #with before accessing the database"
+      end
+    end
+
     # Get a list of all the database names for the session.
     #
     # @example Get all the database names.
@@ -335,24 +352,15 @@ module Moped
 
     private
 
-    def current_database
-      return @current_database if @current_database
-      if database = options[:database]
-        set_current_database(database)
-      else
-        raise "No database set for session. Call #use or #with before accessing the database"
-      end
-    end
-
     def current_database_name
       @current_database ? current_database.name : :none
     end
 
     def initialize_copy(_)
       @options = @options.dup
-      @current_database = nil
       @read_preference = nil
       @write_concern = nil
+      @current_database = nil
       @context = Context.new(self)
     end
 
