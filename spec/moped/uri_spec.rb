@@ -116,7 +116,29 @@ describe Moped::Uri do
         end
 
         it "sets the write concern options" do
-          expect(uri.options).to include(write: { w: "majority" })
+          expect(uri.options).to include(write: { w: :majority })
+        end
+      end
+
+      context "when providing fsync options" do
+
+        let(:uri) do
+          described_class.new("mongodb://127.0.0.1:27017/mongoid_test?fsync=true")
+        end
+
+        it "sets the write concern options" do
+          expect(uri.options).to include(write: { fsync: true })
+        end
+      end
+
+      context "when providing wtimeout options" do
+
+        let(:uri) do
+          described_class.new("mongodb://127.0.0.1:27017/mongoid_test?wtimeout=10")
+        end
+
+        it "sets the write concern options" do
+          expect(uri.options).to include(write: { wtimeout: 10 })
         end
       end
     end

@@ -15,6 +15,8 @@ module Moped
 
     URI = /#{SCHEME}(#{USER}:#{PASS}@)?#{NODES}#{DATABASE}#{OPTIONS}?/
 
+    WRITE_OPTIONS = [ "w", "j", "fsync", "wtimeout" ].freeze
+
     attr_reader :match
 
     # Helper to determine if authentication is provided
@@ -94,25 +96,16 @@ module Moped
     # @since 1.3.0
     def options
       options_string, options = match[10], { database: database }
-
       unless options_string.nil?
         options_string.split(/\&/).each do |option_string|
           key, value = option_string.split(/=/)
-
-          if key == "w"
-            options[:write] = { w: (value == "majority") ? value : value.to_i }
-          elsif value == "true"
-            options[key.to_sym] = true
-          elsif value == "false"
-            options[key.to_sym] = false
-          elsif value =~ /[\d]/
-            options[key.to_sym] = value.to_i
+          if WRITE_OPTIONS.include?(key)
+            options[:write] = { key.to_sym => cast(value) }
           else
-            options[key.to_sym] = value.to_sym
+            options[key.to_sym] = cast(value)
           end
         end
       end
-
       options
     end
 
@@ -166,6 +159,20 @@ module Moped
     # @since 1.3.0
     def username
       @username ||= match[3]
+    end
+
+    private
+
+    def cast(value)
+      if value == "true"
+        true
+      elsif value == "false"
+        false
+      elsif value =~ /[\d]/
+        value.to_i
+      else
+        value.to_sym
+      end
     end
   end
 end
