@@ -58,14 +58,7 @@ module Moped
 
       def remove(database, collection, selector, options = {})
         cluster.with_primary do |node|
-          if operation = write_concern.operation
-            node.pipeline do
-              node.remove(database, collection, selector, options)
-              node.command(database, operation)
-            end
-          else
-            node.remove(database, collection, selector, options)
-          end
+          node.remove(database, collection, selector, write_concern, options)
         end
       end
     end

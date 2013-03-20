@@ -450,8 +450,9 @@ module Moped
     # @return [ Message ] The result of the operation.
     #
     # @since 1.0.0
-    def remove(database, collection, selector, options = {})
-      process(Protocol::Delete.new(database, collection, selector, options))
+    def remove(database, collection, selector, concern, options = {})
+      operation = Protocol::Delete.new(database, collection, selector, options)
+      Operation::Write.new(operation, concern).execute(self)
     end
 
     # Is the node a replica set secondary?
