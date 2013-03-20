@@ -5,15 +5,13 @@ module Moped
 
   # The class for interacting with a MongoDB collection.
   #
-  # @example
-  #   users = session[:users] # => <Moped::Collection ...>
-  #   users.drop
-  #   users.insert(name: "John")
-  #   users.find.to_a # => [{ name: "John" }]
+  # @since 1.0.0
   class Collection
 
-    # @attribute [r] database The collection's database.
-    # @attribute [r] name The collection name.
+    # @!attribute database
+    #   @return [ Database ] The database for the collection.
+    # @!attribute name
+    #   @return [ String ] The name of the collection.
     attr_reader :database, :name
 
     # Return whether or not this collection is a capped collection.
@@ -38,9 +36,7 @@ module Moped
     # @since 1.0.0
     def drop
       begin
-        database.session.with(read: :primary) do |session|
-          session.context.command(database.name, drop: name)
-        end
+        session.with(read: :primary).command(drop: name)
       rescue Moped::Errors::OperationFailure => e
         raise e unless e.details["errmsg"] == "ns not found"
         false
@@ -84,7 +80,8 @@ module Moped
     #
     # @since 1.0.0
     def initialize(database, name)
-      @database, @name = database, name.to_s
+      @database = database
+      @name = name.to_s
     end
 
     # Insert one or more documents into the collection.
@@ -104,8 +101,8 @@ module Moped
     #
     # @since 1.0.0
     def insert(documents, flags = nil)
-      documents = [documents] unless documents.is_a?(Array)
-      database.session.context.insert(database.name, name, documents, flags: flags || [])
+      docs = documents.is_a?(Array) ? documents : [ documents ]
+      session.context.insert(database.name, name, docs, flags: flags || [])
     end
 
     # Call aggregate function over the collection.
@@ -118,15 +115,26 @@ module Moped
     #     }
     #   })
     #
-    # @param [ Hash, Array<Hash> ] documents representing the aggregate function to execute
+    # @param [ Hash, Array<Hash> ] documents representing the aggregate
+    #   function to execute
     #
     # @return [ Hash ] containing the result of aggregation
     #
     # @since 1.3.0
     def aggregate(*pipeline)
-      pipeline.flatten!
-      command = { aggregate: name.to_s, pipeline: pipeline }
-      database.session.command(command)["result"]
+      session.command(aggregate: name, pipeline: pipeline.flatten)["result"]
+    end
+
+    # Get the session for the collection.
+    #
+    # @example Get the session for the collection.
+    #   collection.session
+    #
+    # @return [ Session ] The session for the collection.
+    #
+    # @since 2.0.0
+    def session
+      database.session
     end
   end
 end

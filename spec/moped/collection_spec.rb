@@ -59,23 +59,22 @@ describe Moped::Collection do
       end
 
       it "raises any error" do
-        Moped::Session::Context.any_instance.should_receive(:command).
-          with(session.send(:current_database).name, drop: "users").
-          and_raise("drop failed")
+        Moped::Database.any_instance.should_receive(:command).
+          with(drop: "users").and_raise("drop failed")
         expect { session[:users].drop }.to raise_error "drop failed"
       end
 
       it "raises on Moped::Errors::OperationFailure" do
-        Moped::Session::Context.any_instance.should_receive(:command).
-          with(session.send(:current_database).name, drop: "users").
-          and_raise Moped::Errors::OperationFailure.new("drop", { "errmsg" => "unexpected"})
+        Moped::Database.any_instance.should_receive(:command).
+          with(drop: "users").
+          and_raise(Moped::Errors::OperationFailure.new("drop", { "errmsg" => "unexpected"}))
         expect { session[:users].drop }.to raise_error Moped::Errors::OperationFailure, /unexpected/
       end
 
       it "doesn't raise on ns not found" do
-        Moped::Session::Context.any_instance.should_receive(:command).
-          with(session.send(:current_database).name, drop: "users").
-          and_raise Moped::Errors::OperationFailure.new("drop", { "errmsg" => "ns not found"})
+        Moped::Database.any_instance.should_receive(:command).
+          with(drop: "users").
+          and_raise(Moped::Errors::OperationFailure.new("drop", { "errmsg" => "ns not found"}))
         expect { session[:users].drop }.to_not raise_error
       end
     end

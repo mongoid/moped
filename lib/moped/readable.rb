@@ -6,6 +6,8 @@ module Moped
   # @since 2.0.0
   module Readable
 
+    private
+
     # Convenience method for getting the cluster from the session.
     #
     # @api private
