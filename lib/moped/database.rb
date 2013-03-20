@@ -32,18 +32,6 @@ module Moped
       Collection.new(self, collection)
     end
 
-    # Convenience method for getting the cluster from the session.
-    #
-    # @example Get the cluster from the session.
-    #   database.cluster
-    #
-    # @return [ Cluster ] The cluster.
-    #
-    # @since 2.0.0
-    def cluster
-      session.cluster
-    end
-
     # Get all non-system collections from the database.
     #
     # @example Get all the collections.
@@ -85,8 +73,7 @@ module Moped
     #
     # @since 1.0.0
     def command(command)
-      options = read_preference.query_options({})
-      read(Protocol::Command.new(name.to_s, command, options))
+      session.context.command(name.to_s, command)
     end
 
     # Drop the database.
@@ -99,7 +86,7 @@ module Moped
     # @since 1.0.0
     def drop
       session.with(read: :primary) do |session|
-        session.command(dropDatabase: 1)
+        session.context.command(name, dropDatabase: 1)
       end
     end
 
@@ -131,7 +118,7 @@ module Moped
     #
     # @since 1.0.0
     def login(username, password)
-      session.cluster.credentials[name.to_s] = [ username, password ]
+      session.context.login(name, username, password)
     end
 
     # Log out from the current database.
@@ -141,39 +128,7 @@ module Moped
     #
     # @since 1.0.0
     def logout
-      session.cluster.credentials.delete(name.to_s)
-    end
-
-    # Convenience method for getting the read preference from the session.
-    #
-    # @example Get the read preference.
-    #   database.read_preference
-    #
-    # @return [ Object ] The session's read preference.
-    #
-    # @since 2.0.0
-    def read_preference
-      session.read_preference
-    end
-
-    private
-
-    # Execute a read operation on the correct node.
-    #
-    # @api private
-    #
-    # @example Execute a read.
-    #   database.read(operation)
-    #
-    # @param [ Protocol::Command ] operation The read operation.
-    #
-    # @return [ Object ] The result of the operation.
-    #
-    # @since 2.0.0
-    def read(operation)
-      read_preference.with_node(cluster) do |node|
-        Operation::Read.new(operation).execute(node)
-      end
+      session.context.logout(name)
     end
   end
 end
