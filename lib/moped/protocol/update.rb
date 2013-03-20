@@ -105,6 +105,24 @@ module Moped
                                                                             update.inspect,
                                                                             flags.inspect]
       end
+
+      private
+
+      # Duplicate the attributes in the update that need to be.
+      #
+      # @api private
+      #
+      # @example Clone the update.
+      #   update.clone
+      #
+      # @param [ Update ] The update that was cloned from.
+      #
+      # @since 2.0.0
+      def initialize_copy(_)
+        @selector = selector.dup
+        @update = update.dup
+        @flags = flags.dup
+      end
     end
   end
 end

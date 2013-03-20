@@ -90,6 +90,23 @@ module Moped
 
         "%-12s database=%s collection=%s documents=%s flags=%s" % [type, database, collection, documents.inspect, flags.inspect]
       end
+
+      private
+
+      # Duplicate the attributes in the insert that need to be.
+      #
+      # @api private
+      #
+      # @example Clone the insert.
+      #   insert.clone
+      #
+      # @param [ Insert ] The insert that was cloned from.
+      #
+      # @since 2.0.0
+      def initialize_copy(_)
+        @documents = documents.dup
+        @flags = flags.dup
+      end
     end
   end
 end

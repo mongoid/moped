@@ -2,6 +2,44 @@ require "spec_helper"
 
 describe Moped::Protocol::Query do
 
+  describe "#clone" do
+
+    let(:selector) do
+      { active: true }
+    end
+
+    let(:options) do
+      {
+        request_id: 1000,
+        flags: [ :tailable ],
+        limit: 10,
+        skip: 20,
+        fields: { active: 1 },
+        batch_size: 50
+      }
+    end
+
+    let(:query) do
+      described_class.new("moped_test", "users", selector, options)
+    end
+
+    let(:cloned) do
+      query.clone
+    end
+
+    it "clones the selector" do
+      expect(cloned.selector).not_to equal(query.selector)
+    end
+
+    it "clones the flags" do
+      expect(cloned.flags).not_to equal(query.flags)
+    end
+
+    it "clones the fields" do
+      expect(cloned.fields).not_to equal(query.fields)
+    end
+  end
+
   describe "#failure?" do
 
     let(:query) do

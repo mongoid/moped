@@ -227,6 +227,24 @@ module Moped
       def results(reply)
         reply
       end
+
+      private
+
+      # Duplicate the attributes in the query that need to be.
+      #
+      # @api private
+      #
+      # @example Clone the query.
+      #   query.clone
+      #
+      # @param [ Query ] The query that was cloned from.
+      #
+      # @since 2.0.0
+      def initialize_copy(_)
+        @selector = selector.dup
+        @flags = flags.dup
+        @fields = fields.dup
+      end
     end
   end
 end

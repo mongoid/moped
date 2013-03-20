@@ -373,7 +373,7 @@ describe Moped::Query do
       end
 
       it "limits the number of documents returned" do
-        users.find(scope: scope).max_scan(1).to_a.should eq [ document1 ]
+        users.find(scope: scope).max_scan(1).to_a.size.should eq(1)
       end
     end
 

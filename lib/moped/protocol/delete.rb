@@ -90,6 +90,22 @@ module Moped
         "%-12s database=%s collection=%s selector=%s flags=%s" % [type, database, collection, selector.inspect, flags.inspect]
       end
 
+      private
+
+      # Duplicate the attributes in the delete that need to be.
+      #
+      # @api private
+      #
+      # @example Clone the delete.
+      #   delete.clone
+      #
+      # @param [ Delete ] The delete that was cloned from.
+      #
+      # @since 2.0.0
+      def initialize_copy(_)
+        @selector = selector.dup
+        @flags = flags.dup
+      end
     end
   end
 end

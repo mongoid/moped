@@ -51,7 +51,7 @@ module Moped
       #
       # @since 1.0.0
       def initialize(database, command, options = {})
-        super database, '$cmd', command, options.merge(limit: -1)
+        super(database, '$cmd', command, options.merge(limit: -1))
       end
 
       # Provide the value that will be logged when the command runs.
