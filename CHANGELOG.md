@@ -5,10 +5,34 @@
 * \#133 Moped now supports the new read preferences that the core drivers
   provide. These include:
 
-    - `:primary`: Will always read from a primary node.
+    - `:primary`: Will always read from a primary node. (default)
     - `:primary_preferred`: Attempt a primary first, then secondary if none available.
     - `:secondary`: Will always read from a secondary node.
     - `:secondary_preferred`: Attempt a secondary first, then primary if none available.
+    - `:nearest`: Attempt to read from the node with the lowest latency.
+
+    Sample syntax:
+
+      Moped::Session.new([ "127.0.0.1:27017" ], read: :secondary)
+      session.with(read: :nearest)[:users].find
+
+    The `:consistency` option is no longer valid and will be ignored.
+
+* \#92 Moped now defaults all writes to propagate (formerly "safe mode") and now
+  has different propagate semantics:
+
+    - `{ w: -1 }`: Don't verify writes and raise no network errors.
+    - `{ w: 0 }`: Don't verify writes and raise network errors.
+    - `{ w: 1 }`: Verify writes on the primary node. (default)
+    - `{ w: n }`: Verify writes on n number of nodes.
+    - `{ w: :majority }`: Verify writes on a majority of nodes.
+
+    Sample syntax:
+
+      Moped::Session.new([ "127.0.0.1:27017" ], write: { w: 0 })
+      session.with(write: { w: -1 })[:users].insert(document)
+
+    The `:safe` option is no longer invalid and will be ignored.
 
 ## 1.4.3
 
