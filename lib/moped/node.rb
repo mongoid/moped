@@ -69,8 +69,7 @@ module Moped
     #
     # @since 1.0.0
     def command(database, cmd, options = {})
-      operation = Protocol::Command.new(database, cmd, options)
-      Operation::Read.new(operation).execute(self)
+      read(Protocol::Command.new(database, cmd, options))
     end
 
     # Connect the node on the underlying connection.
@@ -212,8 +211,7 @@ module Moped
     #
     # @since 1.0.0
     def get_more(database, collection, cursor_id, limit)
-      operation = Protocol::GetMore.new(database, collection, cursor_id, limit)
-      Operation::Read.new(operation).execute(self)
+      read(Protocol::GetMore.new(database, collection, cursor_id, limit))
     end
 
     # Get the hash identifier for the node.
@@ -262,8 +260,7 @@ module Moped
     #
     # @since 1.0.0
     def insert(database, collection, documents, concern, options = {})
-      operation = Protocol::Insert.new(database, collection, documents, options)
-      Operation::Write.new(operation, concern).execute(self)
+      write(Protocol::Insert.new(database, collection, documents, options), concern)
     end
 
     # Kill all provided cursors on the node.
@@ -401,8 +398,7 @@ module Moped
     #
     # @since 1.0.0
     def query(database, collection, selector, options = {})
-      operation = Protocol::Query.new(database, collection, selector, options)
-      Operation::Read.new(operation).execute(self)
+      read(Protocol::Query.new(database, collection, selector, options))
     end
 
     # Refresh information about the node, such as it's status in the replica
@@ -451,8 +447,7 @@ module Moped
     #
     # @since 1.0.0
     def remove(database, collection, selector, concern, options = {})
-      operation = Protocol::Delete.new(database, collection, selector, options)
-      Operation::Write.new(operation, concern).execute(self)
+      write(Protocol::Delete.new(database, collection, selector, options), concern)
     end
 
     # Is the node a replica set secondary?
@@ -494,8 +489,7 @@ module Moped
     #
     # @since 1.0.0
     def update(database, collection, selector, change, concern, options = {})
-      operation = Protocol::Update.new(database, collection, selector, change, options)
-      Operation::Write.new(operation, concern).execute(self)
+      write(Protocol::Update.new(database, collection, selector, change, options), concern)
     end
 
     # Get the node as a nice formatted string.
@@ -559,6 +553,14 @@ module Moped
       instrument(TOPIC, prefix: "  MOPED: #{address.resolved}", ops: operations) do
         yield if block_given?
       end
+    end
+
+    def read(operation)
+      Operation::Read.new(operation).execute(self)
+    end
+
+    def write(operation, concern)
+      Operation::Write.new(operation, concern).execute(self)
     end
 
     def queue
