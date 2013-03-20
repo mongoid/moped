@@ -3,20 +3,62 @@ module Moped
 
   # Parses MongoDB uri
   #
-  # @api public
+  # @since 1.3.0
   class Uri
 
+    # Get the scheme pattern.
+    #
+    # @since 1.3.0
     SCHEME = /(mongodb:\/\/)/
+
+    # The user name pattern.
+    #
+    # @since 1.3.0
     USER = /([-.\w:]+)/
+
+    # The password pattern.
+    #
+    # @since 1.3.0
     PASS = /([^@,]+)/
+
+    # The nodes pattern.
+    #
+    # @since 1.3.0
     NODES = /((([-.\w]+)(?::(\w+))?,?)+)/
+
+    # The database pattern.
+    #
+    # @since 1.3.0
     DATABASE = /(?:\/([-\w]+))?/
+
+    # The options pattern.
+    #
+    # @since 1.3.0
     OPTIONS  = /(?:\?(.+))/
 
+    # The full URI pattern.
+    #
+    # @since 1.3.0
     URI = /#{SCHEME}(#{USER}:#{PASS}@)?#{NODES}#{DATABASE}#{OPTIONS}?/
 
+    # The options that have to do with write concerns.
+    #
+    # @since 2.0.0
     WRITE_OPTIONS = [ "w", "j", "fsync", "wtimeout" ].freeze
 
+    # The mappings from read preferences in the URI to Moped's.
+    #
+    # @since 2.0.0
+    READ_MAPPINGS = {
+      "nearest" => :nearest,
+      "primary" => :primary,
+      "primarypreferred" => :primary_preferred,
+      "secondary" => :secondary,
+      "secondarypreferred" => :secondary_preferred
+    }
+
+    # @!attribute match
+    #   @return [ Array ] The uri match.
     attr_reader :match
 
     # Helper to determine if authentication is provided
@@ -101,6 +143,8 @@ module Moped
           key, value = option_string.split(/=/)
           if WRITE_OPTIONS.include?(key)
             options[:write] = { key.to_sym => cast(value) }
+          elsif read = READ_MAPPINGS[value.downcase]
+            options[:read] = read
           else
             options[key.to_sym] = cast(value)
           end
@@ -146,7 +190,7 @@ module Moped
     #
     # @since 1.3.0
     def moped_arguments
-      [hosts, options]
+      [ hosts, options ]
     end
 
     # Get the username provided in the URI.

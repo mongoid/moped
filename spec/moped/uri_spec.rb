@@ -142,6 +142,64 @@ describe Moped::Uri do
         end
       end
     end
+
+    context "when providing read preference options" do
+
+      context "when providing nearest" do
+
+        let(:uri) do
+          described_class.new("mongodb://127.0.0.1:27017/mongoid_test?read=nearest")
+        end
+
+        it "sets the read preference options" do
+          expect(uri.options).to include(read: :nearest)
+        end
+      end
+
+      context "when providing primary" do
+
+        let(:uri) do
+          described_class.new("mongodb://127.0.0.1:27017/mongoid_test?read=primary")
+        end
+
+        it "sets the read preference options" do
+          expect(uri.options).to include(read: :primary)
+        end
+      end
+
+      context "when providing primaryPreferred" do
+
+        let(:uri) do
+          described_class.new("mongodb://127.0.0.1:27017/mongoid_test?read=primaryPreferred")
+        end
+
+        it "sets the read preference options" do
+          expect(uri.options).to include(read: :primary_preferred)
+        end
+      end
+
+      context "when providing secondary" do
+
+        let(:uri) do
+          described_class.new("mongodb://127.0.0.1:27017/mongoid_test?read=secondary")
+        end
+
+        it "sets the read preference options" do
+          expect(uri.options).to include(read: :secondary)
+        end
+      end
+
+      context "when providing secondaryPreferred" do
+
+        let(:uri) do
+          described_class.new("mongodb://127.0.0.1:27017/mongoid_test?read=secondaryPreferred")
+        end
+
+        it "sets the read preference options" do
+          expect(uri.options).to include(read: :secondary_preferred)
+        end
+      end
+    end
   end
 
   describe "#password" do
