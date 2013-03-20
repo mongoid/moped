@@ -38,7 +38,7 @@ module Moped
       begin
         session.with(read: :primary).command(drop: name)
       rescue Moped::Errors::OperationFailure => e
-        raise e unless e.details["errmsg"] == "ns not found"
+        raise e unless e.ns_not_found?
         false
       end
     end

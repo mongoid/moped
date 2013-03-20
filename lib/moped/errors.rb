@@ -107,6 +107,18 @@ module Moped
           details["err"] == "not master" ||
           details["errmsg"] == "not master"
       end
+
+      # Is the error due to a namespace not being found?
+      #
+      # @example Is the namespace not found?
+      #   error.ns_not_found?
+      #
+      # @return [ true, false ] If the namespace was not found.
+      #
+      # @since 2.0.0
+      def ns_not_found?
+        details["errmsg"] == "ns not found"
+      end
     end
 
     # Exception raised when authentication fails.
