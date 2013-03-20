@@ -2,78 +2,67 @@ require "spec_helper"
 
 describe Moped::Database do
 
-  let(:session) do
-    Moped::Session.new %w[127.0.0.1:27017], database: "moped_test"
-  end
+  describe "#[]" do
 
-  describe "#initialize" do
-
-    context "when the name contains spaces" do
-
-      it "raises an error" do
-        expect {
-          described_class.new(session, "test name")
-        }.to raise_error(Moped::Errors::InvalidDatabaseName)
-      end
+    let(:session) do
+      Moped::Session.new([ "127.0.0.1:27017" ], database: "moped_test")
     end
 
-    context "when the name contains dots" do
-
-      it "raises an error" do
-        expect {
-          described_class.new(session, "test.name")
-        }.to raise_error(Moped::Errors::InvalidDatabaseName)
-      end
+    let(:database) do
+      described_class.new(session, :moped_test)
     end
 
-    context "when the name contains $" do
-
-      it "raises an error" do
-        expect {
-          described_class.new(session, "test$name")
-        }.to raise_error(Moped::Errors::InvalidDatabaseName)
-      end
+    it "returns a collection for the provided name" do
+      expect(database[:users].name).to eq("users")
     end
 
-    context "when the name contains /" do
-
-      it "raises an error" do
-        expect {
-          described_class.new(session, "test/name")
-        }.to raise_error(Moped::Errors::InvalidDatabaseName)
-      end
-    end
-
-    context "when the name contains \\" do
-
-      it "raises an error" do
-        expect {
-          described_class.new(session, "test\\name")
-        }.to raise_error(Moped::Errors::InvalidDatabaseName)
-      end
-    end
-
-    context "when the name contains \0" do
-
-      it "raises an error" do
-        expect {
-          described_class.new(session, "test\0name")
-        }.to raise_error(Moped::Errors::InvalidDatabaseName)
-      end
+    it "returns a collection instance" do
+      expect(database[:users]).to be_a(Moped::Collection)
     end
   end
 
+  describe "#collections" do
+
+    let(:session) do
+      Moped::Session.new([ "127.0.0.1:27017" ], database: "moped_test")
+    end
+
+    let(:database) do
+      described_class.new(session, :moped_test)
+    end
+
+    before do
+      session.drop
+      session.command(create: "users")
+    end
+
+    it "returns all the collections in the database" do
+      expect(database.collections.size).to eq(1)
+    end
+
+    it "returns collection instances" do
+      expect(database.collections.first.name).to eq("users")
+    end
+  end
 
   describe "#collection_names" do
 
-    let(:collection_names) do
-      session.collection_names
+    let(:session) do
+      Moped::Session.new([ "127.0.0.1:27017" ], database: "moped_test")
     end
 
-    before :each do
+    let(:database) do
+      described_class.new(session, :moped_test)
+    end
+
+    let(:collection_names) do
+      database.collection_names
+    end
+
+    before do
       session.drop
       names.map do |name|
-        session.command create: name
+        session.command(create: name)
       end
     end
 
@@ -84,7 +73,7 @@ describe Moped::Database do
       end
 
       it "returns the name of all non system collections" do
-        collection_names.sort.should eq %w[ users comments ].sort
+        expect(collection_names.sort).to eq([ "comments", "users" ])
       end
     end
 
@@ -95,7 +84,7 @@ describe Moped::Database do
       end
 
       it "returns the name of all non system collections" do
-        collection_names.sort.should eq %w[ users comments_system_fu ].sort
+        expect(collection_names.sort).to eq([ "comments_system_fu", "users" ])
       end
     end
 
@@ -106,8 +95,65 @@ describe Moped::Database do
       end
 
       it "returns the name of all non system collections" do
-        collection_names.sort.should eq %w[ users system_comments_fu ].sort
+        expect(collection_names.sort).to eq([ "system_comments_fu", "users" ])
       end
+    end
+  end
+
+  describe "#command" do
+
+    let(:session) do
+      Moped::Session.new([ "127.0.0.1:27017" ])
+    end
+
+    let(:database) do
+      described_class.new(session, :moped_test)
+    end
+
+    let(:result) do
+      database.command(ping: 1)
+    end
+
+    it "executes the command on the database" do
+      expect(result).to eq({ "ok" => 1.0 })
+    end
+  end
+
+  describe "#drop" do
+
+    let(:session) do
+      Moped::Session.new([ "127.0.0.1:27017" ], database: :moped_new)
+    end
+
+    let(:database) do
+      described_class.new(session, :moped_new)
+    end
+
+    let(:result) do
+      database.drop
+    end
+
+    it "executes the command on the database" do
+      expect(result).to eq({ "dropped" => "moped_new", "ok" => 1.0 })
+    end
+  end
+
+  describe "#initialize" do
+
+    let(:session) do
+      Moped::Session.new([ "127.0.0.1:27017" ])
+    end
+
+    let(:database) do
+      described_class.new(session, :moped_test)
+    end
+
+    it "sets the name" do
+      expect(database.name).to eq("moped_test")
+    end
+
+    it "sets the session" do
+      expect(database.session).to eq(session)
     end
   end
 end

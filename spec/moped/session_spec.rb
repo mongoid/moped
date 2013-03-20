@@ -19,11 +19,11 @@ describe Moped::Session do
       end
 
       let(:database) do
-        cloned.current_database
+        cloned.send(:current_database)
       end
 
       it "sets the database on the new session" do
-        expect(database.name).to eq(:moped_test)
+        expect(database.name).to eq("moped_test")
       end
 
       it "contains a reference to the new session in the db" do
@@ -33,6 +33,15 @@ describe Moped::Session do
 
     context "when the session has no database set" do
 
+      let(:cloned) do
+        session.clone
+      end
+
+      it "raises an exception" do
+        expect {
+          cloned.send(:current_database)
+        }.to raise_error
+      end
     end
   end
 

@@ -1,21 +1,16 @@
+# encoding: utf-8
 module Moped
 
   # The class for interacting with a MongoDB database. One only interacts with
   # this class indirectly through a session.
   #
-  # @example
-  #   session.use :moped
-  #   session.drop
-  #   session[:users].insert(name: "John")
-  #
-  # @example
-  #   session.with(database: :moped) do |moped|
-  #     moped[:users].drop
-  #   end
+  # @since 1.0.0
   class Database
 
-    # @attribute [r] name The name of the database.
-    # @attribute [r] session The session.
+    # @!attribute name
+    #   @return [ String ] The name of the database.
+    # @!attribute session
+    #   @return [ Session ] The database session.
     attr_reader :name, :session
 
     # Get a collection by the provided name.
@@ -32,18 +27,6 @@ module Moped
       Collection.new(self, collection)
     end
 
-    # Convenience method for getting the cluster from the session.
-    #
-    # @example Get the cluster from the session.
-    #   database.cluster
-    #
-    # @return [ Cluster ] The cluster.
-    #
-    # @since 2.0.0
-    def cluster
-      session.cluster
-    end
-
     # Get all non-system collections from the database.
     #
     # @example Get all the collections.
@@ -53,7 +36,7 @@ module Moped
     #
     # @since 1.0.0
     def collections
-      collection_names.map{|name| Collection.new(self, name)}
+      collection_names.map{ |name| Collection.new(self, name) }
     end
 
     # Get all non-system collection names from the database, this excludes
@@ -66,7 +49,7 @@ module Moped
     #
     # @since 1.0.0
     def collection_names
-      namespaces = Collection.new(self, "system.namespaces").find(name: { "$not" => /#{name}\.system\.|\$/ })
+      namespaces = self["system.namespaces"].find(name: { "$not" => /#{name}\.system\.|\$/ })
       namespaces.map do |doc|
         _name = doc["name"]
         _name[name.length + 1, _name.length]
@@ -85,8 +68,7 @@ module Moped
     #
     # @since 1.0.0
     def command(command)
-      options = read_preference.query_options({})
-      read(Protocol::Command.new(name.to_s, command, options))
+      read(Protocol::Command.new(name, command, query_options))
     end
 
     # Drop the database.
@@ -113,12 +95,8 @@ module Moped
     #
     # @since 1.0.0
     def initialize(session, name)
-      if match = name.match(/\.|\s|\$|\\|\/|\x00/)
-        raise Errors::InvalidDatabaseName.new(
-          "Database names may not contain the character '#{match[0]}'."
-        )
-      end
-      @session, @name = session, name
+      @session = session
+      @name = name.to_s
     end
 
     # Log in with +username+ and +password+ on the current database.
@@ -131,7 +109,7 @@ module Moped
     #
     # @since 1.0.0
     def login(username, password)
-      session.cluster.credentials[name.to_s] = [ username, password ]
+      cluster.credentials[name] = [ username, password ]
     end
 
     # Log out from the current database.
@@ -141,22 +119,24 @@ module Moped
     #
     # @since 1.0.0
     def logout
-      session.cluster.credentials.delete(name.to_s)
-    end
-
-    # Convenience method for getting the read preference from the session.
-    #
-    # @example Get the read preference.
-    #   database.read_preference
-    #
-    # @return [ Object ] The session's read preference.
-    #
-    # @since 2.0.0
-    def read_preference
-      session.read_preference
+      cluster.credentials.delete(name)
     end
 
     private
+
+    # Convenience method for getting the cluster from the session.
+    #
+    # @api private
+    #
+    # @example Get the cluster from the session.
+    #   database.cluster
+    #
+    # @return [ Cluster ] The cluster.
+    #
+    # @since 2.0.0
+    def cluster
+      session.cluster
+    end
 
     # Execute a read operation on the correct node.
     #
@@ -174,6 +154,36 @@ module Moped
       read_preference.with_node(cluster) do |node|
         Operation::Read.new(operation).execute(node)
       end
+    end
+
+    # Convenience method for getting the read preference from the session.
+    #
+    # @api private
+    #
+    # @example Get the read preference.
+    #   database.read_preference
+    #
+    # @return [ Object ] The session's read preference.
+    #
+    # @since 2.0.0
+    def read_preference
+      session.read_preference
+    end
+
+    # Get the query options from the read preference.
+    #
+    # @api private
+    #
+    # @example Get the query options.
+    #   database.query_options
+    #
+    # @param [ Hash ] options The existing options on the query.
+    #
+    # @return [ Hash ] The new query options.
+    #
+    # @since 2.0.0
+    def query_options(options = {})
+      read_preference.query_options(options)
     end
   end
 end
