@@ -52,14 +52,7 @@ module Moped
 
       def update(database, collection, selector, change, options = {})
         cluster.with_primary do |node|
-          if operation = write_concern.operation
-            node.pipeline do
-              node.update(database, collection, selector, change, options)
-              node.command(database, operation)
-            end
-          else
-            node.update(database, collection, selector, change, options)
-          end
+          node.update(database, collection, selector, change, write_concern, options)
         end
       end
 

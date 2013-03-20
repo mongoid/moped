@@ -492,8 +492,9 @@ module Moped
     # @return [ Message ] The result of the operation.
     #
     # @since 1.0.0
-    def update(database, collection, selector, change, options = {})
-      process(Protocol::Update.new(database, collection, selector, change, options))
+    def update(database, collection, selector, change, concern, options = {})
+      operation = Protocol::Update.new(database, collection, selector, change, options)
+      Operation::Write.new(operation, concern).execute(self)
     end
 
     # Get the node as a nice formatted string.
