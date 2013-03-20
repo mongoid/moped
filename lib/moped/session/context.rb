@@ -31,16 +31,14 @@ module Moped
       end
 
       def query(database, collection, selector, options = {})
-        opts = read_preference.query_options(options)
         read_preference.with_node(cluster) do |node|
-          node.query(database, collection, selector, opts)
+          node.query(database, collection, selector, query_options(options))
         end
       end
 
       def command(database, command)
-        options = read_preference.query_options({})
         read_preference.with_node(cluster) do |node|
-          node.command(database, command, options)
+          node.command(database, command, query_options({}))
         end
       end
 
@@ -60,6 +58,12 @@ module Moped
         cluster.with_primary do |node|
           node.remove(database, collection, selector, write_concern, options)
         end
+      end
+
+      private
+
+      def query_options(options)
+        read_preference.query_options(options)
       end
     end
   end
