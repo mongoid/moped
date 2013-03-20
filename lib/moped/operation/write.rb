@@ -42,9 +42,14 @@ module Moped
       #
       # @since 2.0.0
       def execute(node)
-        node.pipeline do
-          node.process(message)
-          node.command(database, concern.operation)
+        propagate = concern.operation
+        if propagate
+          node.pipeline do
+            node.process(operation)
+            node.command(database, propagate)
+          end
+        else
+          node.process(operation)
         end
       end
     end

@@ -261,8 +261,9 @@ module Moped
     # @return [ Message ] The result of the operation.
     #
     # @since 1.0.0
-    def insert(database, collection, documents, options = {})
-      process(Protocol::Insert.new(database, collection, documents, options))
+    def insert(database, collection, documents, concern, options = {})
+      operation = Protocol::Insert.new(database, collection, documents, options)
+      Operation::Write.new(operation, concern).execute(self)
     end
 
     # Kill all provided cursors on the node.

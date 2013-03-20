@@ -46,14 +46,7 @@ module Moped
 
       def insert(database, collection, documents, options = {})
         cluster.with_primary do |node|
-          if operation = write_concern.operation
-            node.pipeline do
-              node.insert(database, collection, documents, options)
-              node.command(database, operation)
-            end
-          else
-            node.insert(database, collection, documents, options)
-          end
+          node.insert(database, collection, documents, write_concern, options)
         end
       end
 
