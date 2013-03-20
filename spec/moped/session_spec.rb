@@ -2,13 +2,38 @@ require "spec_helper"
 
 describe Moped::Session do
 
-  let(:session) do
-    Moped::Session.new(%w[127.0.0.1:27017], database: "moped_test")
-  end
+  describe "#clone" do
 
-  before do
-    session[:users].insert({ name: "test" })
-    session[:users].find.remove_all
+    let(:session) do
+      Moped::Session.new([ "127.0.0.1:27017" ])
+    end
+
+    context "when the session has a database set" do
+
+      before do
+        session.use(:moped_test)
+      end
+
+      let(:cloned) do
+        session.clone
+      end
+
+      let(:database) do
+        cloned.current_database
+      end
+
+      it "sets the database on the new session" do
+        expect(database.name).to eq(:moped_test)
+      end
+
+      it "contains a reference to the new session in the db" do
+        expect(database.session).to_not eql(session)
+      end
+    end
+
+    context "when the session has no database set" do
+
+    end
   end
 
   describe ".connect" do
@@ -28,6 +53,10 @@ describe Moped::Session do
 
   describe "#database_names" do
 
+    let(:session) do
+      Moped::Session.new([ "127.0.0.1:27017" ], database: "moped_test")
+    end
+
     let(:names) do
       session.database_names
     end
@@ -43,6 +72,10 @@ describe Moped::Session do
 
   describe "#databases" do
 
+    let(:session) do
+      Moped::Session.new([ "127.0.0.1:27017" ], database: "moped_test")
+    end
+
     let(:databases) do
       session.databases
     end
@@ -57,6 +90,10 @@ describe Moped::Session do
   end
 
   describe "#disconnect" do
+
+    let(:session) do
+      Moped::Session.new([ "127.0.0.1:27017" ], database: "moped_test")
+    end
 
     let!(:disconnected) do
       session.disconnect
@@ -75,6 +112,10 @@ describe Moped::Session do
 
   describe "#drop" do
 
+    let(:session) do
+      Moped::Session.new([ "127.0.0.1:27017" ], database: "moped_test")
+    end
+
     it "drops the current database" do
       session.with(database: "moped_test_2") do |session|
         session.drop.should eq("dropped" => "moped_test_2", "ok" => 1)
@@ -84,6 +125,10 @@ describe Moped::Session do
 
   describe "#command" do
 
+    let(:session) do
+      Moped::Session.new([ "127.0.0.1:27017" ], database: "moped_test")
+    end
+
     it "runs the command on the current database" do
       session.with(database: "moped_test_2") do |session|
         session.command(dbStats: 1)["db"].should eq "moped_test_2"
@@ -92,6 +137,10 @@ describe Moped::Session do
   end
 
   describe "#new" do
+
+    let(:session) do
+      Moped::Session.new([ "127.0.0.1:27017" ], database: "moped_test")
+    end
 
     it "returns a thread-safe session" do
       session.command ping: 1
@@ -133,8 +182,8 @@ describe Moped::Session do
 
   describe "#use" do
 
-    after do
-      session.use "moped_test"
+    let(:session) do
+      Moped::Session.new([ "127.0.0.1:27017" ], database: "moped_test")
     end
 
     it "changes the current database" do
@@ -144,6 +193,10 @@ describe Moped::Session do
   end
 
   describe "#with" do
+
+    let(:session) do
+      Moped::Session.new([ "127.0.0.1:27017" ], database: "moped_test")
+    end
 
     context "when called with a block" do
 
