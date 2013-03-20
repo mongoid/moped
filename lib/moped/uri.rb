@@ -55,7 +55,7 @@ module Moped
       "primarypreferred" => :primary_preferred,
       "secondary" => :secondary,
       "secondarypreferred" => :secondary_preferred
-    }
+    }.freeze
 
     # @!attribute match
     #   @return [ Array ] The uri match.
