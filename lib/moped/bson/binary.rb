@@ -5,12 +5,12 @@ module Moped
     class Binary
 
       SUBTYPE_MAP = {
-        generic:  "\x00",
-        function: "\x01",
-        old:      "\x02",
-        uuid:     "\x03",
-        md5:      "\x05",
-        user:     "\x80"
+        generic:  0.chr,
+        function: 1.chr,
+        old:      2.chr,
+        uuid:     3.chr,
+        md5:      5.chr,
+        user:     128.chr
       }.freeze
 
       SUBTYPE_TYPES = SUBTYPE_MAP.invert.freeze
