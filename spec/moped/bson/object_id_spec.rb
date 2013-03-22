@@ -1,4 +1,5 @@
 require "spec_helper"
+require "yaml"
 
 describe Moped::BSON::ObjectId do
 
