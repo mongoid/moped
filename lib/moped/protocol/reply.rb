@@ -110,7 +110,7 @@ module Moped
       # @since 1.2.10
       def unauthorized?
         result = documents[0]
-        UNAUTHORIZED.include?(result["code"]) || UNAUTHORIZED.include?(result["assertionCode"])
+        result && (UNAUTHORIZED.include?(result["code"]) || UNAUTHORIZED.include?(result["assertionCode"]))
       end
 
       class << self
