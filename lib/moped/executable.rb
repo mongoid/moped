@@ -20,11 +20,11 @@ module Moped
     #
     # @since 2.0.0
     def execute(name)
-      Threaded.begin_execution(name)
+      begin_execution(name)
       begin
         yield(self)
       ensure
-        Threaded.end_execution(name)
+        end_execution(name)
       end
     end
 
@@ -39,7 +39,58 @@ module Moped
     #
     # @since 2.0.0
     def executing?(name)
-      Threaded.executing?(name)
+      !stack(name).empty?
+    end
+
+    private
+
+    # Begin entry into a named thread local stack.
+    #
+    # @api private
+    #
+    # @example Begin entry into the stack.
+    #   executable.begin_execution(:create)
+    #
+    # @param [ String ] name The name of the stack.
+    #
+    # @return [ true ] True.
+    #
+    # @since 1.0.0
+    def begin_execution(name)
+      stack(name).push(true)
+    end
+
+    # Exit from a named thread local stack.
+    #
+    # @api private
+    #
+    # @example Exit from the stack.
+    #   executable.end_execution(:create)
+    #
+    # @param [ Symbol ] name The name of the stack
+    #
+    # @return [ true ] True.
+    #
+    # @since 1.0.0
+    def end_execution(name)
+      stack(name).pop
+    end
+
+    # Get the named stack.
+    #
+    # @api private
+    #
+    # @example Get a stack by name
+    #   executable.stack(:create)
+    #
+    # @param [ Symbol ] name The name of the stack
+    #
+    # @return [ Array ] The stack.
+    #
+    # @since 1.0.0
+    def stack(name)
+      stacks = (Thread.current[:"moped-stacks"] ||= {})
+      stacks[name] ||= []
     end
   end
 end

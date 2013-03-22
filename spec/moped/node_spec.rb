@@ -349,7 +349,7 @@ describe Moped::Node, replica_set: true do
       context "when ensuring primary" do
 
         before do
-          Moped::Threaded.stub(:executing?).with(:ensure_primary).and_return(true)
+          node.stub(:executing?).with(:ensure_primary).and_return(true)
         end
 
         context "and not on the primary" do

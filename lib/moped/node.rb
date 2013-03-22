@@ -565,7 +565,7 @@ module Moped
     end
 
     def queue
-      Threaded.stack(:pipelined_operations)
+      stack(:pipelined_operations)
     end
   end
 end
