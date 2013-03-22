@@ -1,12 +1,12 @@
 require "spec_helper"
 
-describe Moped::Sockets::Connectable do
+describe Moped::IO::Sockets::Connectable do
 
   describe "#handle_socket_errors" do
 
     let(:object) do
       Class.new do
-        include Moped::Sockets::Connectable
+        include Moped::IO::Sockets::Connectable
         def host; "127.0.0.1"; end
         def port; 27017; end
       end.new

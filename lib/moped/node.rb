@@ -1,10 +1,10 @@
 # encoding: utf-8
 require "moped/address"
 require "moped/authenticatable"
-require "moped/connection"
 require "moped/executable"
 require "moped/failover"
 require "moped/instrumentable"
+require "moped/io"
 require "moped/operation"
 
 module Moped
@@ -112,7 +112,7 @@ module Moped
     #
     # @since 2.0.0
     def connection
-      @connection ||= Connection.new(address.ip, address.port, timeout, options)
+      @connection ||= IO::Connection.new(address.ip, address.port, timeout, options)
     end
 
     # Force the node to disconnect from the server.
