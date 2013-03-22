@@ -13,7 +13,8 @@ module Moped
     class Reply
       include Message
 
-      UNAUTHORIZED = 10057
+      # Unauthorized assertion errors.
+      UNAUTHORIZED = [ 10057, 16550 ]
 
       # @attribute
       # @return [Number] the length of the message
@@ -109,7 +110,7 @@ module Moped
       # @since 1.2.10
       def unauthorized?
         result = documents[0]
-        result["code"] == UNAUTHORIZED || result["assertionCode"] == UNAUTHORIZED
+        UNAUTHORIZED.include?(result["code"]) || UNAUTHORIZED.include?(result["assertionCode"])
       end
 
       class << self
