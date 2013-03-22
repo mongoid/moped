@@ -1,5 +1,15 @@
 # Overview
 
+## 1.4.4
+
+### Resolved Issues
+
+* Fixed BSON binary issues on Ruby 2.0.0.
+
+* \#169 Added additional authorization failure codes into reply.
+
+* \#168 Added additional not master checks in replica set reconfiguration.
+
 ## 1.4.3
 
 ### Resolved Issues
