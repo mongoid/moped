@@ -300,7 +300,7 @@ describe Moped::Protocol::Reply do
     context "when the assertion code is unauthorized" do
 
       let(:error) do
-        { "ok" => 0, "err" => "message", "assertionCode" => 10057 }
+        { "ok" => 0, "err" => "message", "assertionCode" => 16550 }
       end
 
       let(:reply) do
