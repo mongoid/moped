@@ -1,3 +1,4 @@
+# encoding: utf-8
 require "timeout"
 require "moped/io/sockets/connectable"
 require "moped/io/sockets/tcp"
@@ -8,10 +9,18 @@ module Moped
 
     # This class contains behaviour of database socket connections.
     #
-    # @api private
+    # @since 2.0.0
     class Connection
 
-      attr_reader :host, :port, :timeout, :options
+      # @!attribute host
+      #   @return [ String ] The ip address of the host.
+      # @!attribute options
+      #   @return [ Hash ] The connection options.
+      # @!attribute port
+      #   @return [ String ] The port the connection connects on.
+      # @!attribute timeout
+      #   @return [ Integer ] The timeout in seconds.
+      attr_reader :host, :options, :port, :timeout
 
       # Is the connection alive?
       #
@@ -81,9 +90,12 @@ module Moped
       # @option options [ Boolean ] :ssl Connect using SSL
       # @since 1.0.0
       def initialize(host, port, timeout, options = {})
+        @host = host
+        @port = port
+        @timeout = timeout
+        @options = options
         @sock = nil
         @request_id = 0
-        @host, @port, @timeout, @options = host, port, timeout, options
       end
 
       # Read from the connection.
