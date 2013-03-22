@@ -49,6 +49,21 @@ describe Moped::Errors::MongoError do
       end
     end
 
+    context "when error code 13436" do
+
+      let(:details) do
+        { "code" => 13436 }
+      end
+
+      let(:error) do
+        Moped::Errors::PotentialReconfiguration.new({}, details)
+      end
+
+      it "returns true" do
+        error.should be_reconfiguring_replica_set
+      end
+    end
+
     context "when 'err' is not master" do
 
       let(:details) do
@@ -68,6 +83,21 @@ describe Moped::Errors::MongoError do
 
       let(:details) do
         { "errmsg" => "not master" }
+      end
+
+      let(:error) do
+        Moped::Errors::PotentialReconfiguration.new({}, details)
+      end
+
+      it "returns true" do
+        error.should be_reconfiguring_replica_set
+      end
+    end
+
+    context "when 'err' contains not master" do
+
+      let(:details) do
+        { "errmsg" => "not master or secondary; cannot currently read from this replSet member" }
       end
 
       let(:error) do
