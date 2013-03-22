@@ -1,6 +1,7 @@
 require "spec_helper"
 
 describe Moped::Collection do
+
   let(:session) do
     Moped::Session.new %w[127.0.0.1:27017], database: "moped_test"
   end
@@ -11,7 +12,7 @@ describe Moped::Collection do
 
     context "when the collection is capped" do
 
-      before(:all) do
+      before do
         begin
           session.command(
             create: "capped_events",
@@ -30,7 +31,7 @@ describe Moped::Collection do
 
     context "when the collection is not capped" do
 
-      before(:all) do
+      before do
         begin
           session.command(create: "users")
         rescue Moped::Errors::OperationFailure
