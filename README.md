@@ -1,4 +1,4 @@
-Mop[ed [![Build Status](https://secure.travis-ci.org/mongoid/moped.png?branch=master&.png)](http://travis-ci.org/mongoid/moped) [![Code Climate](https://codeclimate.com/github/mongoid/moped.png)](https://codeclimate.com/github/mongoid/moped)
+Moped [![Build Status](https://secure.travis-ci.org/mongoid/moped.png?branch=master&.png)](http://travis-ci.org/mongoid/moped) [![Code Climate](https://codeclimate.com/github/mongoid/moped.png)](https://codeclimate.com/github/mongoid/moped)
 ========
 
 Moped is a MongoDB driver for Ruby, which exposes a simple, elegant, and fast
