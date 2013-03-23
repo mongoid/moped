@@ -42,4 +42,48 @@ describe Moped::IO::Connection do
       end
     end
   end
+
+  pending "#connect" do
+
+    context "when using ssl" do
+
+    end
+
+    context "when using tcp" do
+
+    end
+
+    context "when using unix" do
+
+    end
+  end
+
+  describe "#connected?" do
+
+    let(:connection) do
+      described_class.new("127.0.0.1", 27017, 2)
+    end
+
+    context "when the connection is connected" do
+
+      before do
+        connection.connect
+      end
+
+      after do
+        connection.disconnect
+      end
+
+      it "returns true" do
+        expect(connection).to be_connected
+      end
+    end
+
+    context "when the connection is not connected" do
+
+      it "returns false" do
+        expect(connection).to_not be_connected
+      end
+    end
+  end
 end
