@@ -23,7 +23,8 @@ module Moped
       #
       # @since 2.0.0
       def pool(node)
-        pools[node.address.resolved] ||= ConnectionPool.new
+        pools[node.address.resolved] ||=
+          ConnectionPool.new(node.address.host, node.address.port)
       end
 
       private
