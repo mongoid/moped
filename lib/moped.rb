@@ -1,6 +1,8 @@
+# encoding: utf-8
 require "logger"
 require "stringio"
 require "monitor"
+require "timeout"
 require "moped/bson"
 require "moped/errors"
 require "moped/indexes"

@@ -106,4 +106,19 @@ describe Moped::IO::Connection do
       expect(connection.instance_variable_get(:@sock)).to be_nil
     end
   end
+
+  pending "#read" do
+
+  end
+
+  describe "#write" do
+
+    context "when providing a single operation" do
+
+    end
+
+    context "when providing multiple operations" do
+
+    end
+  end
 end

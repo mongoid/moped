@@ -1,8 +1,5 @@
 # encoding: utf-8
-require "timeout"
-require "moped/io/sockets/connectable"
-require "moped/io/sockets/tcp"
-require "moped/io/sockets/ssl"
+require "moped/io/sockets"
 
 module Moped
   module IO
@@ -201,6 +198,8 @@ module Moped
 
       # Yields a connected socket to the calling back. It will attempt to reconnect
       # the socket if it is not connected.
+      #
+      # @api private
       #
       # @example Write to the connection.
       #   with_connection do |socket|
