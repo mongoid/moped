@@ -68,7 +68,7 @@ describe Moped::IO::ConnectionPool do
     end
   end
 
-  describe "#with_connection" do
+  describe "#connection" do
 
     let(:pool) do
       described_class.new("127.0.0.1", 27017)
@@ -78,9 +78,29 @@ describe Moped::IO::ConnectionPool do
 
       context "when the pool is empty" do
 
-        it "yields a new connection" do
-          pool.with_connection do |connection|
-            expect(connection).to be_a(Moped::IO::Connection)
+        it "returns a new connection" do
+          expect(pool.connection).to be_a(Moped::IO::Connection)
+        end
+      end
+
+      context "when the pool is not empty" do
+
+        let(:connection) do
+          Moped::IO::Connection.new("127.0.0.1", 27017, 5)
+        end
+
+        context "when a connection exists for the thread" do
+
+          let(:pinned) do
+            pool.send(:pinned)
+          end
+
+          before do
+            pinned[Thread.current.object_id] = connection
+          end
+
+          it "returns the connection" do
+            expect(pool.connection).to equal(connection)
           end
         end
       end

@@ -14,10 +14,10 @@ module Moped
       #   Queue.new
       #
       # @since 2.0.0
-      def initialize
-        @mutex = Mutex.new
+      def initialize(monitor = Monitor.new)
+        @monitor = monitor
         @queue = []
-        @resource = ConditionVariable.new
+        @resource = monitor.new_cond
       end
 
       # Pop a connection off the queue.
@@ -31,7 +31,7 @@ module Moped
       #
       # @since 2.0.0
       def pop(timeout)
-        mutex.synchronize do
+        monitor.synchronize do
           wait_for_next(Time.now + timeout)
         end
       end
@@ -45,9 +45,9 @@ module Moped
       #
       # @since 2.0.0
       def push(connection)
-        mutex.synchronize do
+        monitor.synchronize do
           queue.push(connection)
-          resource.broadcast
+          resource.signal
         end
       end
 
@@ -60,20 +60,20 @@ module Moped
       #
       # @since 2.0.0
       def size
-        mutex.synchronize do
+        monitor.synchronize do
           queue.size
         end
       end
 
       private
 
-      # @!attribute mutex
-      #   @return [ Mutex ] The queue's mutex.
+      # @!attribute monitor
+      #   @return [ Monitor ] The queue's monitor.
       # @!attribute queue
       #   @return [ Array ] The internal array of items.
       # @!attribute resource
       #   @return [ ConditionVariable ] The condition variable.
-      attr_reader :mutex, :queue, :resource
+      attr_reader :monitor, :queue, :resource
 
       # Wait for the next connection in the queue for the provided period of
       # time, if time passes and nothing is added returns nil.
@@ -93,7 +93,7 @@ module Moped
           return queue.pop unless queue.empty?
           wait = deadline - Time.now
           return nil if wait <= 0
-          resource.wait(mutex, wait)
+          resource.wait(wait)
         end
       end
     end
