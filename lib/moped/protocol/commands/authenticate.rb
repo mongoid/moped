@@ -22,7 +22,7 @@ module Moped
         # @param [String] nonce the nonce returned from running the getnonce
         # command.
         def initialize(database, username, password, nonce)
-          super database, build_auth_command(username, password, nonce)
+          super(database, build_auth_command(username, password, nonce))
         end
 
         # @param [String] username
@@ -47,7 +47,6 @@ module Moped
             key: digest(username, password, nonce)
           }
         end
-
       end
     end
   end

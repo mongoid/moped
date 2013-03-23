@@ -111,7 +111,7 @@ describe Moped::IO::Connection do
 
   end
 
-  describe "#write" do
+  pending "#write" do
 
     context "when providing a single operation" do
 
