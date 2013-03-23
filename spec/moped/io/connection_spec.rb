@@ -86,4 +86,24 @@ describe Moped::IO::Connection do
       end
     end
   end
+
+  describe "#disconnect" do
+
+    let(:connection) do
+      described_class.new("127.0.0.1", 27017, 2)
+    end
+
+    before do
+      connection.connect
+      connection.disconnect
+    end
+
+    it "disconnects the connection" do
+      expect(connection).to_not be_connected
+    end
+
+    it "sets the socket to nil" do
+      expect(connection.instance_variable_get(:@sock)).to be_nil
+    end
+  end
 end
