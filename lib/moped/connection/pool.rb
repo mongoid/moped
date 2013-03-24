@@ -42,7 +42,8 @@ module Moped
 
       def checkin(connection)
         mutex.synchronize do
-
+          connection.expire
+          unpinned.push(connection)
         end
       end
 

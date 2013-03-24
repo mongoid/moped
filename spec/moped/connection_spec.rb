@@ -123,6 +123,35 @@ describe Moped::Connection do
     end
   end
 
+  describe "#expired?" do
+
+    let(:connection) do
+      described_class.new("127.0.0.1", 27017, 2)
+    end
+
+    context "when the connection has a last_use" do
+
+      before do
+        connection.lease
+      end
+
+      it "returns false" do
+        expect(connection).to_not be_expired
+      end
+    end
+
+    context "when the connection does not have a last_use" do
+
+      before do
+        connection.expire
+      end
+
+      it "returns true" do
+        expect(connection).to be_expired
+      end
+    end
+  end
+
   describe "#lease" do
 
     let(:connection) do

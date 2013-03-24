@@ -30,7 +30,7 @@ describe Moped::Connection::Pool do
         expect(pinned[Thread.current.object_id]).to be_a(Moped::Connection)
       end
 
-      it "updates the checked out count" do
+      it "updates the pool size" do
         expect(pool.size).to eq(1)
       end
 
@@ -39,6 +39,41 @@ describe Moped::Connection::Pool do
         it "returns the same connection each time" do
           expect(connection).to equal(pool.checkout)
         end
+      end
+    end
+  end
+
+  describe "#checkin" do
+
+    context "when no connections exist in the pool" do
+
+      let(:pool) do
+        described_class.new("127.0.0.1", 27017, max_size: 2)
+      end
+
+      let(:connection) do
+        Moped::Connection.new("127.0.0.1", 27017, 5)
+      end
+
+      before do
+        connection.lease
+        pool.checkin(connection)
+      end
+
+      let(:unpinned) do
+        pool.send(:unpinned)
+      end
+
+      it "adds the connection to the pool" do
+        expect(unpinned.first).to equal(connection)
+      end
+
+      it "expires the connection" do
+        expect(connection.last_use).to be_nil
+      end
+
+      it "updates the pool size" do
+        expect(pool.size).to eq(1)
       end
     end
   end
