@@ -23,8 +23,10 @@ module Moped
       #
       # @since 2.0.0
       def pool(node)
-        pools[node.address.resolved] ||=
-          ConnectionPool.new(node.address.host, node.address.port)
+        MUTEX.synchronize do
+          pools[node.address.resolved] ||=
+            ConnectionPool.new(node.address.host, node.address.port)
+        end
       end
 
       private
@@ -41,9 +43,7 @@ module Moped
       #
       # @since 2.0.0
       def pools
-        MUTEX.synchronize do
-          @pools ||= ThreadSafe::Cache.new
-        end
+        @pools ||= {}
       end
     end
   end

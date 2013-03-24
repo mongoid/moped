@@ -58,8 +58,8 @@ describe Moped::IO::ConnectionPool do
       end
 
       before do
-        pool.checkin(conn_one)
-        pool.checkin(conn_two)
+        pool.send(:checkin, conn_one)
+        pool.send(:checkin, conn_two)
       end
 
       it "returns true" do
@@ -74,12 +74,46 @@ describe Moped::IO::ConnectionPool do
       described_class.new("127.0.0.1", 27017)
     end
 
+    context "when accessing from multiple threads" do
+
+      context "when there are more active threads than the max pool size" do
+
+        it "raises an error" do
+          expect {
+            6.times do
+              Thread.new do
+                pool.connection do |conn|
+                  expect(conn).to be_a(Moped::IO::Connection)
+                end
+              end.join
+            end
+          }.to raise_error
+        end
+      end
+
+      context "when unpinning connections on thread finish" do
+
+        it "allows infinite thread creation" do
+          10.times do
+            Thread.new do
+              pool.connection do |conn|
+                expect(conn).to be_a(Moped::IO::Connection)
+              end
+              pool.reap
+            end.value
+          end
+        end
+      end
+    end
+
     context "when accessing from a single thread" do
 
       context "when the pool is empty" do
 
-        it "returns a new connection" do
-          expect(pool.connection).to be_a(Moped::IO::Connection)
+        it "yields a new connection" do
+          pool.connection do |conn|
+            expect(conn).to be_a(Moped::IO::Connection)
+          end
         end
       end
 
@@ -99,8 +133,10 @@ describe Moped::IO::ConnectionPool do
             pinned[Thread.current.object_id] = connection
           end
 
-          it "returns the connection" do
-            expect(pool.connection).to equal(connection)
+          it "yields the connection" do
+            pool.connection do |conn|
+              expect(conn).to equal(connection)
+            end
           end
         end
       end

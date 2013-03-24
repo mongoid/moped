@@ -24,20 +24,6 @@ module Moped
       #   @return [ Hash ] The connection pool options.
       attr_reader :host, :port, :options
 
-      def checkin(connection)
-        synchronize do
-          unpinned.push(connection)
-        end
-      end
-
-      def checkout
-        synchronize do
-          connection = @unpinned.pop(timeout)
-          return connection if connection
-          create_connection!
-        end
-      end
-
       # Get a connection. Will try pinned connections first then will attempt
       # to checkout a new one.
       #
@@ -48,8 +34,12 @@ module Moped
       #
       # @since 2.0.0
       def connection
-        # @todo: Cleanup connections for dead threads first?
-        pinned[Thread.current.object_id] ||= checkout
+        if block_given?
+          yield(checkout)
+        else
+          p "checking out..."
+          checkout
+        end
       end
 
       # Initialize the connection pool.
@@ -81,21 +71,6 @@ module Moped
         @max_size ||= (options[:max_size] || MAX_SIZE)
       end
 
-      # Is the pool saturated - are the number of pinned and unpinned
-      # connections at max value.
-      #
-      # @example Is the queue saturated.
-      #   pool.saturated?
-      #
-      # @return [ true, false ] If the pool is saturated.
-      #
-      # @since 2.0.0
-      def saturated?
-        synchronize do
-          (pinned.size + unpinned.size) >= max_size
-        end
-      end
-
       # Get the timeout when attempting to check out items from the pool.
       #
       # @example Get the checkout timeout.
@@ -108,6 +83,13 @@ module Moped
         @timeout ||= (options[:pool_timeout] || TIMEOUT)
       end
 
+      def reap
+        unpin(Thread.current.object_id)
+        # if conn.in_use? && stale > conn.last_use && !conn.active?
+          # remove conn
+        # end
+      end
+
       private
 
       # @!attribute pinned
@@ -115,6 +97,28 @@ module Moped
       # @!attribute unpinned
       #   @return [ Queue ] The unpinned available connections.
       attr_reader :pinned, :unpinned
+
+      def active_threads
+        Thread.list.find_all(&:alive?)
+      end
+
+      def checkin(connection)
+        synchronize do
+          unpinned.push(connection)
+        end
+      end
+
+      def checkout
+        synchronize do
+          conn = pinned[Thread.current.object_id] ||= @unpinned.pop(timeout)
+          conn || create_connection!
+        end
+      end
+
+      def unpin_dead_threads!
+        dead_threads = active_threads.map(&:object_id) - pinned.keys
+        dead_threads.each{ |thread_id| unpin(thread_id) }
+      end
 
       # Create a new connection if the pool is not saturated.
       #
@@ -127,16 +131,33 @@ module Moped
       #
       # @since 2.0.0
       def create_connection!
+        unpin_dead_threads!
         if saturated?
-          # raise an error here.
+          raise RuntimeError, "Pool is saturated."
         else
           Connection.new(host, port, options[:timeout], options)
         end
       end
 
-      def release(connection)
-        pinned.delete(Thread.current.object_id)
-        checkin(connection)
+      # Is the pool saturated - are the number of pinned and unpinned
+      # connections at max value.
+      #
+      # @api private
+      #
+      # @example Is the queue saturated.
+      #   pool.saturated?
+      #
+      # @return [ true, false ] If the pool is saturated.
+      #
+      # @since 2.0.0
+      def saturated?
+        (pinned.size + unpinned.size) >= max_size
+      end
+
+      def unpin(thread_id)
+        if connection = pinned.delete(thread_id)
+          unpinned.push(connection)
+        end
       end
     end
   end

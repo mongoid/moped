@@ -14,7 +14,7 @@ describe Moped::IO::Queue do
         expect(queue.pop(0.05)).to be_nil
       end
 
-      context "when another thread add an item to the queue" do
+      pending "when another thread add an item to the queue" do
 
         let(:connection) do
           Moped::IO::Connection.new("127.0.0.1", 27017, 5)
