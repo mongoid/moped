@@ -24,7 +24,7 @@ module Moped
       def pool(node)
         MUTEX.synchronize do
           pools[node.address.resolved] ||=
-            Pool.new(node.address.host, node.address.port, node.options)
+            Pool.new(node.address.ip, node.address.port, node.options)
         end
       end
 

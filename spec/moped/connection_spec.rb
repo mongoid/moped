@@ -107,6 +107,37 @@ describe Moped::Connection do
     end
   end
 
+  describe "#expire" do
+
+    let(:connection) do
+      described_class.new("127.0.0.1", 27017, 2)
+    end
+
+    before do
+      connection.lease
+      connection.expire
+    end
+
+    it "unsets the last_use time" do
+      expect(connection.last_use).to be_nil
+    end
+  end
+
+  describe "#lease" do
+
+    let(:connection) do
+      described_class.new("127.0.0.1", 27017, 2)
+    end
+
+    before do
+      connection.lease
+    end
+
+    it "sets the last_use time" do
+      expect(connection.last_use).to be_within(1).of(Time.now)
+    end
+  end
+
   pending "#read" do
 
   end

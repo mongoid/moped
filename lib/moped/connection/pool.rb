@@ -21,6 +21,31 @@ module Moped
       #   @return [ Hash ] The connection pool options.
       attr_reader :host, :port, :options
 
+      # Checkout a connection from the connection pool. If there exists a
+      # connection pinned to the current thread, then we return that first. If
+      # no connection is pinned, we will take an unpinned connection or create
+      # a new one if no unpinned exist and the pool is not saturated.
+      #
+      # @example Checkout a connection.
+      #   pool.checkout
+      #
+      # @return [ Connection ] A connection.
+      #
+      # @since 2.0.0
+      def checkout
+        mutex.synchronize do
+          conn = pinned[thread_id] ||= (unpinned.pop || create_connection)
+          conn.lease
+          conn
+        end
+      end
+
+      def checkin(connection)
+        mutex.synchronize do
+
+        end
+      end
+
       # Initialize the connection pool.
       #
       # @example Instantiate the connection pool.
@@ -33,6 +58,8 @@ module Moped
         @host = host
         @port = port
         @options = options
+        @mutex = Mutex.new
+        @resource = ConditionVariable.new
         @pinned = {}
         @unpinned = []
       end
@@ -49,6 +76,10 @@ module Moped
         @max_size ||= (options[:max_size] || MAX_SIZE)
       end
 
+      def size
+        unpinned.size + pinned.size
+      end
+
       # Get the timeout when attempting to check out items from the pool.
       #
       # @example Get the checkout timeout.
@@ -59,6 +90,18 @@ module Moped
       # @since 2.0.0
       def timeout
         @timeout ||= (options[:pool_timeout] || TIMEOUT)
+      end
+
+      private
+
+      attr_reader :mutex, :resource, :pinned, :unpinned
+
+      def create_connection
+        Connection.new(host, port, options[:timeout], options)
+      end
+
+      def thread_id
+        Thread.current.object_id
       end
     end
   end

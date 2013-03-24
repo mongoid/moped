@@ -6,16 +6,39 @@ describe Moped::Connection::Pool do
 
     context "when no connections exist in the pool" do
 
-      it "creates a new connection" do
-
+      let(:pool) do
+        described_class.new("127.0.0.1", 27017, max_size: 2)
       end
 
-      it "pins the connection to the thread" do
+      let!(:connection) do
+        pool.checkout
+      end
 
+      let(:pinned) do
+        pool.send(:pinned)
+      end
+
+      it "creates a new connection" do
+        expect(connection).to be_a(Moped::Connection)
+      end
+
+      it "sets the connection last use time" do
+        expect(connection.last_use).to be_within(1).of(Time.now)
+      end
+
+      it "pins the connection to the current thread" do
+        expect(pinned[Thread.current.object_id]).to be_a(Moped::Connection)
       end
 
       it "updates the checked out count" do
+        expect(pool.size).to eq(1)
+      end
 
+      context "when checking out more than once" do
+
+        it "returns the same connection each time" do
+          expect(connection).to equal(pool.checkout)
+        end
       end
     end
   end

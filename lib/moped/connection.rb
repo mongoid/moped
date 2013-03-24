@@ -18,7 +18,9 @@ module Moped
     #   @return [ String ] The port the connection connects on.
     # @!attribute timeout
     #   @return [ Integer ] The timeout in seconds.
-    attr_reader :host, :options, :port, :timeout
+    # @!attribute last_use
+    #   @return [ Time ] The time the connection was last checked out.
+    attr_reader :host, :options, :port, :timeout, :last_use
 
     # Is the connection alive?
     #
@@ -94,6 +96,14 @@ module Moped
       @options = options
       @sock = nil
       @request_id = 0
+    end
+
+    def expire
+      @last_use = nil
+    end
+
+    def lease
+      @last_use = Time.now
     end
 
     # Read from the connection.
