@@ -1,6 +1,6 @@
 require "spec_helper"
 
-describe Moped::IO::Connection do
+describe Moped::Connection do
 
   describe "#alive?" do
 

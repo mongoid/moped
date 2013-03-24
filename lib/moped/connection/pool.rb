@@ -1,6 +1,6 @@
 # encoding: utf-8
 module Moped
-  module IO
+  class Connection
 
     # This class contains behaviour of connection pools for specific addresses.
     #

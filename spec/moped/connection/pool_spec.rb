@@ -1,6 +1,6 @@
 require "spec_helper"
 
-describe Moped::IO::Pool do
+describe Moped::Connection::Pool do
 
   describe "#checkout" do
 

@@ -1,8 +1,8 @@
 require "openssl"
 
 module Moped
-  module IO
-    module Sockets
+  class Connection
+    module Socket
 
       # This is a wrapper around a tcp socket.
       class SSL < OpenSSL::SSL::SSLSocket

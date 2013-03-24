@@ -1,6 +1,6 @@
 module Moped
-  module IO
-    module Sockets
+  class Connection
+    module Socket
       module Connectable
 
         attr_reader :host, :port
@@ -153,9 +153,9 @@ module Moped
                 sock = new(host, port)
                 sock.set_encoding('binary')
                 timeout_val = [ timeout, 0 ].pack("l_2")
-                sock.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, 1)
-                sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_RCVTIMEO, timeout_val)
-                sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_SNDTIMEO, timeout_val)
+                sock.setsockopt(::Socket::IPPROTO_TCP, ::Socket::TCP_NODELAY, 1)
+                sock.setsockopt(::Socket::SOL_SOCKET, ::Socket::SO_RCVTIMEO, timeout_val)
+                sock.setsockopt(::Socket::SOL_SOCKET, ::Socket::SO_SNDTIMEO, timeout_val)
                 sock
               end
             rescue Timeout::Error

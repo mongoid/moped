@@ -1,6 +1,6 @@
 require "spec_helper"
 
-describe Moped::IO::Manager do
+describe Moped::Connection::Manager do
 
   describe ".pool" do
 
@@ -15,7 +15,7 @@ describe Moped::IO::Manager do
       end
 
       it "returns the connection pool for the node" do
-        expect(pool).to be_a(Moped::IO::Pool)
+        expect(pool).to be_a(Moped::Connection::Pool)
       end
     end
 
