@@ -1,11 +1,11 @@
 require "spec_helper"
 
-describe Moped::IO::Provider do
+describe Moped::IO::Manager do
 
   describe ".pool" do
 
     let(:node) do
-      Moped::Node.new("127.0.0.1:27017")
+      Moped::Node.new("127.0.0.1:27017", timeout: 5)
     end
 
     context "when accessing from a single thread" do
@@ -15,7 +15,7 @@ describe Moped::IO::Provider do
       end
 
       it "returns the connection pool for the node" do
-        expect(pool).to be_a(Moped::IO::ConnectionPool)
+        expect(pool).to be_a(Moped::IO::Pool)
       end
     end
 
@@ -25,12 +25,17 @@ describe Moped::IO::Provider do
         described_class.pool(node)
       end
 
+      let(:threads) do
+        []
+      end
+
       it "always returns the same pool" do
-        100.times.map do
-          Thread.new do
+        10.times.map do
+          threads << Thread.new do
             expect(described_class.pool(node)).to equal(pool)
           end
-        end.each(&:join)
+        end
+        threads.each(&:value)
       end
     end
   end

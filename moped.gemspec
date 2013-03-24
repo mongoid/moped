@@ -14,7 +14,6 @@ Gem::Specification.new do |s|
   s.summary     = "A MongoDB driver for Ruby."
   s.description = s.summary
 
-  s.add_dependency("thread_safe", ["~> 0.1.0"])
   s.files = Dir.glob("lib/**/*") + %w(CHANGELOG.md LICENSE README.md)
   s.require_path = "lib"
 end

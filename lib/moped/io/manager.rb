@@ -2,11 +2,10 @@
 module Moped
   module IO
 
-    # This class provides thread safe access to multiple connection pools,
-    # one per resolved address or node.
+    # This class contains behaviour of connection pools for specific addresses.
     #
     # @since 2.0.0
-    module Provider
+    module Manager
       extend self
 
       # Used for synchronization of pools access.
@@ -15,17 +14,17 @@ module Moped
       # Get a connection pool for the provided node.
       #
       # @example Get a connection pool for the node.
-      #   Provider.pool(node)
+      #   Manager.pool(node)
       #
       # @param [ Node ] The node.
       #
-      # @return [ ConnectionPool ] The connection pool for the Node.
+      # @return [ Pool ] The connection pool for the Node.
       #
       # @since 2.0.0
       def pool(node)
         MUTEX.synchronize do
           pools[node.address.resolved] ||=
-            ConnectionPool.new(node.address.host, node.address.port)
+            Pool.new(node.address.host, node.address.port, node.options)
         end
       end
 
@@ -37,9 +36,9 @@ module Moped
       # @api private
       #
       # @example Get the pools.
-      #   Provider.pools
+      #   Manager.pools
       #
-      # @return [ ThreadSafe::Cache ] The cache of pools.
+      # @return [ Hash ] The cache of pools.
       #
       # @since 2.0.0
       def pools
