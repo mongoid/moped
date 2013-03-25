@@ -19,3 +19,7 @@ require "moped/session"
 require "moped/session/context"
 require "moped/threaded"
 require "moped/version"
+
+module Moped
+  MONGODB_VERSION = "2.2"
+end
