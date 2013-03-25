@@ -2,6 +2,84 @@ require "spec_helper"
 
 describe Moped::Connection::Pool do
 
+  describe "#checkin" do
+
+    context "when no connections exist in the pool" do
+
+      let(:pool) do
+        described_class.new("127.0.0.1", 27017, max_size: 2)
+      end
+
+      let(:connection) do
+        Moped::Connection.new("127.0.0.1", 27017, 5)
+      end
+
+      before do
+        connection.lease
+        pool.checkin(connection)
+      end
+
+      let(:pinned) do
+        pool.send(:pinned)
+      end
+
+      it "adds the connection to the pool" do
+        expect(pinned[Thread.current.object_id]).to equal(connection)
+      end
+
+      it "expires the connection" do
+        expect(connection).to be_expired
+      end
+
+      it "updates the pool size" do
+        expect(pool.size).to eq(1)
+      end
+    end
+
+    context "when connections exist in the pool" do
+
+      let(:pool) do
+        described_class.new("127.0.0.1", 27017, max_size: 2)
+      end
+
+      let(:connection) do
+        Moped::Connection.new("127.0.0.1", 27017, 5)
+      end
+
+      let(:pinned) do
+        pool.send(:pinned)
+      end
+
+      let(:unpinned) do
+        pool.send(:unpinned)
+      end
+
+      context "when a pinned connection exists for the thread" do
+
+        before do
+          pool.checkin(connection)
+          pool.checkin(connection)
+        end
+
+        it "keeps the connection pinned" do
+          expect(pinned[Thread.current.object_id]).to equal(connection)
+        end
+
+        it "does not modify the unpinned connections" do
+          expect(unpinned).to be_empty
+        end
+
+        it "expires the connection" do
+          expect(connection).to be_expired
+        end
+
+        it "keeps the pool size" do
+          expect(pool.size).to eq(1)
+        end
+      end
+    end
+  end
+
   describe "#checkout" do
 
     context "when no connections exist in the pool" do
@@ -33,47 +111,55 @@ describe Moped::Connection::Pool do
       it "updates the pool size" do
         expect(pool.size).to eq(1)
       end
+    end
 
-      context "when checking out more than once" do
+    context "when connections exist in the pool" do
 
-        it "returns the same connection each time" do
-          expect(connection).to equal(pool.checkout)
+      context "when a connection exists for the thread id" do
+
+        context "when the connection is not in use" do
+
+        end
+
+        context "when the connection is in use" do
+
+          context "when the connection is not expired in the wait time" do
+
+            pending "it raises an error"
+          end
+
+          context "when the connection is expired in the wait time" do
+
+            pending "it returns the connection"
+          end
         end
       end
-    end
-  end
 
-  describe "#checkin" do
+      context "when a connection exists for another thread id" do
 
-    context "when no connections exist in the pool" do
+        context "when the pool is not saturated" do
 
-      let(:pool) do
-        described_class.new("127.0.0.1", 27017, max_size: 2)
-      end
+          pending "returns a new connection"
+          pending "pins the connection to the current thread"
+          pending "leases the connection"
+          pending "updates the pool size"
+        end
 
-      let(:connection) do
-        Moped::Connection.new("127.0.0.1", 27017, 5)
-      end
+        context "when the pool is saturated" do
 
-      before do
-        connection.lease
-        pool.checkin(connection)
-      end
+          context "when reaping frees new connections" do
 
-      let(:unpinned) do
-        pool.send(:unpinned)
-      end
+            pending "returns a new connection"
+            pending "pins the connection to the current thread"
+            pending "leases the connection"
+            pending "updates the pool size"
+          end
 
-      it "adds the connection to the pool" do
-        expect(unpinned.first).to equal(connection)
-      end
+          context "when reaping does not free any new connections" do
 
-      it "expires the connection" do
-        expect(connection.last_use).to be_nil
-      end
-
-      it "updates the pool size" do
-        expect(pool.size).to eq(1)
+            pending "raises an error"
+          end
+        end
       end
     end
   end

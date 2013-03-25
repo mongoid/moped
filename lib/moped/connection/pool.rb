@@ -33,18 +33,23 @@ module Moped
       #
       # @since 2.0.0
       def checkout
-        mutex.synchronize do
-          conn = pinned[thread_id] ||= (unpinned.pop || create_connection)
-          conn.lease
-          conn
-        end
+        conn = pinned[thread_id] ||= (unpinned.pop || create_connection)
+        conn.lease
+        conn
       end
 
+      # Checkin the connection, indicating that it is finished being used. The
+      # connection will stay pinned to the current thread.
+      #
+      # @example Checkin the connection.
+      #   pool.checkin(connection)
+      #
+      # @param [ Connection ] connection The connection to checkin.
+      #
+      # @since 2.0.0
       def checkin(connection)
-        mutex.synchronize do
-          connection.expire
-          unpinned.push(connection)
-        end
+        connection.expire
+        pinned[thread_id] = connection
       end
 
       # Initialize the connection pool.
@@ -93,12 +98,21 @@ module Moped
         @timeout ||= (options[:pool_timeout] || TIMEOUT)
       end
 
+      def with_connection
+        begin
+          connection = checkout
+          yield(connection)
+        ensure
+          checkin(connection)
+        end
+      end
+
       private
 
       attr_reader :mutex, :resource, :pinned, :unpinned
 
       def create_connection
-        Connection.new(host, port, options[:timeout], options)
+        Connection.new(host, port, options[:timeout] || 5, options)
       end
 
       def thread_id
