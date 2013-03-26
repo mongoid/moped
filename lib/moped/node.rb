@@ -269,7 +269,7 @@ module Moped
     #
     # @since 1.0.0
     def needs_refresh?(time)
-      !@refreshed_at || @refreshed_at < time
+      first_refresh? || @refreshed_at < time
     end
 
     # Execute a pipeline of commands, for example a safe mode persist.
@@ -382,7 +382,7 @@ module Moped
     def refresh
       if resolve_address
         begin
-          check_mongodb_version!
+          check_mongodb_version! if first_refresh?
           info = command("admin", ismaster: 1)
           @refreshed_at = Time.now
           primary = true   if info["ismaster"]
@@ -467,6 +467,10 @@ module Moped
     end
 
     private
+
+    def first_refresh?
+      !@refreshed_at
+    end
 
     def auth
       @auth ||= {}
