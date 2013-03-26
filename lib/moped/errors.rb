@@ -5,6 +5,14 @@ module Moped
     # source of information on error codes.
     ERROR_REFERENCE = "https://github.com/mongodb/mongo/blob/master/docs/errors.md"
 
+    # Raised when the connection pool is saturated and no new connection is
+    # reaped during the wait time.
+    class PoolSaturated < RuntimeError; end
+
+    # Raised when attempting to checkout a pinned connection from the pool but
+    # it is already in use by another object on the same thread.
+    class PoolTimeout < RuntimeError; end
+
     # Generic error class for exceptions related to connection failures.
     class ConnectionFailure < StandardError; end
 

@@ -33,9 +33,21 @@ module Moped
       #
       # @since 2.0.0
       def checkout
-        conn = pinned[thread_id] ||= (unpinned.pop || create_connection)
-        conn.lease
-        conn
+        mutex.synchronize do
+          conn = pinned[thread_id]
+          if conn
+            unless conn.expired?
+              wait_for_checkin(Time.now + timeout)
+            else
+              conn.lease
+              conn
+            end
+          else
+            conn = pinned[thread_id] = (unpinned.pop || create_connection)
+            conn.lease
+            conn
+          end
+        end
       end
 
       # Checkin the connection, indicating that it is finished being used. The
@@ -48,8 +60,10 @@ module Moped
       #
       # @since 2.0.0
       def checkin(connection)
-        connection.expire
-        pinned[thread_id] = connection
+        mutex.synchronize do
+          connection.expire
+          pinned[thread_id] = connection
+        end
       end
 
       # Initialize the connection pool.
@@ -117,6 +131,16 @@ module Moped
 
       def thread_id
         Thread.current.object_id
+      end
+
+      def wait_for_checkin(deadline)
+        loop do
+          conn = pinned[thread_id]
+          return conn if conn.expired?
+          wait = deadline - Time.now
+          raise Errors::PoolTimeout, "Waited #{timeout} sec" if wait <= 0
+          resource.wait(mutex, wait)
+        end
       end
     end
   end

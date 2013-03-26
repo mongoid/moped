@@ -115,17 +115,36 @@ describe Moped::Connection::Pool do
 
     context "when connections exist in the pool" do
 
+      let(:pool) do
+        described_class.new("127.0.0.1", 27017, max_size: 2)
+      end
+
       context "when a connection exists for the thread id" do
+
+        let!(:existing) do
+          pool.checkout
+        end
 
         context "when the connection is not in use" do
 
+          before do
+            pool.checkin(existing)
+          end
+
+          it "returns the connection" do
+            expect(pool.checkout).to equal(existing)
+          end
         end
 
         context "when the connection is in use" do
 
           context "when the connection is not expired in the wait time" do
 
-            pending "it raises an error"
+            it "raises an error" do
+              expect {
+                pool.checkout
+              }.to raise_error(Moped::Errors::PoolTimeout)
+            end
           end
 
           context "when the connection is expired in the wait time" do
