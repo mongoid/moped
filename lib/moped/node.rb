@@ -269,7 +269,7 @@ module Moped
     #
     # @since 1.0.0
     def needs_refresh?(time)
-      !@refreshed_at || @refreshed_at < time
+      first_refresh? || @refreshed_at < time
     end
 
     # Execute a pipeline of commands, for example a safe mode persist.
@@ -382,6 +382,7 @@ module Moped
     def refresh
       if resolve_address
         begin
+          check_mongodb_version! if first_refresh?
           info = command("admin", ismaster: 1)
           @refreshed_at = Time.now
           primary = true   if info["ismaster"]
@@ -467,6 +468,10 @@ module Moped
 
     private
 
+    def first_refresh?
+      !@refreshed_at
+    end
+
     def auth
       @auth ||= {}
     end
@@ -500,8 +505,6 @@ module Moped
 
       auth.delete(database)
     end
-
-    private
 
     def generate_peers(info)
       peers = []
@@ -622,6 +625,11 @@ module Moped
       @port = (port || 27017).to_i
       @ip_address = ::Socket.getaddrinfo(host, nil, ::Socket::AF_INET, ::Socket::SOCK_STREAM).first[3]
       @resolved_address = "#{@ip_address}:#{@port}"
+    end
+
+    def check_mongodb_version!
+      version = command("admin", buildinfo: 1)["version"]
+      raise Errors::UnsupportedVersion.new("MongoDB server version should be greater than #{Moped::MONGODB_VERSION}, your current version is #{version}", {}) if version < Moped::MONGODB_VERSION
     end
   end
 end
