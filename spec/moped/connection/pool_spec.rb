@@ -138,18 +138,10 @@ describe Moped::Connection::Pool do
 
         context "when the connection is in use" do
 
-          context "when the connection is not expired in the wait time" do
-
-            it "raises an error" do
-              expect {
-                pool.checkout
-              }.to raise_error(Moped::Errors::PoolTimeout)
-            end
-          end
-
-          context "when the connection is expired in the wait time" do
-
-            pending "it returns the connection"
+          it "raises an error" do
+            expect {
+              pool.checkout
+            }.to raise_error(Moped::Errors::ConnectionInUse)
           end
         end
       end

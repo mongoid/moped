@@ -37,7 +37,7 @@ module Moped
           conn = pinned[thread_id]
           if conn
             unless conn.expired?
-              wait_for_checkin(Time.now + timeout)
+              raise Errors::ConnectionInUse, "The connection on #{thread_id} is in use."
             else
               conn.lease
               conn
@@ -96,6 +96,15 @@ module Moped
         @max_size ||= (options[:max_size] || MAX_SIZE)
       end
 
+      # Get the current size of the connection pool. Is the total of pinned
+      # plus unpinned connections.
+      #
+      # @example Get the pool's current size.
+      #   pool.size
+      #
+      # @return [ Integer ] The current size of the pool.
+      #
+      # @since 2.0.0
       def size
         unpinned.size + pinned.size
       end
@@ -112,15 +121,6 @@ module Moped
         @timeout ||= (options[:pool_timeout] || TIMEOUT)
       end
 
-      def with_connection
-        begin
-          connection = checkout
-          yield(connection)
-        ensure
-          checkin(connection)
-        end
-      end
-
       private
 
       attr_reader :mutex, :resource, :pinned, :unpinned
@@ -131,16 +131,6 @@ module Moped
 
       def thread_id
         Thread.current.object_id
-      end
-
-      def wait_for_checkin(deadline)
-        loop do
-          conn = pinned[thread_id]
-          return conn if conn.expired?
-          wait = deadline - Time.now
-          raise Errors::PoolTimeout, "Waited #{timeout} sec" if wait <= 0
-          resource.wait(mutex, wait)
-        end
       end
     end
   end

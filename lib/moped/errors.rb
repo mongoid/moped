@@ -9,6 +9,10 @@ module Moped
     # reaped during the wait time.
     class PoolSaturated < RuntimeError; end
 
+    # Raised when attempting to checkout a connection on a thread that already
+    # has a connection checked out.
+    class ConnectionInUse < RuntimeError; end
+
     # Raised when attempting to checkout a pinned connection from the pool but
     # it is already in use by another object on the same thread.
     class PoolTimeout < RuntimeError; end
