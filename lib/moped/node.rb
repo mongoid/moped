@@ -25,7 +25,9 @@ module Moped
     #   @return [ Integer ] The latency in milliseconds.
     # @!attribute options
     #   @return [ Hash ] The node options.
-    attr_reader :address, :down_at, :latency, :options
+    # @!attribute refreshed_at
+    #   @return [ Time ] The last time the node did a refresh.
+    attr_reader :address, :down_at, :latency, :options, :refreshed_at
 
     # Is this node equal to another?
     #
@@ -303,7 +305,7 @@ module Moped
     #
     # @since 1.0.0
     def needs_refresh?(time)
-      !@refreshed_at || @refreshed_at < time
+      !refreshed_at || refreshed_at < time
     end
 
     # Is the node passive?
@@ -419,8 +421,8 @@ module Moped
     def refresh
       if address.resolve(self)
         begin
-          configure(command("admin", ismaster: 1))
           @refreshed_at = Time.now
+          configure(command("admin", ismaster: 1))
           if !primary? && executing?(:ensure_primary)
             raise Errors::ReplicaSetReconfigured.new("#{inspect} is no longer the primary node.", {})
           elsif !messagable?

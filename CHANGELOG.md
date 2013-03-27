@@ -34,6 +34,13 @@
 
     The `:safe` option is no longer valid and will be ignored.
 
+## 1.4.5
+
+### Resolved Issues
+
+* \#173 Ensure node `refreshed_at` is set even if the node is down, so down nodes
+  don't get hit on every query.
+
 ## 1.4.4
 
 ### Resolved Issues
