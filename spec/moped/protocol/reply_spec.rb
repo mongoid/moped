@@ -316,6 +316,24 @@ describe Moped::Protocol::Reply do
       end
     end
 
+    context "when the error message says unauthorized" do
+      let(:error) do
+        { "ok" => 0, "err" => "unauthorized", "assertionCode" => 2004 }
+      end
+
+      let(:reply) do
+        described_class.new
+      end
+
+      before do
+        reply.documents = [ error ]
+      end
+
+      it "returns true" do
+        reply.should be_unauthorized
+      end
+    end
+
     context "when no auth errors exist" do
 
       let(:error) do
