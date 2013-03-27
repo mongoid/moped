@@ -4,6 +4,9 @@
 
 ### Resolved Issues
 
+* \#174 Check for "unauthorized" in error messages since codes are not always
+  there. (Jon Hyman)
+
 * \#173 Ensure node `refreshed_at` is set even if the node is down, so down nodes
   don't get hit on every query.
 

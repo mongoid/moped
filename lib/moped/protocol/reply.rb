@@ -68,7 +68,7 @@ module Moped
       # @since 1.2.10
       def command_failure?
         result = documents[0]
-        result["ok"] != 1 || result["err"] || result["errmsg"] || result["$err"]
+        result["ok"] != 1 || error_message(result)
       end
 
       # Was the provided cursor id not found on the server?
@@ -111,9 +111,10 @@ module Moped
       def unauthorized?
         result = documents[0]
         return false if result.nil?
-
-        err = result["err"] || result["errmsg"] || result["$err"]
-        UNAUTHORIZED.include?(result["code"]) || UNAUTHORIZED.include?(result["assertionCode"]) || (err && err =~ /unauthorized/)
+        err = error_message(result)
+        UNAUTHORIZED.include?(result["code"]) ||
+          UNAUTHORIZED.include?(result["assertionCode"]) ||
+          (err && err =~ /unauthorized/)
       end
 
       class << self
@@ -142,12 +143,14 @@ module Moped
 
       def deserialize_documents(buffer)
         documents = []
-
         count.times do
           documents << BSON::Document.deserialize(buffer)
         end
-
         @documents = documents
+      end
+
+      def error_message(result)
+        result["err"] || result["errmsg"] || result["$err"]
       end
 
     end
