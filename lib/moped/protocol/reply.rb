@@ -93,7 +93,7 @@ module Moped
       # @since 2.0.0
       def error?
         result = documents.first
-        result && (result["err"] || result["errmsg"] || result["$err"])
+        result && error_message(result)
       end
 
       # Did the query fail on the server?
@@ -123,9 +123,10 @@ module Moped
       def unauthorized?
         result = documents[0]
         return false if result.nil?
-
-        err = result["err"] || result["errmsg"] || result["$err"]
-        UNAUTHORIZED.include?(result["code"]) || UNAUTHORIZED.include?(result["assertionCode"]) || (err && err =~ /unauthorized/)
+        err = error_message(result)
+        UNAUTHORIZED.include?(result["code"]) ||
+          UNAUTHORIZED.include?(result["assertionCode"]) ||
+          (err && err =~ /unauthorized/)
       end
 
       class << self
@@ -158,6 +159,10 @@ module Moped
           documents << BSON::Document.deserialize(buffer)
         end
         @documents = documents
+      end
+
+      def error_message(result)
+        result["err"] || result["errmsg"] || result["$err"]
       end
     end
   end
