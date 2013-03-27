@@ -225,6 +225,22 @@ describe Moped::Node, replica_set: true do
 
   describe "#refresh" do
 
+    context "when the ismaster command fails" do
+
+      let(:node) do
+        described_class.new("127.0.0.1:27017")
+      end
+
+      before do
+        node.should_receive(:command).with("admin", ismaster: 1).and_raise(Timeout::Error)
+        node.refresh
+      end
+
+      it "still sets the refresh time" do
+        expect(node.refreshed_at).to_not be_nil
+      end
+    end
+
     context "when the node has authentication details" do
 
       let(:node) do

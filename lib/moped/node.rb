@@ -13,7 +13,16 @@ module Moped
     # @attribute [r] resolved_address The host/port pair.
     # @attribute [r] timeout The connection timeout.
     # @attribute [r] options Additional options for the node (ssl).
-    attr_reader :address, :down_at, :ip_address, :peers, :port, :resolved_address, :timeout, :options
+    attr_reader \
+      :address,
+      :down_at,
+      :ip_address,
+      :peers,
+      :port,
+      :resolved_address,
+      :timeout,
+      :options,
+      :refreshed_at
 
     # Is this node equal to another?
     #
@@ -269,7 +278,7 @@ module Moped
     #
     # @since 1.0.0
     def needs_refresh?(time)
-      !@refreshed_at || @refreshed_at < time
+      !refreshed_at || refreshed_at < time
     end
 
     # Execute a pipeline of commands, for example a safe mode persist.
@@ -382,8 +391,8 @@ module Moped
     def refresh
       if resolve_address
         begin
-          info = command("admin", ismaster: 1)
           @refreshed_at = Time.now
+          info = command("admin", ismaster: 1)
           primary = true   if info["ismaster"]
           secondary = true if info["secondary"]
           generate_peers(info)
