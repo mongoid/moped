@@ -2,6 +2,8 @@
 
 ## 2.0.0
 
+### API Changes (Backwards Incompatible)
+
 * \#133 Moped now supports the new read preferences that the core drivers
   provide. These include:
 
