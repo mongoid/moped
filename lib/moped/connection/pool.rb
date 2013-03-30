@@ -39,13 +39,11 @@ module Moped
             unless conn.expired?
               raise Errors::ConnectionInUse, "The connection on #{thread_id} is in use."
             else
-              conn.lease
-              conn
+              lease(conn)
             end
           else
             conn = pinned[thread_id] = (unpinned.pop || create_connection)
-            conn.lease
-            conn
+            lease(conn)
           end
         end
       end
@@ -127,6 +125,11 @@ module Moped
 
       def create_connection
         Connection.new(host, port, options[:timeout] || 5, options)
+      end
+
+      def lease(connection)
+        connection.lease
+        connection
       end
 
       def thread_id
