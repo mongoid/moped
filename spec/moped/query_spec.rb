@@ -109,11 +109,11 @@ describe Moped::Query do
     end
 
     let(:one) do
-      Moped::BSON::ObjectId.new
+      BSON::ObjectId.new
     end
 
     let(:two) do
-      Moped::BSON::ObjectId.new
+      BSON::ObjectId.new
     end
 
     let(:doc_one) do
@@ -268,7 +268,7 @@ describe Moped::Query do
 
         let(:result) do
           users.
-            find(_id: Moped::BSON::ObjectId.new).
+            find(_id: BSON::ObjectId.new).
             modify("$set" => { name: "Underworld" })
         end
 
@@ -291,8 +291,8 @@ describe Moped::Query do
 
     let(:documents) do
       [
-        { "_id" => Moped::BSON::ObjectId.new, "scope" => scope },
-        { "_id" => Moped::BSON::ObjectId.new, "scope" => scope }
+        { "_id" => BSON::ObjectId.new, "scope" => scope },
+        { "_id" => BSON::ObjectId.new, "scope" => scope }
       ]
     end
 
@@ -328,8 +328,8 @@ describe Moped::Query do
 
       let(:documents) do
         [
-          { "_id" => Moped::BSON::ObjectId.new, "scope" => scope, "n" => 0 },
-          { "_id" => Moped::BSON::ObjectId.new, "scope" => scope, "n" => 1 }
+          { "_id" => BSON::ObjectId.new, "scope" => scope, "n" => 0 },
+          { "_id" => BSON::ObjectId.new, "scope" => scope, "n" => 1 }
         ]
       end
 
@@ -346,8 +346,8 @@ describe Moped::Query do
 
       let(:documents) do
         [
-          { "_id" => Moped::BSON::ObjectId.new, "scope" => scope, "n" => 0 },
-          { "_id" => Moped::BSON::ObjectId.new, "scope" => scope, "n" => 1 }
+          { "_id" => BSON::ObjectId.new, "scope" => scope, "n" => 0 },
+          { "_id" => BSON::ObjectId.new, "scope" => scope, "n" => 1 }
         ]
       end
 
@@ -369,11 +369,11 @@ describe Moped::Query do
     describe "#max_scan" do
 
       let(:document1) do
-        { "_id" => Moped::BSON::ObjectId.new, "scope" => scope, "n" => 0 }
+        { "_id" => BSON::ObjectId.new, "scope" => scope, "n" => 0 }
       end
 
       let(:document2) do
-        { "_id" => Moped::BSON::ObjectId.new, "scope" => scope, "n" => 1 }
+        { "_id" => BSON::ObjectId.new, "scope" => scope, "n" => 1 }
       end
 
       let(:documents) do
@@ -691,9 +691,9 @@ describe Moped::Query do
 
       let(:documents) do
         [
-          { "_id" => Moped::BSON::ObjectId.new, "scope" => scope },
-          { "_id" => Moped::BSON::ObjectId.new, "scope" => scope },
-          { "_id" => Moped::BSON::ObjectId.new }
+          { "_id" => BSON::ObjectId.new, "scope" => scope },
+          { "_id" => BSON::ObjectId.new, "scope" => scope },
+          { "_id" => BSON::ObjectId.new }
         ]
       end
 

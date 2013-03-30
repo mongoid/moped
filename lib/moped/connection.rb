@@ -170,7 +170,7 @@ module Moped
           sock_read = read_data(socket, reply.length - 36)
           buffer = StringIO.new(sock_read)
           reply.documents = reply.count.times.map do
-            BSON::Document.deserialize(buffer)
+            BSON::Document.from_bson(buffer)
           end
         end
         reply

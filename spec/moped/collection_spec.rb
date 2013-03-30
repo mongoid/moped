@@ -94,15 +94,15 @@ describe Moped::Collection do
   describe "#insert" do
 
     it "inserts a single document" do
-      document = { "_id" => Moped::BSON::ObjectId.new, "scope" => scope }
+      document = { "_id" => BSON::ObjectId.new, "scope" => scope }
       session[:users].insert(document)
       session[:users].find(document).one.should eq document
     end
 
     it "insert multiple documents" do
       documents = [
-        { "_id" => Moped::BSON::ObjectId.new, "scope" => scope },
-        { "_id" => Moped::BSON::ObjectId.new, "scope" => scope }
+        { "_id" => BSON::ObjectId.new, "scope" => scope },
+        { "_id" => BSON::ObjectId.new, "scope" => scope }
       ]
 
       session[:users].insert(documents)
@@ -112,14 +112,14 @@ describe Moped::Collection do
     context "when continuing on error" do
 
       let(:bson_id) do
-        Moped::BSON::ObjectId.new
+        BSON::ObjectId.new
       end
 
       let(:documents) do
         documents = [
           { "_id" => bson_id, "scope" => scope },
           { "_id" => bson_id, "scope" => scope },
-          { "_id" => Moped::BSON::ObjectId.new, "scope" => scope }
+          { "_id" => BSON::ObjectId.new, "scope" => scope }
         ]
       end
 

@@ -28,8 +28,8 @@ describe Moped::Protocol::Reply do
       data = [1, 1, 1, 3, 291029, 10, 2].pack('V4QV2')
 
       # add a returned document
-      data << Moped::BSON::Document.serialize({"a" => "b"})
-      data << Moped::BSON::Document.serialize({"a" => "b"})
+      data << {"a" => "b"}.to_bson
+      data << {"a" => "b"}.to_bson
 
       # finally write the length
       data = [data.length + 4].pack('V') + data
