@@ -82,6 +82,21 @@ describe Moped::Connection::Pool do
 
   describe "#checkout" do
 
+    shared_examples_for "a pool with an available connection on the current thread" do
+
+      it "creates a new connection" do
+        expect(connection).to be_a(Moped::Connection)
+      end
+
+      it "sets the connection last use time" do
+        expect(connection.last_use).to be_within(1).of(Time.now)
+      end
+
+      it "pins the connection to the current thread" do
+        expect(pinned[Thread.current.object_id]).to be_a(Moped::Connection)
+      end
+    end
+
     context "when no connections exist in the pool" do
 
       let(:pool) do
@@ -96,17 +111,7 @@ describe Moped::Connection::Pool do
         pool.send(:pinned)
       end
 
-      it "creates a new connection" do
-        expect(connection).to be_a(Moped::Connection)
-      end
-
-      it "sets the connection last use time" do
-        expect(connection.last_use).to be_within(1).of(Time.now)
-      end
-
-      it "pins the connection to the current thread" do
-        expect(pinned[Thread.current.object_id]).to be_a(Moped::Connection)
-      end
+      it_behaves_like "a pool with an available connection on the current thread"
 
       it "updates the pool size" do
         expect(pool.size).to eq(1)
@@ -148,12 +153,27 @@ describe Moped::Connection::Pool do
 
       context "when a connection exists for another thread id" do
 
+        let(:pinned) do
+          pool.send(:pinned)
+        end
+
         context "when the pool is not saturated" do
 
-          pending "returns a new connection"
-          pending "pins the connection to the current thread"
-          pending "leases the connection"
-          pending "updates the pool size"
+          before do
+            Thread.new do
+              pool.checkout
+            end.join
+          end
+
+          let!(:connection) do
+            pool.checkout
+          end
+
+          it_behaves_like "a pool with an available connection on the current thread"
+
+          it "updates the pool size" do
+            expect(pool.size).to eq(2)
+          end
         end
 
         context "when the pool is saturated" do
