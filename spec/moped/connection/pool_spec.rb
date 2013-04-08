@@ -84,6 +84,10 @@ describe Moped::Connection::Pool do
 
     shared_examples_for "a pool with an available connection on the current thread" do
 
+      let(:pinned) do
+        pool.send(:pinned)
+      end
+
       it "creates a new connection" do
         expect(connection).to be_a(Moped::Connection)
       end
@@ -105,10 +109,6 @@ describe Moped::Connection::Pool do
 
       let!(:connection) do
         pool.checkout
-      end
-
-      let(:pinned) do
-        pool.send(:pinned)
       end
 
       it_behaves_like "a pool with an available connection on the current thread"
@@ -153,10 +153,6 @@ describe Moped::Connection::Pool do
 
       context "when a connection exists for another thread id" do
 
-        let(:pinned) do
-          pool.send(:pinned)
-        end
-
         context "when the pool is not saturated" do
 
           before do
@@ -178,12 +174,34 @@ describe Moped::Connection::Pool do
 
         context "when the pool is saturated" do
 
-          context "when reaping frees new connections" do
+          let!(:thread_one) do
+            Thread.new do
+              pool.checkout
+            end
+          end
 
-            pending "returns a new connection"
-            pending "pins the connection to the current thread"
-            pending "leases the connection"
-            pending "updates the pool size"
+          let!(:thread_two) do
+            Thread.new do
+              pool.checkout
+            end
+          end
+
+          pending "when reaping frees new connections" do
+
+            before do
+              thread_one.join
+              thread_two.join
+            end
+
+            let!(:connection) do
+              pool.checkout
+            end
+
+            it_behaves_like "a pool with an available connection on the current thread"
+
+            it "updates the pool size" do
+              expect(pool.size).to eq(1)
+            end
           end
 
           context "when reaping does not free any new connections" do

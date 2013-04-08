@@ -42,7 +42,7 @@ module Moped
               lease(conn)
             end
           else
-            conn = pinned[thread_id] = (unpinned.pop || create_connection)
+            conn = pinned[thread_id] = next_connection
             lease(conn)
           end
         end
@@ -59,8 +59,7 @@ module Moped
       # @since 2.0.0
       def checkin(connection)
         mutex.synchronize do
-          connection.expire
-          pinned[thread_id] = connection
+          expire(connection)
         end
       end
 
@@ -127,13 +126,46 @@ module Moped
         Connection.new(host, port, options[:timeout] || 5, options)
       end
 
+      def create_or_wait!
+        if saturated?
+          reap_pinned
+          # Wait for a connection to be checked in.
+        else
+          create_connection
+        end
+      end
+
+      def expire(connection)
+        connection.expire
+        pinned[thread_id] = connection
+      end
+
       def lease(connection)
         connection.lease
         connection
       end
 
+      def next_connection
+        unpinned.pop || create_or_wait!
+      end
+
+      def reap_pinned
+        ids = active_thread_ids
+        pinned.each do |id, conn|
+          conn.expire unless ids.include?(id)
+        end
+      end
+
+      def saturated?
+        size == max_size
+      end
+
       def thread_id
         Thread.current.object_id
+      end
+
+      def active_thread_ids
+        Thread.list.select{ |thread| thread.alive? }.map{ |thread| thread.object_id }
       end
     end
   end
