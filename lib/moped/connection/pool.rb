@@ -34,16 +34,16 @@ module Moped
       # @since 2.0.0
       def checkout
         mutex.synchronize do
-          conn = pinned[thread_id]
-          if conn
-            unless conn.expired?
+          connection = pinned[thread_id]
+          if connection
+            unless connection.expired?
               raise Errors::ConnectionInUse, "The connection on #{thread_id} is in use."
             else
-              lease(conn)
+              lease(connection)
             end
           else
-            conn = pinned[thread_id] = next_connection
-            lease(conn)
+            connection = pinned[thread_id] = next_connection
+            lease(connection)
           end
         end
       end
@@ -78,7 +78,9 @@ module Moped
         @mutex = Mutex.new
         @resource = ConditionVariable.new
         @pinned = {}
-        @unpinned = []
+        @unpinned = Queue.new(max_size) do
+          Connection.new(host, port, options[:timeout] || 5, options)
+        end
       end
 
       # Get the max size for the connection pool.
@@ -122,19 +124,6 @@ module Moped
 
       attr_reader :mutex, :resource, :pinned, :unpinned
 
-      def create_connection
-        Connection.new(host, port, options[:timeout] || 5, options)
-      end
-
-      def create_or_wait!
-        if saturated?
-          reap_pinned
-          # Wait for a connection to be checked in.
-        else
-          create_connection
-        end
-      end
-
       def expire(connection)
         connection.expire
         pinned[thread_id] = connection
@@ -146,13 +135,16 @@ module Moped
       end
 
       def next_connection
-        unpinned.pop || create_or_wait!
+        reap! if saturated?
+        unpinned.pop(timeout)
       end
 
-      def reap_pinned
-        ids = active_thread_ids
+      def reap!(ids = active_threads)
         pinned.each do |id, conn|
-          conn.expire unless ids.include?(id)
+          unless ids.include?(id)
+            conn.expire
+            unpinned.push(pinned.delete(id))
+          end
         end
       end
 
@@ -164,7 +156,7 @@ module Moped
         Thread.current.object_id
       end
 
-      def active_thread_ids
+      def active_threads
         Thread.list.select{ |thread| thread.alive? }.map{ |thread| thread.object_id }
       end
     end

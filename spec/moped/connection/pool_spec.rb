@@ -4,46 +4,10 @@ describe Moped::Connection::Pool do
 
   describe "#checkin" do
 
-    context "when no connections exist in the pool" do
-
-      let(:pool) do
-        described_class.new("127.0.0.1", 27017, max_size: 2)
-      end
-
-      let(:connection) do
-        Moped::Connection.new("127.0.0.1", 27017, 5)
-      end
-
-      before do
-        connection.lease
-        pool.checkin(connection)
-      end
-
-      let(:pinned) do
-        pool.send(:pinned)
-      end
-
-      it "adds the connection to the pool" do
-        expect(pinned[Thread.current.object_id]).to equal(connection)
-      end
-
-      it "expires the connection" do
-        expect(connection).to be_expired
-      end
-
-      it "updates the pool size" do
-        expect(pool.size).to eq(1)
-      end
-    end
-
     context "when connections exist in the pool" do
 
       let(:pool) do
         described_class.new("127.0.0.1", 27017, max_size: 2)
-      end
-
-      let(:connection) do
-        Moped::Connection.new("127.0.0.1", 27017, 5)
       end
 
       let(:pinned) do
@@ -56,8 +20,11 @@ describe Moped::Connection::Pool do
 
       context "when a pinned connection exists for the thread" do
 
+        let(:connection) do
+          pool.checkout
+        end
+
         before do
-          pool.checkin(connection)
           pool.checkin(connection)
         end
 
@@ -66,7 +33,7 @@ describe Moped::Connection::Pool do
         end
 
         it "does not modify the unpinned connections" do
-          expect(unpinned).to be_empty
+          expect(unpinned.size).to eq(1)
         end
 
         it "expires the connection" do
@@ -74,7 +41,7 @@ describe Moped::Connection::Pool do
         end
 
         it "keeps the pool size" do
-          expect(pool.size).to eq(1)
+          expect(pool.size).to eq(2)
         end
       end
     end
@@ -114,7 +81,7 @@ describe Moped::Connection::Pool do
       it_behaves_like "a pool with an available connection on the current thread"
 
       it "updates the pool size" do
-        expect(pool.size).to eq(1)
+        expect(pool.size).to eq(2)
       end
     end
 
@@ -186,11 +153,12 @@ describe Moped::Connection::Pool do
             end
           end
 
-          pending "when reaping frees new connections" do
+          context "when reaping frees new connections" do
 
             before do
               thread_one.join
               thread_two.join
+              thread_one.kill
             end
 
             let!(:connection) do
@@ -199,8 +167,8 @@ describe Moped::Connection::Pool do
 
             it_behaves_like "a pool with an available connection on the current thread"
 
-            it "updates the pool size" do
-              expect(pool.size).to eq(1)
+            it "does not change the pool size" do
+              expect(pool.size).to eq(2)
             end
           end
 
@@ -210,6 +178,17 @@ describe Moped::Connection::Pool do
           end
         end
       end
+    end
+  end
+
+  describe "#initialize" do
+
+    let(:pool) do
+      described_class.new("127.0.0.1", 27017, max_size: 2)
+    end
+
+    it "instantiates all the connections" do
+      expect(pool.size).to eq(2)
     end
   end
 
