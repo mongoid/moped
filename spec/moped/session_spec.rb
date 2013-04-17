@@ -154,7 +154,7 @@ describe Moped::Session do
     it "returns a thread-safe session" do
       session.command ping: 1
 
-      5.times.map do
+      4.times.map do
         Thread.new do
           session.new do |new_session|
             new_session.command(ping: 1)

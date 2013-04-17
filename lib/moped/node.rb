@@ -87,7 +87,7 @@ module Moped
     # @since 2.0.0
     def connect
       start = Time.now
-      connection.connect
+      connection{ |conn| conn.connect }
       @latency = Time.now - start
       @down_at = nil
       true
@@ -102,7 +102,7 @@ module Moped
     #
     # @since 2.0.0
     def connected?
-      connection.connected?
+      connection{ |conn| conn.connected? }
     end
 
     # Get the underlying connection for the node.
@@ -114,7 +114,9 @@ module Moped
     #
     # @since 2.0.0
     def connection
-      @connection ||= Connection.new(address.ip, address.port, timeout, options)
+      pool.with_connection do |conn|
+        yield(conn)
+      end
     end
 
     # Force the node to disconnect from the server.
@@ -127,7 +129,7 @@ module Moped
     # @since 1.2.0
     def disconnect
       credentials.clear
-      connection.disconnect
+      connection{ |conn| conn.disconnect }
       true
     end
 
@@ -536,8 +538,11 @@ module Moped
       operations, callbacks = ops.transpose
       logging(operations) do
         ensure_connected do
-          connection.write(operations)
-          replies = connection.receive_replies(operations)
+          replies = nil
+          connection do |conn|
+            conn.write(operations)
+            replies = conn.receive_replies(operations)
+          end
           replies.zip(callbacks).map do |reply, callback|
             callback ? callback[reply] : reply
           end.last
@@ -547,15 +552,14 @@ module Moped
       ops.clear
     end
 
-    # @todo: This can be removed with connection pool.
-    def initialize_copy(_)
-      @connection = nil
-    end
-
     def logging(operations)
       instrument(TOPIC, prefix: "  MOPED: #{address.resolved}", ops: operations) do
         yield if block_given?
       end
+    end
+
+    def pool
+      @pool ||= Connection::Manager.pool(self)
     end
 
     def read(operation)

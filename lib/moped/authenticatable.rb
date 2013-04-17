@@ -62,10 +62,12 @@ module Moped
       getnonce = Protocol::Command.new(database, getnonce: 1)
       result = Operation::Read.new(getnonce).execute(self)
       authenticate = Protocol::Commands::Authenticate.new(database, username, password, result["nonce"])
-      connection.write([ authenticate ])
-      document = connection.read.documents.first
-      raise Errors::AuthenticationFailure.new(authenticate, document) unless document["ok"] == 1
-      credentials[database] = [username, password]
+      connection do |conn|
+        conn.write([ authenticate ])
+        document = conn.read.documents.first
+        raise Errors::AuthenticationFailure.new(authenticate, document) unless document["ok"] == 1
+        credentials[database] = [username, password]
+      end
     end
 
     # Logout the user from the provided database.

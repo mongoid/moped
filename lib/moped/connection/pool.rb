@@ -37,7 +37,7 @@ module Moped
           connection = pinned[thread_id]
           if connection
             unless connection.expired?
-              raise Errors::ConnectionInUse, "The connection on #{thread_id} is in use."
+              raise Errors::ConnectionInUse, "The connection on thread: #{thread_id} is in use."
             else
               lease(connection)
             end
@@ -118,6 +118,26 @@ module Moped
       # @since 2.0.0
       def timeout
         @timeout ||= (options[:pool_timeout] || TIMEOUT)
+      end
+
+      # Execute the block with a connection, ensuring that the checkin/checkout
+      # workflow is properly executed.
+      #
+      # @example Execute the block with a connection.
+      #   pool.with_connection do |conn|
+      #     conn.connect
+      #   end
+      #
+      # @return [ Object ] The result of the yield.
+      #
+      # @since 2.0.0
+      def with_connection
+        connection = checkout
+        begin
+          yield(connection)
+        ensure
+          checkin(connection)
+        end
       end
 
       private
