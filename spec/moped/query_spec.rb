@@ -84,10 +84,6 @@ describe Moped::Query do
         cursor.next["name"].should eq("create")
       end
 
-      it "returns the documents from the tail" do
-        cursor.next["name"].should eq("create")
-      end
-
       context "when inserting another document" do
 
         before do
