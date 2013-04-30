@@ -32,6 +32,18 @@ module Moped
     #   @return [ Array<Node> ] The seed nodes.
     attr_reader :options, :peers, :seeds
 
+    # Is the cluster auto-discovering new nodes in the cluster.
+    #
+    # @example Is the cluster auto discovering?
+    #   cluster.auto_discovering?
+    #
+    # @return [ true, false ] If the cluster is auto discovering.
+    #
+    # @since 2.0.0
+    def auto_discovering?
+      @auto_discovering ||= options[:auto_discover].nil? ? true : options[:auto_discover]
+    end
+
     # Get the credentials for the cluster.
     #
     # @example Get the applied credentials.

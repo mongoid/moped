@@ -2,11 +2,50 @@ require "spec_helper"
 
 describe Moped::Cluster, replica_set: true do
 
-  let(:cluster) do
-    described_class.new(seeds, max_retries: 1, down_interval: 1)
+  describe "#auto_discovering?" do
+
+    context "when no option is provided" do
+
+      let(:cluster) do
+        described_class.new(seeds, {})
+      end
+
+      it "returns true" do
+        expect(cluster).to be_auto_discovering
+      end
+    end
+
+    context "when an option is provided" do
+
+      context "when the option is true" do
+
+        let(:cluster) do
+          described_class.new(seeds, auto_discover: true)
+        end
+
+        it "returns true" do
+          expect(cluster).to be_auto_discovering
+        end
+      end
+
+      context "when the option is false" do
+
+        let(:cluster) do
+          described_class.new(seeds, auto_discover: false)
+        end
+
+        it "returns true" do
+          expect(cluster).to_not be_auto_discovering
+        end
+      end
+    end
   end
 
   describe "#disconnect" do
+
+    let(:cluster) do
+      described_class.new(seeds, max_retries: 1, down_interval: 1)
+    end
 
     let!(:disconnected) do
       cluster.disconnect
@@ -24,6 +63,10 @@ describe Moped::Cluster, replica_set: true do
   end
 
   context "when no nodes are available" do
+
+    let(:cluster) do
+      described_class.new(seeds, max_retries: 1, down_interval: 1)
+    end
 
     before do
       @replica_set.nodes.each(&:stop)
@@ -53,6 +96,10 @@ describe Moped::Cluster, replica_set: true do
   end
 
   context "when the replica set hasn't connected yet" do
+
+    let(:cluster) do
+      described_class.new(seeds, max_retries: 1, down_interval: 1)
+    end
 
     describe "#with_primary" do
 
@@ -151,6 +198,10 @@ describe Moped::Cluster, replica_set: true do
   end
 
   context "when the replica set is connected" do
+
+    let(:cluster) do
+      described_class.new(seeds, max_retries: 1, down_interval: 1)
+    end
 
     before do
       cluster.refresh
@@ -362,6 +413,10 @@ describe Moped::Cluster, replica_set: true do
   end
 
   describe "#refresh" do
+
+    let(:cluster) do
+      described_class.new(seeds, max_retries: 1, down_interval: 1)
+    end
 
     context "when old nodes are removed from the set" do
 
