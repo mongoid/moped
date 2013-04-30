@@ -523,6 +523,16 @@ module Moped
 
     private
 
+    # Configure the node based on the return from the ismaster command.
+    #
+    # @api private
+    #
+    # @example Configure the node.
+    #   node.configure(ismaster)
+    #
+    # @param [ Hash ] settings The result of the ismaster command.
+    #
+    # @since 2.0.0
     def configure(settings)
       @arbiter = settings["arbiterOnly"]
       @passive = settings["passive"]
@@ -531,6 +541,16 @@ module Moped
       discover(settings["hosts"]) if auto_discovering?
     end
 
+    # Discover the additional nodes.
+    #
+    # @api private
+    #
+    # @example Discover the additional nodes.
+    #   node.discover([ "127.0.0.1:27019" ])
+    #
+    # @param [ Array<String> ] nodes The new nodes.
+    #
+    # @since 2.0.0
     def discover(*nodes)
       nodes.flatten.compact.each do |peer|
         node = Node.new(peer, options)
@@ -539,6 +559,18 @@ module Moped
       end
     end
 
+    # Flush the node operations to the database.
+    #
+    # @api private
+    #
+    # @example Flush the operations.
+    #   node.flush([ command ])
+    #
+    # @param [ Array<Message> ] ops The operations to flush.
+    #
+    # @return [ Object ] The result of the operations.
+    #
+    # @since 2.0.0
     def flush(ops = queue)
       operations, callbacks = ops.transpose
       logging(operations) do
@@ -557,24 +589,83 @@ module Moped
       ops.clear
     end
 
+    # Yield the block with logging.
+    #
+    # @api private
+    #
+    # @example Yield with logging.
+    #   logging(operations) do
+    #     node.command(ismaster: 1)
+    #   end
+    #
+    # @param [ Array<Message> ] operations The operations.
+    #
+    # @return [ Object ] The result of the yield.
+    #
+    # @since 2.0.0
     def logging(operations)
       instrument(TOPIC, prefix: "  MOPED: #{address.resolved}", ops: operations) do
         yield if block_given?
       end
     end
 
+    # Get the connection pool for the node.
+    #
+    # @api private
+    #
+    # @example Get the connection pool.
+    #   node.pool
+    #
+    # @return [ Connection::Pool ] The connection pool.
+    #
+    # @since 2.0.0
     def pool
       @pool ||= Connection::Manager.pool(self)
     end
 
+    # Execute a read operation.
+    #
+    # @api private
+    #
+    # @example Execute a read operation.
+    #   node.read(operation)
+    #
+    # @param [ Message ] operation The read operation.
+    #
+    # @return [ Object ] The result of the read.
+    #
+    # @since 2.0.0
     def read(operation)
       Operation::Read.new(operation).execute(self)
     end
 
+    # Execute a write operation.
+    #
+    # @api private
+    #
+    # @example Execute a write operation.
+    #   node.write(operation, concern)
+    #
+    # @param [ Message ] operation The write operation.
+    # @param [ WriteConcern ] concern The write concern.
+    #
+    # @return [ Object ] The result of the write.
+    #
+    # @since 2.0.0
     def write(operation, concern)
       Operation::Write.new(operation, concern).execute(self)
     end
 
+    # Get the queue of operations.
+    #
+    # @api private
+    #
+    # @example Get the operation queue.
+    #   node.queue
+    #
+    # @return [ Array<Message> ] The queue of operations.
+    #
+    # @since 2.0.0
     def queue
       stack(:pipelined_operations)
     end
