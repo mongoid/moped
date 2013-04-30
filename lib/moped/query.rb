@@ -351,7 +351,7 @@ module Moped
     #
     # @since 1.3.0
     def tailable
-      operation.flags.push(:tailable)
+      operation.flags.push(:tailable, :await_data)
       self
     end
 

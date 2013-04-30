@@ -64,8 +64,24 @@ describe Moped::Query do
         events.drop
       end
 
+      let(:query) do
+        events.find.tailable
+      end
+
       let(:cursor) do
-        events.find.tailable.cursor
+        query.cursor
+      end
+
+      it "sets the tailable flag" do
+        query.operation.flags.should include :tailable
+      end
+
+      it "sets the await data flag" do
+        query.operation.flags.should include :await_data
+      end
+
+      it "returns the documents from the tail" do
+        cursor.next["name"].should eq("create")
       end
 
       it "returns the documents from the tail" do
