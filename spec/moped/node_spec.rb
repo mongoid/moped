@@ -90,10 +90,6 @@ describe Moped::Node, replica_set: true do
 
   describe "#peers" do
 
-    let(:node) do
-      described_class.new("127.0.0.1:27017")
-    end
-
     let(:info) do
       {
          "setName"   => "moped_dev",
@@ -106,15 +102,35 @@ describe Moped::Node, replica_set: true do
       }
     end
 
-    context "when the hosts contain the primary" do
+    context "when the node is auto discovering" do
+
+      let(:node) do
+        described_class.new("127.0.0.1:27017")
+      end
 
       before do
         node.should_receive(:command).with("admin", ismaster: 1).and_return(info)
         node.refresh
       end
 
-      it "allows no duplicates in the peers" do
-        node.peers.size.should eq(2)
+      it "auto discovers additional host nodes" do
+        expect(node.peers.size).to eq(2)
+      end
+    end
+
+    context "when the node is not auto discovering" do
+
+      let(:node) do
+        described_class.new("127.0.0.1:27017", auto_discover: false)
+      end
+
+      before do
+        node.should_receive(:command).with("admin", ismaster: 1).and_return(info)
+        node.refresh
+      end
+
+      it "does not auto discover additional host nodes" do
+        expect(node.peers.size).to eq(0)
       end
     end
   end
