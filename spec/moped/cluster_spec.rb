@@ -2,45 +2,6 @@ require "spec_helper"
 
 describe Moped::Cluster, replica_set: true do
 
-  describe "#auto_discovering?" do
-
-    context "when no option is provided" do
-
-      let(:cluster) do
-        described_class.new(seeds, {})
-      end
-
-      it "returns true" do
-        expect(cluster).to be_auto_discovering
-      end
-    end
-
-    context "when an option is provided" do
-
-      context "when the option is true" do
-
-        let(:cluster) do
-          described_class.new(seeds, auto_discover: true)
-        end
-
-        it "returns true" do
-          expect(cluster).to be_auto_discovering
-        end
-      end
-
-      context "when the option is false" do
-
-        let(:cluster) do
-          described_class.new(seeds, auto_discover: false)
-        end
-
-        it "returns true" do
-          expect(cluster).to_not be_auto_discovering
-        end
-      end
-    end
-  end
-
   describe "#disconnect" do
 
     let(:cluster) do

@@ -57,6 +57,18 @@ module Moped
       !!@arbiter
     end
 
+    # Is the cluster auto-discovering new nodes in the cluster?
+    #
+    # @example Is the cluster auto discovering?
+    #   cluster.auto_discovering?
+    #
+    # @return [ true, false ] If the cluster is auto discovering.
+    #
+    # @since 2.0.0
+    def auto_discovering?
+      @auto_discovering ||= options[:auto_discover].nil? ? true : options[:auto_discover]
+    end
+
     # Execute a command against a database.
     #
     # @example Execute a command.
@@ -516,14 +528,7 @@ module Moped
       @passive = settings["passive"]
       @primary = settings["ismaster"]
       @secondary = settings["secondary"]
-      configure_peers(settings)
-    end
-
-    def configure_peers(info)
-      discover(info["primary"])
-      discover(info["hosts"])
-      discover(info["passives"])
-      discover(info["arbiters"])
+      discover(settings["hosts"]) if auto_discovering?
     end
 
     def discover(*nodes)
