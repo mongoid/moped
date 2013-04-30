@@ -10,6 +10,45 @@ describe Moped::Node, replica_set: true do
     Moped::Node.new(replica_set_node.address)
   end
 
+  describe "#auto_discovering?" do
+
+    context "when no option is provided" do
+
+      let(:node) do
+        described_class.new(replica_set_node.address, {})
+      end
+
+      it "returns true" do
+        expect(node).to be_auto_discovering
+      end
+    end
+
+    context "when an option is provided" do
+
+      context "when the option is true" do
+
+        let(:node) do
+          described_class.new(replica_set_node.address, auto_discover: true)
+        end
+
+        it "returns true" do
+          expect(node).to be_auto_discovering
+        end
+      end
+
+      context "when the option is false" do
+
+        let(:node) do
+          described_class.new(replica_set_node.address, auto_discover: false)
+        end
+
+        it "returns true" do
+          expect(node).to_not be_auto_discovering
+        end
+      end
+    end
+  end
+
   describe "#disconnect" do
 
     context "when the node is running" do

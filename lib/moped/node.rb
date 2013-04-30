@@ -60,6 +60,18 @@ module Moped
       self
     end
 
+    # Is the cluster auto-discovering new nodes in the cluster?
+    #
+    # @example Is the cluster auto discovering?
+    #   cluster.auto_discovering?
+    #
+    # @return [ true, false ] If the cluster is auto discovering.
+    #
+    # @since 2.0.0
+    def auto_discovering?
+      @auto_discovering ||= options[:auto_discover].nil? ? true : options[:auto_discover]
+    end
+
     # Execute a command against a database.
     #
     # @example Execute a command.
@@ -482,10 +494,12 @@ module Moped
 
     def generate_peers(info)
       peers = []
-      peers.push(info["primary"]) if info["primary"]
-      peers.concat(info["hosts"]) if info["hosts"]
-      peers.concat(info["passives"]) if info["passives"]
-      peers.concat(info["arbiters"]) if info["arbiters"]
+      if auto_discovering?
+        peers.push(info["primary"]) if info["primary"]
+        peers.concat(info["hosts"]) if info["hosts"]
+        peers.concat(info["passives"]) if info["passives"]
+        peers.concat(info["arbiters"]) if info["arbiters"]
+      end
       @peers = peers.map { |peer| Node.new(peer, options) }.uniq
     end
 
