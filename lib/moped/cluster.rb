@@ -216,10 +216,16 @@ module Moped
 
       if retries > 0
         # We couldn't find a primary node, so refresh the list and try again.
+        if logger = Moped.logger
+          logger.warn " MOPED: Could not connect to primary node for replica set #{inspect} -- retrying"
+        end
         sleep(retry_interval)
         refresh
         with_primary(retries - 1, &block)
       else
+        if logger = Moped.logger
+          logger.error " MOPED: Could not connect to primary node for replica set #{inspect}"
+        end
         raise(
           Errors::ConnectionFailure,
           "Could not connect to a primary node for replica set #{inspect}"
@@ -249,6 +255,9 @@ module Moped
         begin
           return yield node.apply_auth(auth)
         rescue Errors::ConnectionFailure
+          if logger = Moped.logger
+            logger.warn " MOPED: Could not connect to secondary node #{node.inspect} for replica set #{inspect}"
+          end
           # That node's no good, so let's try the next one.
           next
         end
@@ -257,10 +266,16 @@ module Moped
       if retries > 0
         # We couldn't find a secondary or primary node, so refresh the list and
         # try again.
+        if logger = Moped.logger
+          logger.warn " MOPED: Could not connect to any secondary or primary nodes for replica set #{inspect}"
+        end
         sleep(retry_interval)
         refresh
         with_secondary(retries - 1, &block)
       else
+        if logger = Moped.logger
+          logger.error " MOPED: Could not connect to any secondary or primary nodes for replica set #{inspect}"
+        end
         raise(
           Errors::ConnectionFailure,
           "Could not connect to any secondary or primary nodes for replica set #{inspect}"
