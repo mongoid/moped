@@ -114,7 +114,7 @@ module Moped
         err = error_message(result)
         UNAUTHORIZED.include?(result["code"]) ||
           UNAUTHORIZED.include?(result["assertionCode"]) ||
-          (err && err =~ /unauthorized/)
+          (err && (err =~ /unauthorized/ || err =~ /not authorized/))
       end
 
       class << self
