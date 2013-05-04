@@ -93,7 +93,7 @@ module Moped
       # @since 1.2.0
       def query_failed?
         result = documents[0]
-        flags.include?(:query_failure) || (result && result["$err"])
+        flags.include?(:query_failure) || (result && (result["err"] || result["errmsg"] || result["$err"]))
       end
 
       # Is the reply an error message that we are not authorized for the query
