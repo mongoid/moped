@@ -12,6 +12,11 @@ module Moped
   # @since 2.0.0
   class Connection
 
+    # The default connection timeout, in seconds.
+    #
+    # @since 2.0.0
+    TIMEOUT = 5
+
     # @!attribute host
     #   @return [ String ] The ip address of the host.
     # @!attribute options

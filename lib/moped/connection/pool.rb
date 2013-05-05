@@ -77,12 +77,12 @@ module Moped
         @host = host
         @port = port
         @options = options
-        @reaper = Reaper.new(options[:reap_interval] || 5, self)
+        @reaper = Reaper.new(options[:reap_interval] || Reaper::INTERVAL, self)
         @mutex = Mutex.new
         @resource = ConditionVariable.new
         @pinned = {}
         @unpinned = Queue.new(max_size) do
-          Connection.new(host, port, options[:timeout] || 5, options)
+          Connection.new(host, port, options[:timeout] || Connection::TIMEOUT, options)
         end
         reaper.start
       end

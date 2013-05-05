@@ -8,6 +8,11 @@ module Moped
     # @since 2.0.0
     class Reaper
 
+      # The default interval for reaping connections.
+      #
+      # @since 2.0.0
+      INTERVAL = 5
+
       # @!attribute interval
       #   @return [ Float ] The reaping interval, in seconds.
       # @!attribute pool

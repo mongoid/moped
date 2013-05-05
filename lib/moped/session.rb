@@ -187,6 +187,10 @@ module Moped
     #   connections to a secondary or primary after a failure. (1)
     # @option options [ Integer ] :timeout The time in seconds to wait for an
     #   operation to timeout. (5)
+    # @option options [ Float ] :reap_interval The interval, in seconds, in
+    #   which to reap connections on dead threads.
+    # @option options [ Integer ] :pool_size The size of the connection pool
+    #   for each node. This defaults to 5.
     #
     # @since 1.0.0
     def initialize(seeds, options = {})
