@@ -1,5 +1,22 @@
 # Overview
 
+## 1.5.0
+
+### New Features
+
+* The session now has an additional configuration option, called `auto_discover`.
+  which defaults to `true`. Auto-discovery means that nodes that are not provided
+  explicitly to the session but are visible will become available for read/write
+  in the application. This behavior is the same as the existing behavior.
+
+  The change here is to be able to turn this off by setting `auto_discover: false`.
+  This will tell Moped to only send messages to nodes explicitly provided when
+  instantiating the session.
+
+  Example:
+
+        Moped::Session.new([ "127.0.0.1:27017" ], auto_discover: false)
+
 ## 1.4.5
 
 ### Resolved Issues
