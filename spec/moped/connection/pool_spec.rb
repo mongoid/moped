@@ -141,19 +141,19 @@ describe Moped::Connection::Pool do
 
         context "when the pool is saturated" do
 
-          let!(:thread_one) do
-            Thread.new do
-              pool.checkout
-            end
-          end
-
-          let!(:thread_two) do
-            Thread.new do
-              pool.checkout
-            end
-          end
-
           context "when reaping frees new connections" do
+
+            let!(:thread_one) do
+              Thread.new do
+                pool.checkout
+              end
+            end
+
+            let!(:thread_two) do
+              Thread.new do
+                pool.checkout
+              end
+            end
 
             before do
               thread_one.join
@@ -174,7 +174,28 @@ describe Moped::Connection::Pool do
 
           context "when reaping does not free any new connections" do
 
-            pending "raises an error"
+            let!(:thread_one) do
+              Thread.new do
+                pool.checkout
+              end
+            end
+
+            let!(:thread_two) do
+              Thread.new do
+                pool.checkout
+                pool.checkout
+              end
+            end
+
+            before do
+              thread_one.join
+            end
+
+            it "raises an error" do
+              expect {
+                thread_two.join
+              }.to raise_error(Moped::Errors::ConnectionInUse)
+            end
           end
         end
       end
