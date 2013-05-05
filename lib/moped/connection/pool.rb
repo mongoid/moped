@@ -8,7 +8,7 @@ module Moped
     class Pool
 
       # The default max size for the connection pool.
-      MAX_SIZE = 5
+      POOL_SIZE = 5
 
       # The default timeout for getting connections from the queue.
       TIMEOUT = 0.25
@@ -19,7 +19,9 @@ module Moped
       #   @return [ Integer ] The port on the host.
       # @!attribute options
       #   @return [ Hash ] The connection pool options.
-      attr_reader :host, :port, :options
+      # @!attribute reaper
+      #   @return [ Reaper ] The connection pool reaper.
+      attr_reader :host, :port, :options, :reaper
 
       # Checkout a connection from the connection pool. If there exists a
       # connection pinned to the current thread, then we return that first. If
@@ -75,12 +77,14 @@ module Moped
         @host = host
         @port = port
         @options = options
+        @reaper = Reaper.new(options[:reap_interval] || 5, self)
         @mutex = Mutex.new
         @resource = ConditionVariable.new
         @pinned = {}
         @unpinned = Queue.new(max_size) do
           Connection.new(host, port, options[:timeout] || 5, options)
         end
+        reaper.start
       end
 
       # Get the max size for the connection pool.
@@ -92,7 +96,26 @@ module Moped
       #
       # @since 2.0.0
       def max_size
-        @max_size ||= (options[:max_size] || MAX_SIZE)
+        @max_size ||= (options[:pool_size] || POOL_SIZE)
+      end
+
+      # Reap all connections that are active and associated with dead threads.
+      #
+      # @example Reap the connections.
+      #   pool.reap([ 12351122313 ])
+      #
+      # @param [ Array<Integer> ] ids The ids of the current active threads.
+      #
+      # @return [ Pool ] The connection pool.
+      #
+      # @since 2.0.0
+      def reap(ids = active_threads)
+        pinned.each do |id, conn|
+          unless ids.include?(id)
+            conn.expire
+            unpinned.push(pinned.delete(id))
+          end
+        end and self
       end
 
       # Get the current size of the connection pool. Is the total of pinned
@@ -155,17 +178,8 @@ module Moped
       end
 
       def next_connection
-        reap! if saturated?
+        reap if saturated?
         unpinned.pop(timeout)
-      end
-
-      def reap!(ids = active_threads)
-        pinned.each do |id, conn|
-          unless ids.include?(id)
-            conn.expire
-            unpinned.push(pinned.delete(id))
-          end
-        end
       end
 
       def saturated?

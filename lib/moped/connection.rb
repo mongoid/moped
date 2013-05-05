@@ -2,6 +2,7 @@
 require "moped/connection/manager"
 require "moped/connection/pool"
 require "moped/connection/queue"
+require "moped/connection/reaper"
 require "moped/connection/sockets"
 
 module Moped

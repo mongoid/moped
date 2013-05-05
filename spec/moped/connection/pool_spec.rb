@@ -7,7 +7,7 @@ describe Moped::Connection::Pool do
     context "when connections exist in the pool" do
 
       let(:pool) do
-        described_class.new("127.0.0.1", 27017, max_size: 2)
+        described_class.new("127.0.0.1", 27017, pool_size: 2)
       end
 
       let(:pinned) do
@@ -71,7 +71,7 @@ describe Moped::Connection::Pool do
     context "when no connections exist in the pool" do
 
       let(:pool) do
-        described_class.new("127.0.0.1", 27017, max_size: 2)
+        described_class.new("127.0.0.1", 27017, pool_size: 2)
       end
 
       let!(:connection) do
@@ -88,7 +88,7 @@ describe Moped::Connection::Pool do
     context "when connections exist in the pool" do
 
       let(:pool) do
-        described_class.new("127.0.0.1", 27017, max_size: 2)
+        described_class.new("127.0.0.1", 27017, pool_size: 2)
       end
 
       context "when a connection exists for the thread id" do
@@ -184,7 +184,7 @@ describe Moped::Connection::Pool do
   describe "#initialize" do
 
     let(:pool) do
-      described_class.new("127.0.0.1", 27017, max_size: 2)
+      described_class.new("127.0.0.1", 27017, pool_size: 2)
     end
 
     it "instantiates all the connections" do
@@ -197,7 +197,7 @@ describe Moped::Connection::Pool do
     context "when the max_size option is provided" do
 
       let(:pool) do
-        described_class.new("127.0.0.1", 27017, max_size: 2)
+        described_class.new("127.0.0.1", 27017, pool_size: 2)
       end
 
       it "returns the max size" do
