@@ -183,6 +183,7 @@ describe Moped::Connection::Pool do
             let!(:thread_two) do
               Thread.new do
                 pool.checkout
+                sleep(3)
                 pool.checkout
               end
             end
