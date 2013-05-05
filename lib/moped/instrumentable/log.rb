@@ -31,9 +31,9 @@ module Moped
           ensure
             runtime = ("%.4fms" % (1000 * (Time.now.to_f - started.to_f)))
             if name == TOPIC
-              Moped::Logging.log_operations(payload[:prefix], payload[:ops], runtime)
+              Moped::Loggable.log_operations(payload[:prefix], payload[:ops], runtime)
             else
-              Moped::Logging.debug(payload[:prefix], payload.reject { |k,v| k == :prefix }, runtime)
+              Moped::Loggable.debug(payload[:prefix], payload.reject { |k,v| k == :prefix }, runtime)
             end
           end
         end

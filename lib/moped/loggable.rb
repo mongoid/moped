@@ -4,12 +4,12 @@ module Moped
   # Contains behaviour for logging.
   #
   # @since 1.0.0
-  module Logging
+  module Loggable
 
     # Log the provided operations.
     #
     # @example Log the operations.
-    #   Logging.log_operations("MOPED", {}, 30)
+    #   Loggable.log_operations("MOPED", {}, 30)
     #
     # @param [ String ] prefix The prefix for all operations in the log.
     # @param [ Array ] ops The operations.
@@ -31,7 +31,7 @@ module Moped
     # Log the payload to debug.
     #
     # @example Log to debug.
-    #   Logging.debug("MOPED", payload "30.012ms")
+    #   Loggable.debug("MOPED", payload "30.012ms")
     #
     # @param [ String ] prefix The log prefix.
     # @param [ String ] payload The log operations.
@@ -45,7 +45,7 @@ module Moped
     # Get the logger.
     #
     # @example Get the logger.
-    #   Logging.logger
+    #   Loggable.logger
     #
     # @return [ Logger ] The logger.
     #
@@ -58,7 +58,7 @@ module Moped
     # Get the rails logger.
     #
     # @example Get the rails logger.
-    #   Logging.rails_logger
+    #   Loggable.rails_logger
     #
     # @return [ Logger ] The Rails logger.
     #
@@ -70,7 +70,7 @@ module Moped
     # Get the default logger.
     #
     # @example Get the default logger.
-    #   Logging.default_logger
+    #   Loggable.default_logger
     #
     # @return [ Logger ] The default logger.
     #
@@ -84,7 +84,7 @@ module Moped
     # Set the logger.
     #
     # @example Set the logger.
-    #   Logging.logger = logger
+    #   Loggable.logger = logger
     #
     # @return [ Logger ] The logger.
     #
@@ -93,5 +93,4 @@ module Moped
       @logger = logger
     end
   end
-  extend Logging
 end
