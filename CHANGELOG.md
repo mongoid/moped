@@ -1,5 +1,11 @@
 # Overview
 
+## 1.4.6
+
+### Resolved Issues
+
+* \#191 Checking for "not authorized" in error messages. (Jonathan Hyman)
+
 ## 1.4.5
 
 ### Resolved Issues
