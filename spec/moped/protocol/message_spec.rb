@@ -86,11 +86,7 @@ describe Moped::Protocol::Message do
 
       it "appends the serialized document to the buffer" do
         message.selector = { a: 1 }
-
-        Moped::BSON::Document.should_receive(:serialize).
-          with(message.selector, buffer)
-
-        message.serialize_selector(buffer)
+        expect(message.serialize_selector(buffer)).to_not be_nil
       end
 
       context "when optional and not present" do
@@ -117,19 +113,10 @@ describe Moped::Protocol::Message do
 
         it "appends each document" do
           message.documents = [{ a: 1 }, { b: 2 }]
-
-          Moped::BSON::Document.should_receive(:serialize).
-            with(message.documents[0], buffer)
-
-          Moped::BSON::Document.should_receive(:serialize).
-            with(message.documents[1], buffer)
-
-          message.serialize_documents(buffer)
+          expect(message.serialize_documents(buffer)).to_not be_nil
         end
       end
-
     end
-
   end
 
   describe ".flags" do

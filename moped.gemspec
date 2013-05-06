@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.homepage    = "http://mongoid.org/en/moped"
   s.summary     = "A MongoDB driver for Ruby."
   s.description = s.summary
-
   s.files = Dir.glob("lib/**/*") + %w(CHANGELOG.md LICENSE README.md)
   s.require_path = "lib"
+  s.add_dependency("bson", ["~> 2.0"])
 end
