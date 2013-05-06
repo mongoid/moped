@@ -82,7 +82,7 @@ module Moped
         if reply.command_failure?
           if reply.unauthorized? && auth.has_key?(database)
             login(database, *auth[database])
-            command(database, cmd, options)
+            return command(database, cmd, options)
           else
             raise Errors::OperationFailure.new(operation, result)
           end
@@ -365,7 +365,7 @@ module Moped
             # connection. In this case we need to requthenticate and try again,
             # otherwise we'll just raise the error to the user.
             login(database, *auth[database])
-            query(database, collection, selector, options)
+            return query(database, collection, selector, options)
           else
             raise Errors::QueryFailure.new(operation, reply.documents.first)
           end
