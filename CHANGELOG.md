@@ -17,6 +17,12 @@
 
         Moped::Session.new([ "127.0.0.1:27017" ], auto_discover: false)
 
+## 1.4.6
+
+### Resolved Issues
+
+* \#191 Checking for "not authorized" in error messages. (Jonathan Hyman)
+
 ## 1.4.5
 
 ### Resolved Issues
