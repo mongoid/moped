@@ -107,7 +107,7 @@ module Support
         @primary = false
         @secondary = false
 
-        @host = Socket.gethostname
+        @host = "127.0.0.1"
         @port = port
         @hiccup_on_next_message = nil
       end
