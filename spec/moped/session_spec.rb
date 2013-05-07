@@ -6,11 +6,6 @@ describe Moped::Session do
     Moped::Session.new(%w[127.0.0.1:27017], database: "moped_test")
   end
 
-  before(:all) do
-    session[:users].insert({ name: "test" })
-    session[:users].find.remove_all
-  end
-
   describe ".connect" do
 
     let(:from_uri) do
