@@ -71,21 +71,6 @@ describe Moped::Query do
       it "returns the documents from the tail" do
         cursor.next["name"].should eq("create")
       end
-
-      context "when inserting another document" do
-
-        before do
-          events.insert({ "name" => "delete" })
-        end
-
-        it "keeps the cursor open" do
-          cursor.next["name"].should eq("delete")
-          Thread.new do
-            events.insert({ "name" => "new" })
-          end.join
-          cursor.next["name"].should eq("new")
-        end
-      end
     end
   end
 
