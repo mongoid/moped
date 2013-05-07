@@ -492,17 +492,6 @@ module Moped
       @auth ||= {}
     end
 
-    def generate_peers(info)
-      peers = []
-      if auto_discovering?
-        peers.push(info["primary"]) if info["primary"]
-        peers.concat(info["hosts"]) if info["hosts"]
-        peers.concat(info["passives"]) if info["passives"]
-        peers.concat(info["arbiters"]) if info["arbiters"]
-      end
-      @peers = peers.map { |peer| Node.new(peer, options) }.uniq
-    end
-
     def login(database, username, password)
       getnonce = Protocol::Command.new(database, getnonce: 1)
       connection.write [getnonce]
@@ -528,10 +517,12 @@ module Moped
 
     def generate_peers(info)
       peers = []
-      peers.push(info["primary"]) if info["primary"]
-      peers.concat(info["hosts"]) if info["hosts"]
-      peers.concat(info["passives"]) if info["passives"]
-      peers.concat(info["arbiters"]) if info["arbiters"]
+      if auto_discovering?
+        peers.push(info["primary"]) if info["primary"]
+        peers.concat(info["hosts"]) if info["hosts"]
+        peers.concat(info["passives"]) if info["passives"]
+        peers.concat(info["arbiters"]) if info["arbiters"]
+      end
       @peers = peers.map{ |peer| discover(peer) }.uniq
     end
 
