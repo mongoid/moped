@@ -2,10 +2,27 @@ language: ruby
 bundler_args: --without development
 rvm:
   - 1.9.3
+  - 2.0.0
+  - ruby-head
   - jruby
+  - jruby-head
 jdk:
   - oraclejdk7
   - openjdk7
-env: JRUBY_OPTS="--server -Xcompile.invokedynamic=false -J-XX:+TieredCompilation -J-XX:TieredStopAtLevel=1 -J-noverify -J-Xms512m -J-Xmx1024m"
+env: CI="travis"
 services:
   - mongodb
+matrix:
+  allow_failures:
+    - rvm: ruby-head
+    - rvm: jruby-head
+  exclude:
+    - rvm: 1.9.3
+      jdk: openjdk7
+      env: CI="travis"
+    - rvm: 2.0.0
+      jdk: openjdk7
+      env: CI="travis"
+    - rvm: ruby-head
+      jdk: openjdk7
+      env: CI="travis"
