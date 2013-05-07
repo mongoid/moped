@@ -4,6 +4,9 @@
 
 ### Resolved Issues
 
+* \#192 Return the proper result after reauthentication attempts.
+  (Jonathan Hyman)
+
 * \#191 Checking for "not authorized" in error messages. (Jonathan Hyman)
 
 ## 1.4.5
