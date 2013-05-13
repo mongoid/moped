@@ -216,16 +216,11 @@ module Moped
 
       if retries > 0
         # We couldn't find a primary node, so refresh the list and try again.
-        if logger = Moped.logger
-          logger.warn "MOPED WARNING: Could not connect to primary node for replica set #{inspect} -- retrying"
-        end
+        warning("MOPED: Retrying connection to primary for replica set #{inspect}")
         sleep(retry_interval)
         refresh
         with_primary(retries - 1, &block)
       else
-        if logger = Moped.logger
-          logger.error "MOPED ERROR: Could not connect to primary node for replica set #{inspect}"
-        end
         raise(
           Errors::ConnectionFailure,
           "Could not connect to a primary node for replica set #{inspect}"
@@ -255,9 +250,7 @@ module Moped
         begin
           return yield node.apply_auth(auth)
         rescue Errors::ConnectionFailure
-          if logger = Moped.logger
-            logger.warn "MOPED WARNING: Could not connect to secondary node #{node.inspect} for replica set #{inspect}"
-          end
+          warning("MOPED: Connection failed to secondary node #{node.inspect}, trying next node.")
           # That node's no good, so let's try the next one.
           next
         end
@@ -266,16 +259,11 @@ module Moped
       if retries > 0
         # We couldn't find a secondary or primary node, so refresh the list and
         # try again.
-        if logger = Moped.logger
-          logger.warn "MOPED WARNING: Could not connect to any secondary or primary nodes for replica set #{inspect}"
-        end
+        warning("MOPED: Could not connect to any node in replica set #{inspect}, refreshing list.")
         sleep(retry_interval)
         refresh
         with_secondary(retries - 1, &block)
       else
-        if logger = Moped.logger
-          logger.error "MOPED ERROR: Could not connect to any secondary or primary nodes for replica set #{inspect}"
-        end
         raise(
           Errors::ConnectionFailure,
           "Could not connect to any secondary or primary nodes for replica set #{inspect}"
@@ -303,6 +291,12 @@ module Moped
       peers.each do |node|
         block.call(node) unless @nodes.include?(node)
         @peers.push(node) unless peers.include?(node)
+      end
+    end
+
+    def warning(message)
+      if logger = Moped.logger
+        logger.warn(message)
       end
     end
   end
