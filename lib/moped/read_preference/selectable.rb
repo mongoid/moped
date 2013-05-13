@@ -65,10 +65,18 @@ module Moped
           block.call
         rescue Errors::ConnectionFailure => e
           if retries > 0
+            if logger = Moped.logger
+              logger.warning "MOPED WARNING: Connection error in #{inspect}, retrying! Error: #{e}"
+            end
+
             sleep(cluster.retry_interval)
             cluster.refresh
             with_retry(cluster, retries - 1, &block)
           else
+            if logger = Moped.logger
+              logger.error "MOPED ERROR: Connection error in #{inspect}, not retrying any more. Error: #{e}"
+            end
+
             raise e
           end
         end
