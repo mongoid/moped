@@ -216,7 +216,7 @@ module Moped
 
       if retries > 0
         # We couldn't find a primary node, so refresh the list and try again.
-        warning("MOPED: Retrying connection to primary for replica set #{inspect}")
+        warning("  MOPED: Retrying connection to primary for replica set #{inspect}")
         sleep(retry_interval)
         refresh
         with_primary(retries - 1, &block)
@@ -250,7 +250,7 @@ module Moped
         begin
           return yield node.apply_auth(auth)
         rescue Errors::ConnectionFailure
-          warning("MOPED: Connection failed to secondary node #{node.inspect}, trying next node.")
+          warning("  MOPED: Connection failed to secondary node #{node.inspect}, trying next node.")
           # That node's no good, so let's try the next one.
           next
         end
@@ -259,7 +259,7 @@ module Moped
       if retries > 0
         # We couldn't find a secondary or primary node, so refresh the list and
         # try again.
-        warning("MOPED: Could not connect to any node in replica set #{inspect}, refreshing list.")
+        warning("  MOPED: Could not connect to any node in replica set #{inspect}, refreshing list.")
         sleep(retry_interval)
         refresh
         with_secondary(retries - 1, &block)
