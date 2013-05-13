@@ -17,6 +17,8 @@
 
         Moped::Session.new([ "127.0.0.1:27017" ], auto_discover: false)
 
+* \#189 Moped now logs connection attempts during retries. (Jan Paul Posma)
+
 ## 1.4.6
 
 ### Resolved Issues
