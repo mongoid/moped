@@ -4,6 +4,8 @@
 
 ### API Changes (Backwards Incompatible)
 
+* \#190 Connection retries are now logged. (Jan Paul Posma)
+
 * \#133 Moped now supports the new read preferences that the core drivers
   provide. These include:
 

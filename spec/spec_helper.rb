@@ -23,7 +23,7 @@ require "support/stats"
 
 # Log to a StringIO instance to make sure no exceptions are rasied by our
 # logging code.
-Moped.logger = Logger.new(StringIO.new, Logger::DEBUG)
+Moped.logger = Logger.new($stdout, Logger::DEBUG)
 
 RSpec.configure do |config|
   Support::Stats.install!

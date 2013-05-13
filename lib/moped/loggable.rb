@@ -42,6 +42,20 @@ module Moped
       Moped.logger.debug([ prefix, payload, "runtime: #{runtime}" ].join(' '))
     end
 
+    # Log the payload to warn.
+    #
+    # @example Log to warn.
+    #   Loggable.warn("MOPED", payload "30.012ms")
+    #
+    # @param [ String ] prefix The log prefix.
+    # @param [ String ] payload The log operations.
+    # @param [ String ] runtime The runtime in formatted ms.
+    #
+    # @since 2.0.0
+    def self.warn(prefix, payload, runtime)
+      Moped.logger.warn([ prefix, payload, "runtime: #{runtime}" ].join(' '))
+    end
+
     # Get the logger.
     #
     # @example Get the logger.

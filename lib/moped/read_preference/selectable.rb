@@ -65,6 +65,7 @@ module Moped
           block.call
         rescue Errors::ConnectionFailure => e
           if retries > 0
+            Loggable.warn("  MOPED:", "Retrying connection attempt #{retries} more time(s).", "n/a")
             sleep(cluster.retry_interval)
             cluster.refresh
             with_retry(cluster, retries - 1, &block)
