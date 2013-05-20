@@ -1,12 +1,9 @@
-if ENV["COVERAGE"]
-  require 'simplecov'
-
+if ENV["CI"]
+  require "simplecov"
+  require "coveralls"
+  SimpleCov.formatter = Coveralls::SimpleCov::Formatter
   SimpleCov.start do
-    add_filter 'spec'
-
-    add_group "BSON", 'lib/moped/bson'
-    add_group "Protocol", 'lib/moped/protocol'
-    add_group "Driver", 'lib/moped(?!/bson|/protocol)'
+    add_filter "spec"
   end
 end
 
