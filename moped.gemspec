@@ -8,8 +8,8 @@ Gem::Specification.new do |s|
   s.name        = "moped"
   s.version     = Moped::VERSION
   s.platform    = Gem::Platform::RUBY
-  s.authors     = ["Bernerd Schaefer"]
-  s.email       = ["bj.schaefer@gmail.com"]
+  s.authors     = [ "Durran Jordan", "Bernerd Schaefer"]
+  s.email       = [ "durran@gmail.com" ]
   s.homepage    = "http://mongoid.org/en/moped"
   s.summary     = "A MongoDB driver for Ruby."
   s.description = s.summary
