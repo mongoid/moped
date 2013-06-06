@@ -2,6 +2,10 @@
 
 ## 2.0.0
 
+### New Features
+
+* \#196 Adding method on collection to rename itself (Arthur Neves)
+
 ### API Changes (Backwards Incompatible)
 
 * \#190 Connection retries are now logged. (Jan Paul Posma)
