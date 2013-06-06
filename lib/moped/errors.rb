@@ -133,6 +133,18 @@ module Moped
       def ns_not_found?
         details["errmsg"] == "ns not found"
       end
+
+      # Is the error due to a namespace not existing?
+      #
+      # @example Doest the namespace not exist?
+      #   error.ns_not_exists?
+      #
+      # @return [ true, false ] If the namespace was not found.
+      #
+      # @since 2.0.0
+      def ns_not_exists?
+        details["errmsg"] =~ /namespace does not exist/
+      end
     end
 
     # Exception raised when authentication fails.

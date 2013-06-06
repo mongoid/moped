@@ -44,7 +44,7 @@ describe Moped::Collection do
     end
   end
 
-  describe "#drop" do
+  describe ".drop" do
 
     context "when collection exists" do
 
@@ -85,8 +85,45 @@ describe Moped::Collection do
         session.drop
       end
 
-      it "works" do
+      it "returns false" do
         session[:users].drop.should be_false
+      end
+    end
+  end
+
+  describe ".rename" do
+
+    context "when collection exists" do
+
+      before do
+        session.drop
+        session.command create: "users"
+      end
+
+      it "receives an ok" do
+        result = session[:users].rename('users_foo')
+        expect(result["ok"]).to eq 1.0
+      end
+
+      it "does have the old collection" do
+        session[:users].rename('users_foo')
+        expect(session.collections.map(&:name)).to_not include("users")
+      end
+
+      it "includes the new collection" do
+        session[:users].rename('users_foo')
+        expect(session.collections.map(&:name)).to include("users_foo")
+      end
+    end
+
+    context "when collection doesn't exist" do
+
+      before do
+        session.drop
+      end
+
+      it "returns false" do
+        expect(session[:users].rename('usuarios')).to be_false
       end
     end
   end

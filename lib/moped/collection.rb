@@ -43,6 +43,22 @@ module Moped
       end
     end
 
+    # Rename the collection
+    #
+    # @example Rename the collection to 'foo'
+    #   collection.rename('foo')
+    #
+    # @return [ Hash ] The command information.
+    #
+    # @since 2.0.0
+    def rename(to_name)
+      begin
+        session.with(database: 'admin', read: :primary).command(renameCollection: "#{database.name}.#{name}", to: "#{database.name}.#{to_name}")
+      rescue Moped::Errors::OperationFailure => e
+        raise e unless e.ns_not_exists?
+        false
+      end
+    end
     # Build a query for this collection.
     #
     # @example Build a query based on the provided selector.
