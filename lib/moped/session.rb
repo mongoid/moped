@@ -176,9 +176,9 @@ module Moped
     # @param [ Array ] seeds An array of host:port pairs.
     # @param [ Hash ] options The options for the session.
     #
-    # @option options [ Symbol ] :write (:propagate/:unverified) Ensure writes are persisted.
     # @option options [ Hash ] :write Ensure writes are persisted with the
-    #   specified safety level e.g., "fsync: true", or "w: 2, wtimeout: 5".
+    #   specified safety level e.g., "fsync: true", or "w: 2, wtimeout: 5", "w:
+    #   0".
     # @option options [ Symbol, String ] :database The database to use.
     # @option options [ Boolean ] :ssl Connect using SSL.
     # @option options [ Integer ] :max_retries The maximum number of attempts
