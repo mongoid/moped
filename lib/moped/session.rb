@@ -173,8 +173,8 @@ module Moped
     # @example Initialize a new session.
     #   Session.new([ "localhost:27017" ])
     #
-    # @param [ Array ] seeds an of host:port pairs
-    # @param [ Hash ] options
+    # @param [ Array ] seeds An array of host:port pairs.
+    # @param [ Hash ] options The options for the session.
     #
     # @option options [ Symbol ] :write (:propagate/:unverified) Ensure writes are persisted.
     # @option options [ Hash ] :write Ensure writes are persisted with the
