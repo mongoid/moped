@@ -53,7 +53,9 @@ module Moped
     # @since 2.0.0
     def rename(to_name)
       begin
-        session.with(database: 'admin', read: :primary).command(renameCollection: "#{database.name}.#{name}", to: "#{database.name}.#{to_name}")
+        session.
+          with(database: "admin", read: :primary).
+          command(renameCollection: "#{database.name}.#{name}", to: "#{database.name}.#{to_name}")
       rescue Moped::Errors::OperationFailure => e
         raise e unless e.ns_not_exists?
         false
