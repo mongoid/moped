@@ -8,35 +8,71 @@ describe Moped::Protocol::Query do
       { active: true }
     end
 
-    let(:options) do
-      {
-        request_id: 1000,
-        flags: [ :tailable ],
-        limit: 10,
-        skip: 20,
-        fields: { active: 1 },
-        batch_size: 50
-      }
+    context "when there are fields in the query" do
+
+      let(:options) do
+        {
+          request_id: 1000,
+          flags: [ :tailable ],
+          limit: 10,
+          skip: 20,
+          fields: { active: 1 },
+          batch_size: 50
+        }
+      end
+
+      let(:query) do
+        described_class.new("moped_test", "users", selector, options)
+      end
+
+      let(:cloned) do
+        query.clone
+      end
+
+      it "clones the selector" do
+        expect(cloned.selector).not_to equal(query.selector)
+      end
+
+      it "clones the flags" do
+        expect(cloned.flags).not_to equal(query.flags)
+      end
+
+      it "clones the fields" do
+        expect(cloned.fields).not_to equal(query.fields)
+      end
     end
 
-    let(:query) do
-      described_class.new("moped_test", "users", selector, options)
-    end
+    context "when there are no fields on the query" do
 
-    let(:cloned) do
-      query.clone
-    end
+      let(:options) do
+        {
+          request_id: 1000,
+          flags: [ :tailable ],
+          limit: 10,
+          skip: 20,
+          batch_size: 50
+        }
+      end
 
-    it "clones the selector" do
-      expect(cloned.selector).not_to equal(query.selector)
-    end
+      let(:query) do
+        described_class.new("moped_test", "users", selector, options)
+      end
 
-    it "clones the flags" do
-      expect(cloned.flags).not_to equal(query.flags)
-    end
+      let(:cloned) do
+        query.clone
+      end
 
-    it "clones the fields" do
-      expect(cloned.fields).not_to equal(query.fields)
+      it "clones the selector" do
+        expect(cloned.selector).not_to equal(query.selector)
+      end
+
+      it "clones the flags" do
+        expect(cloned.flags).not_to equal(query.flags)
+      end
+
+      it "does not clone the fields" do
+        expect(cloned.fields).to be_nil
+      end
     end
   end
 

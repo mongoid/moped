@@ -243,7 +243,7 @@ module Moped
       def initialize_copy(_)
         @selector = selector.dup
         @flags = flags.dup
-        @fields = fields.dup
+        @fields = fields.dup if fields
       end
     end
   end
