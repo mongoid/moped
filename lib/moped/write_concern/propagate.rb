@@ -21,7 +21,17 @@ module Moped
       #
       # @since 2.0.0
       def initialize(options)
-        @operation = { getlasterror: 1 }.merge!(options)
+        @operation = { getlasterror: 1 }.merge!(normalize(options))
+      end
+
+      private
+
+      def normalize(options)
+        opts = {}
+        options.each do |key, value|
+          opts[key] = value.is_a?(Symbol) ? value.to_s : value
+        end
+        opts
       end
     end
   end
