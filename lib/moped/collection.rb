@@ -7,6 +7,7 @@ module Moped
   #
   # @since 1.0.0
   class Collection
+    include Readable
 
     # @!attribute database
     #   @return [ Database ] The database for the collection.
@@ -120,7 +121,9 @@ module Moped
     # @since 1.0.0
     def insert(documents, flags = nil)
       docs = documents.is_a?(Array) ? documents : [ documents ]
-      session.context.insert(database.name, name, docs, flags: flags || [])
+      cluster.with_primary do |node|
+        node.insert(database.name, name, docs, write_concern, flags: flags || [])
+      end
     end
 
     # Call aggregate function over the collection.
@@ -153,6 +156,10 @@ module Moped
     # @since 2.0.0
     def session
       database.session
+    end
+
+    def write_concern
+      session.write_concern
     end
   end
 end

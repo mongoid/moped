@@ -115,15 +115,19 @@ module Moped
     #
     # @since 1.0.0
     def first
-      reply = session.context.query(
-        operation.database,
-        operation.collection,
-        operation.selector,
-        fields: operation.fields,
-        flags: operation.flags,
-        skip: operation.skip,
-        limit: -1
-      )
+      reply = read_preference.with_node(cluster) do |node|
+        node.query(
+          operation.database,
+          operation.collection,
+          operation.selector,
+          query_options(
+            fields: operation.fields,
+            flags: operation.flags,
+            skip: operation.skip,
+            limit: -1
+          )
+        )
+      end
       reply.documents.first
     end
     alias :one :first
@@ -272,12 +276,15 @@ module Moped
     #
     # @since 1.0.0
     def remove
-      session.context.remove(
-        operation.database,
-        operation.collection,
-        operation.basic_selector,
-        flags: [ :remove_first ]
-      )
+      cluster.with_primary do |node|
+        node.remove(
+          operation.database,
+          operation.collection,
+          operation.basic_selector,
+          write_concern,
+          flags: [ :remove_first ]
+        )
+      end
     end
 
     # Remove multiple documents matching the query's selector.
@@ -289,11 +296,14 @@ module Moped
     #
     # @since 1.0.0
     def remove_all
-      session.context.remove(
-        operation.database,
-        operation.collection,
-        operation.basic_selector
-      )
+      cluster.with_primary do |node|
+        node.remove(
+          operation.database,
+          operation.collection,
+          operation.basic_selector,
+          write_concern
+        )
+      end
     end
 
     # Set the fields to include or exclude from the query.
@@ -368,13 +378,16 @@ module Moped
     #
     # @since 1.0.0
     def update(change, flags = nil)
-      session.context.update(
-        operation.database,
-        operation.collection,
-        operation.selector["$query"] || operation.selector,
-        change,
-        flags: flags
-      )
+      cluster.with_primary do |node|
+        node.update(
+          operation.database,
+          operation.collection,
+          operation.selector["$query"] || operation.selector,
+          change,
+          write_concern,
+          flags: flags
+        )
+      end
     end
 
     # Update multiple documents matching the query's selector.
@@ -407,6 +420,22 @@ module Moped
     # @since 1.0.0
     def upsert(change)
       update(change, [ :upsert ])
+    end
+
+    def write_concern
+      session.write_concern
+    end
+
+    def read_preference
+      session.read_preference
+    end
+
+    def cluster
+      session.cluster
+    end
+
+    def query_options(options)
+      read_preference.query_options(options)
     end
 
     private

@@ -5,7 +5,6 @@ require "moped/write_concern"
 require "moped/collection"
 require "moped/cluster"
 require "moped/database"
-require "moped/session/context"
 
 module Moped
 
@@ -33,10 +32,11 @@ module Moped
   # @since 1.0.0
   class Session
 
-    # @attribute [r] cluster The session cluster.
-    # @attribute [r] context The session context.
-    # @attribute [r] options The session options.
-    attr_reader :cluster, :context, :options
+    # @!attribute cluster
+    #   @return [ Cluster ] The cluster of nodes.
+    # @!attribute options
+    #   @return [ Hash ] The configuration options.
+    attr_reader :cluster, :options
 
     # Return +collection+ from the current database.
     #
@@ -196,7 +196,6 @@ module Moped
     def initialize(seeds, options = {})
       @options = options
       @cluster = Cluster.new(seeds, options)
-      @context = Context.new(self)
     end
 
     # Create a new session with +options+ and use new socket connections.
@@ -372,7 +371,6 @@ module Moped
       @read_preference = nil
       @write_concern = nil
       @current_database = nil
-      @context = Context.new(self)
     end
 
     def set_current_database(database)

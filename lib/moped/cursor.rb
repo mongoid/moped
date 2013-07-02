@@ -4,6 +4,7 @@ module Moped
   #
   # @api private
   class Cursor
+    include Readable
 
     # @attribute [r] get_more_op The get more message.
     # @attribute [r] kill_cursor_op The kill cursor message.
@@ -130,10 +131,9 @@ module Moped
       @options[:flags] |= [:no_cursor_timeout] if @options[:no_timeout]
       options = @options.clone
       options[:limit] = request_limit
-      read_preference = session.context.read_preference
 
       reply, @node = read_preference.with_node(session.cluster) do |node|
-        [ node.query(@database, @collection, @selector, read_preference.query_options(options)), node ]
+        [ node.query(@database, @collection, @selector, query_options(options)), node ]
       end
 
       @limit -= reply.count if limited?

@@ -22,24 +22,6 @@ module Moped
       session.cluster
     end
 
-    # Execute a read operation on the correct node.
-    #
-    # @api private
-    #
-    # @example Execute a read.
-    #   database.read(operation)
-    #
-    # @param [ Protocol::Command ] operation The read operation.
-    #
-    # @return [ Object ] The result of the operation.
-    #
-    # @since 2.0.0
-    def read(operation)
-      read_preference.with_node(cluster) do |node|
-        Operation::Read.new(operation).execute(node)
-      end
-    end
-
     # Convenience method for getting the read preference from the session.
     #
     # @api private

@@ -69,7 +69,9 @@ module Moped
     #
     # @since 1.0.0
     def command(command)
-      read(Protocol::Command.new(name, command, query_options))
+      read_preference.with_node(cluster) do |node|
+        node.command(name, command, query_options({}))
+      end
     end
 
     # Drop the database.
