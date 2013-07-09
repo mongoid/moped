@@ -31,6 +31,7 @@ module Moped
   #
   # @since 1.0.0
   class Session
+    include Optionable
 
     # @!attribute cluster
     #   @return [ Cluster ] The cluster of nodes.
@@ -168,6 +169,62 @@ module Moped
       current_database.logout
     end
 
+    # Setup validation of allowed write concern options.
+    #
+    # @since 2.0.0
+    option(:write).allow(w: Optionable.any(Integer))
+    option(:write).allow(w: Optionable.any(String))
+    option(:write).allow(j: true)
+    option(:write).allow(j: false)
+    option(:write).allow(fsync: true)
+    option(:write).allow(fsync: false)
+
+    # Setup validation of allowed read preference options.
+    #
+    # @since 2.0.0
+    option(:read).allow(
+      :nearest,
+      :primary,
+      :primary_preferred,
+      :secondary,
+      :secondary_preferred
+    )
+
+    # Setup validation of allowed database options. (Any string or symbol)
+    #
+    # @since 2.0.0
+    option(:database).allow(Optionable.any(String), Optionable.any(Symbol))
+
+    # Setup validation of allowed max retry options. (Any integer)
+    #
+    # @since 2.0.0
+    option(:max_retries).allow(Optionable.any(Integer))
+
+    # Setup validation of allowed pool size options. (Any integer)
+    #
+    # @since 2.0.0
+    option(:pool_size).allow(Optionable.any(Integer))
+
+    # Setup validation of allowed retry interval options. (Any numeric)
+    #
+    # @since 2.0.0
+    option(:retry_interval).allow(Optionable.any(Numeric))
+
+    # Setup validation of allowed reap interval options. (Any numeric)
+    #
+    # @since 2.0.0
+    option(:reap_interval).allow(Optionable.any(Numeric))
+
+    # Setup validation of allowed ssl options. (Any boolean)
+    #
+    # @since 2.0.0
+    option(:ssl).allow(true, false)
+
+    # Setup validation of allowed timeout options. (Any numeric)
+    #
+    # @since 2.0.0
+    option(:timeout).allow(Optionable.any(Numeric))
+
     # Initialize a new database session.
     #
     # @example Initialize a new session.
@@ -176,24 +233,11 @@ module Moped
     # @param [ Array ] seeds An array of host:port pairs.
     # @param [ Hash ] options The options for the session.
     #
-    # @option options [ Hash ] :write Ensure writes are persisted with the
-    #   specified safety level e.g., "fsync: true", or "w: 2, wtimeout: 5", "w:
-    #   0".
-    # @option options [ Symbol, String ] :database The database to use.
-    # @option options [ Boolean ] :ssl Connect using SSL.
-    # @option options [ Integer ] :max_retries The maximum number of attempts
-    #   to retry an operation. (30)
-    # @option options [ Integer ] :retry_interval The time in seconds to retry
-    #   connections to a secondary or primary after a failure. (1)
-    # @option options [ Integer ] :timeout The time in seconds to wait for an
-    #   operation to timeout. (5)
-    # @option options [ Float ] :reap_interval The interval, in seconds, in
-    #   which to reap connections on dead threads.
-    # @option options [ Integer ] :pool_size The size of the connection pool
-    #   for each node. This defaults to 5.
+    # @see Above options validations for allowed values in the options hash.
     #
     # @since 1.0.0
     def initialize(seeds, options = {})
+      validate_strict(options)
       @options = options
       @cluster = Cluster.new(seeds, options)
     end
