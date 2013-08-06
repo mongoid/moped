@@ -83,7 +83,12 @@ describe Moped::Node, replica_set: true do
         described_class.new("127.0.0.1:27017")
       end
 
+      let(:buildinfo) do
+        { "version" => "2.2" }
+      end
+
       before do
+        node.should_receive(:command).with("admin", buildinfo: 1).and_return(buildinfo)
         node.should_receive(:command).with("admin", ismaster: 1).and_return(info)
         node.refresh
       end
@@ -99,7 +104,12 @@ describe Moped::Node, replica_set: true do
         described_class.new("127.0.0.1:27017", auto_discover: false)
       end
 
+      let(:buildinfo) do
+        { "version" => "2.2" }
+      end
+
       before do
+        node.should_receive(:command).with("admin", buildinfo: 1).and_return(buildinfo)
         node.should_receive(:command).with("admin", ismaster: 1).and_return(info)
         node.refresh
       end
@@ -287,6 +297,7 @@ describe Moped::Node, replica_set: true do
       end
 
       before do
+        node.should_receive(:command).with("admin", buildinfo: 1).and_return("version" => "2.2")
         node.should_receive(:command).with("admin", ismaster: 1).and_raise(Timeout::Error)
         node.refresh
       end
@@ -319,7 +330,12 @@ describe Moped::Node, replica_set: true do
           }
         end
 
+        let(:buildinfo) do
+          { "version" => "2.2" }
+        end
+
         before do
+          node.should_receive(:command).with("admin", buildinfo: 1).and_return(buildinfo)
           node.should_receive(:command).with("admin", ismaster: 1).and_return(info)
           node.refresh
         end
@@ -353,7 +369,8 @@ describe Moped::Node, replica_set: true do
         context "and not on the primary" do
 
           before do
-            node.stub(:command).and_return("secondary" => true)
+            node.should_receive(:command).with("admin", buildinfo: 1).and_return("version" => "2.2")
+            node.should_receive(:command).with("admin", ismaster: 1).and_return("secondary" => true)
           end
 
           it "raises a ReplicaSetReconfigured error" do
@@ -362,6 +379,33 @@ describe Moped::Node, replica_set: true do
             }.to raise_error(Moped::Errors::ReplicaSetReconfigured)
           end
         end
+      end
+    end
+
+    context "when refreshing a node which has not supported mongodb version" do
+
+      before do
+        node.should_receive(:command).with("admin", buildinfo: 1).and_return("version" => "1.8")
+      end
+
+      it "raises a UnsupportedVersion error" do
+        expect {
+          node.refresh
+        }.to raise_error(Moped::Errors::UnsupportedVersion)
+      end
+    end
+
+    context "when refreshing a node multiple times" do
+
+      let(:node) do
+        described_class.new("127.0.0.1:27017")
+      end
+
+      it "only check buildinfo once" do
+        expect(node).to receive(:command).once.with("admin", buildinfo: 1).and_return("version" => "2.2")
+        expect(node).to receive(:command).exactly(3).times.with("admin", ismaster: 1).and_return("ok" => 1.0)
+
+        3.times { node.refresh }
       end
     end
   end
