@@ -394,5 +394,19 @@ describe Moped::Node, replica_set: true do
         }.to raise_error(Moped::Errors::UnsupportedVersion)
       end
     end
+
+    context "when refreshing a node multiple times" do
+
+      let(:node) do
+        described_class.new("127.0.0.1:27017")
+      end
+
+      it "only check buildinfo once" do
+        expect(node).to receive(:command).once.with("admin", buildinfo: 1).and_return("version" => "2.2")
+        expect(node).to receive(:command).exactly(3).times.with("admin", ismaster: 1).and_return("ok" => 1.0)
+
+        3.times { node.refresh }
+      end
+    end
   end
 end
