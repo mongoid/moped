@@ -134,8 +134,6 @@ module Moped
     # Cluster#with_primary.
     class ReplicaSetReconfigured < DoNotDisconnect; end
 
-    class UnsupportedVersion < MongoError; end
-
     # Tag applied to unhandled exceptions on a node.
     module SocketError; end
   end
