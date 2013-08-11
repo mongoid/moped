@@ -1,5 +1,11 @@
 # Overview
 
+## 1.5.1
+
+### Resolved Issues
+
+* \#208 Fixed local jump errors in node. (Brian Norton)
+
 ## 1.5.0
 
 ### New Features
