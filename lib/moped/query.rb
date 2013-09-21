@@ -13,7 +13,7 @@ module Moped
   #   people.find.skip(2).update(name: "John")
   #   people.find.skip(2).first # => { id: 3, name: "John" }
   #
-  #   people.find(name: nil).update_all(name: "Unknown")
+  #   people.find(name: nil).update_all("$set" => { name: "Unknown" })
   #   people.find.one # => { id: 5, name: "Unknown" }
   #   people.find.first # => { id: 5, name: "Unknown" }
   #   people.find.select(name: 0).first # => { id: 5 }
@@ -393,7 +393,7 @@ module Moped
     # Update multiple documents matching the query's selector.
     #
     # @example Update multiple documents.
-    #   db[:people].find(name: "John").update_all(name: "Mary")
+    #   db[:people].find(name: "John").update_all("$set" => { name: "Mary" })
     #
     # @param [ Hash ] change The changes to make to the documents
     #
