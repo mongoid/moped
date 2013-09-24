@@ -187,7 +187,12 @@ module Moped
       :primary,
       :primary_preferred,
       :secondary,
-      :secondary_preferred
+      :secondary_preferred,
+      "nearest",
+      "primary",
+      "primary_preferred",
+      "secondary",
+      "secondary_preferred"
     )
 
     # Setup validation of allowed database options. (Any string or symbol)
