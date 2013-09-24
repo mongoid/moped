@@ -294,12 +294,26 @@ describe Moped::Session do
 
     context "when a write option is provided" do
 
-      let(:unverified) do
-        described_class.new([ "127.0.0.1:27017" ], write: { w: 0 })
+      context "when the option is a symbol" do
+
+        let(:unverified) do
+          described_class.new([ "127.0.0.1:27017" ], write: { w: 0 })
+        end
+
+        it "returns the corresponding write concern" do
+          expect(unverified.write_concern).to be_a(Moped::WriteConcern::Unverified)
+        end
       end
 
-      it "returns the corresponding write concern" do
-        expect(unverified.write_concern).to be_a(Moped::WriteConcern::Unverified)
+      context "when the option is a string" do
+
+        let(:unverified) do
+          described_class.new([ "127.0.0.1:27017" ], write: { "w" => 0 })
+        end
+
+        it "returns the corresponding write concern" do
+          expect(unverified.write_concern).to be_a(Moped::WriteConcern::Unverified)
+        end
       end
     end
 

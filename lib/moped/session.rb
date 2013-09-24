@@ -172,12 +172,12 @@ module Moped
     # Setup validation of allowed write concern options.
     #
     # @since 2.0.0
-    option(:write).allow(w: Optionable.any(Integer))
-    option(:write).allow(w: Optionable.any(String))
-    option(:write).allow(j: true)
-    option(:write).allow(j: false)
-    option(:write).allow(fsync: true)
-    option(:write).allow(fsync: false)
+    option(:write).allow({ w: Optionable.any(Integer) }, { "w" => Optionable.any(Integer) })
+    option(:write).allow({ w: Optionable.any(String) }, { "w" => Optionable.any(String) })
+    option(:write).allow({ j: true }, { "j" => true })
+    option(:write).allow({ j: false }, { "j" => false })
+    option(:write).allow({ fsync: true }, { "fsync" => true })
+    option(:write).allow({ fsync: false }, { "fsync" => false })
 
     # Setup validation of allowed read preference options.
     #

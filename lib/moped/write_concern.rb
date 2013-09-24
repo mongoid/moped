@@ -22,7 +22,8 @@ module Moped
     #
     # @since 2.0.0
     def get(value)
-      if value[:w] == 0 || value[:w] == -1
+      propagate = value[:w] || value["w"]
+      if propagate == 0 || propagate == -1
         Unverified.new
       else
         Propagate.new(value)

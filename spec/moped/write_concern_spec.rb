@@ -18,7 +18,7 @@ describe Moped::WriteConcern do
     context "when provided -1" do
 
       let(:concern) do
-        described_class.get(w: -1)
+        described_class.get("w" => -1)
       end
 
       it "returns an unverified write concern" do
