@@ -8,12 +8,7 @@ module Moped
     # The name of the topic of operations for Moped.
     #
     # @since 2.0.0
-    TOPIC = "moped.operations"
-
-    # Topic for warning instrumentation.
-    #
-    # @since 2.0.0
-    WARN = "moped.warn"
+    TOPIC = "query.moped"
 
     # @!attribute instrumenter
     #   @return [ Object ] The instrumenter

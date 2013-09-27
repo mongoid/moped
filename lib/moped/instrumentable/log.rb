@@ -6,36 +6,30 @@ module Moped
     # notifications.
     #
     # @since 2.0.0
-    class Log
+    module Log
+      extend self
 
-      class << self
-
-        # Instrument the log payload.
-        #
-        # @example Instrument the log payload.
-        #   Log.instrument("moped.ops", {})
-        #
-        # @param [ String ] name The name of the logging type.
-        # @param [ Hash ] payload The log payload.
-        #
-        # @return [ Object ] The result of the yield.
-        #
-        # @since 2.0.0
-        def instrument(name, payload = {})
-          started = Time.new
-          begin
-            yield if block_given?
-          rescue Exception => e
-            payload[:exception] = [ e.class.name, e.message ]
-            raise e
-          ensure
-            runtime = ("%.4fms" % (1000 * (Time.now.to_f - started.to_f)))
-            if name == TOPIC
-              Moped::Loggable.log_operations(payload[:prefix], payload[:ops], runtime)
-            else
-              Moped::Loggable.debug(payload[:prefix], payload.reject { |k,v| k == :prefix }, runtime)
-            end
-          end
+      # Instrument the log payload.
+      #
+      # @example Instrument the log payload.
+      #   Log.instrument("moped.ops", {})
+      #
+      # @param [ String ] name The name of the logging type.
+      # @param [ Hash ] payload The log payload.
+      #
+      # @return [ Object ] The result of the yield.
+      #
+      # @since 2.0.0
+      def instrument(name, payload = {})
+        started = Time.new
+        begin
+          yield if block_given?
+        rescue Exception => e
+          payload[:exception] = [ e.class.name, e.message ]
+          raise e
+        ensure
+          runtime = ("%.4fms" % (1000 * (Time.now.to_f - started.to_f)))
+          Moped::Loggable.log_operations(payload[:prefix], payload[:ops], runtime)
         end
       end
     end
