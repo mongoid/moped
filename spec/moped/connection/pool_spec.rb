@@ -174,22 +174,26 @@ describe Moped::Connection::Pool do
 
           context "when reaping does not free any new connections" do
 
-            let!(:thread_one) do
+            let(:thread_one) do
               Thread.new do
                 pool.checkout
                 sleep(3)
               end
             end
 
-            let!(:thread_two) do
+            let(:thread_two) do
               Thread.new do
                 pool.checkout
+                sleep(1)
                 pool.checkout
-                sleep(3)
               end
             end
 
             before do
+              thread_one
+            end
+
+            after do
               thread_one.join
             end
 
