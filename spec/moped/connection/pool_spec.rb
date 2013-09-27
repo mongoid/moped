@@ -177,14 +177,15 @@ describe Moped::Connection::Pool do
             let!(:thread_one) do
               Thread.new do
                 pool.checkout
+                sleep(3)
               end
             end
 
             let!(:thread_two) do
               Thread.new do
                 pool.checkout
-                sleep(3)
                 pool.checkout
+                sleep(3)
               end
             end
 
