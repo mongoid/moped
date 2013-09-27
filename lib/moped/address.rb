@@ -48,7 +48,7 @@ module Moped
         @ip ||= Socket.getaddrinfo(host, nil, Socket::AF_INET, Socket::SOCK_STREAM).first[3]
         @resolved ||= "#{ip}:#{port}"
       rescue SocketError => e
-        node.instrument(Node::WARN, prefix: "  MOPED:", message: "Could not resolve IP for: #{original}")
+        Loggable.warn("  MOPED:", "Could not resolve IP for: #{original}", "n/a")
         node.down! and false
       end
     end
