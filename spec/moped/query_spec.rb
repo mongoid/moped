@@ -81,7 +81,7 @@ describe Moped::Query do
       end
 
       it "returns the documents from the tail" do
-        cursor.next["name"].should eq("create")
+        cursor.take(1).first["name"].should eq("create")
       end
 
       context "when inserting another document" do
@@ -91,12 +91,27 @@ describe Moped::Query do
         end
 
         it "keeps the cursor open" do
-          pending
-          cursor.next["name"].should eq("delete")
+          mutex = Mutex.new
+          proceed = ConditionVariable.new
+
           Thread.new do
+            mutex.synchronize { proceed.wait(mutex) }
             events.insert({ "name" => "new" })
-          end.join
-          cursor.next["name"].should eq("new")
+          end
+          arr = %w(create delete new)
+
+          cursor.each_with_index do |entry, i|
+            expect(entry['name']).to eq(arr.shift)
+
+            case entry['name']
+            when 'new'
+              break
+            when 'delete'
+              mutex.synchronize { proceed.signal }
+            end
+          end
+
+          expect(arr.length).to eq(0)
         end
       end
     end
@@ -646,7 +661,7 @@ describe Moped::Query do
         end
 
         it "yields each document" do
-          users.find(scope: scope).each.with_index do |document, index|
+          users.find(scope: scope).cursor.each_with_index do |document, index|
             documents.should include(document)
           end
         end

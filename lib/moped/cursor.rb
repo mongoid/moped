@@ -5,6 +5,7 @@ module Moped
   # @api private
   class Cursor
     include Readable
+    include Enumerable
 
     # @attribute [r] get_more_op The get more message.
     # @attribute [r] kill_cursor_op The kill cursor message.

@@ -68,20 +68,18 @@ module Moped
     #     #...
     #   end
     #
-    # @return [ Enumerator ] The enumerator.
+    # @return [ Enumerable ]
     #
     # @since 1.0.0
     #
     # @yieldparam [ Hash ] document each matching document
-    def each
-      cursor = Cursor.new(session, operation)
-      enum = cursor.to_enum
-      enum.each do |document|
-        yield document
-      end if block_given?
-      enum
+    def each(*args, &blk)
+      cursor.each(*args, &blk)
     end
-    alias :cursor :each
+
+    def cursor
+      Cursor.new(session, operation)
+    end
 
     # Explain the current query.
     #
