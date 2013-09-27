@@ -7,7 +7,7 @@ describe Moped::Address do
     context "when a port is provided" do
 
       let(:address) do
-        described_class.new("127.0.0.1:27017")
+        described_class.new("127.0.0.1:27017", 2)
       end
 
       it "sets the original address" do
@@ -26,7 +26,7 @@ describe Moped::Address do
     context "when no port is provided" do
 
       let(:address) do
-        described_class.new("localhost")
+        described_class.new("localhost", 2)
       end
 
       it "sets the original address" do
@@ -52,7 +52,7 @@ describe Moped::Address do
       end
 
       let(:address) do
-        described_class.new("127.0.0.1:27017")
+        described_class.new("127.0.0.1:27017", 2)
       end
 
       before do
@@ -75,7 +75,7 @@ describe Moped::Address do
       end
 
       let(:address) do
-        described_class.new("localhost:27017")
+        described_class.new("localhost:27017", 2)
       end
 
       before do
@@ -98,7 +98,7 @@ describe Moped::Address do
       end
 
       let(:address) do
-        described_class.new("notahost:27017")
+        described_class.new("notahost:27017", 1)
       end
 
       let!(:resolved) do
