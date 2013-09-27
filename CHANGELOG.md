@@ -8,6 +8,8 @@
 
 ### API Changes (Backwards Incompatible)
 
+* Query.cursor will return a Enumerable instead of a Enumarator. (Arthur Neves)
+
 * \#190 Connection retries are now logged. (Jan Paul Posma)
 
 * \#133 Moped now supports the new read preferences that the core drivers
