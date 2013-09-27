@@ -174,23 +174,8 @@ describe Moped::Connection::Pool do
 
           context "when reaping does not free any new connections" do
 
-            let(:thread_one) do
-              Thread.new do
-                pool.checkout
-                sleep(3)
-              end
-            end
-
-            let(:thread_two) do
-              Thread.new do
-                pool.checkout
-                sleep(1)
-                pool.checkout
-              end
-            end
-
-            before do
-              thread_one
+            let!(:thread_one) do
+              Thread.new { pool.checkout }
             end
 
             after do
@@ -198,9 +183,22 @@ describe Moped::Connection::Pool do
             end
 
             it "raises an error" do
-              expect {
-                thread_two.join
-              }.to raise_error(Moped::Errors::ConnectionInUse)
+              mutex = Mutex.new
+              errors = []
+
+              expect do
+
+                Thread.new {
+                  begin
+                    pool.checkout
+                    pool.checkout
+                  rescue Moped::Errors::ConnectionInUse => e
+                    mutex.synchronize { errors << e }
+                  end
+                }.join
+
+                errors.each { |e| raise e }
+              end.to raise_error(Moped::Errors::ConnectionInUse)
             end
           end
         end
