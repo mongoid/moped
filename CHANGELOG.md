@@ -8,7 +8,7 @@
 
 ### API Changes (Backwards Incompatible)
 
-* Query.cursor will return a Enumerable instead of a Enumarator. (Arthur Neves)
+* Query.cursor will return a Enumerable instead of a Enumerator. (Arthur Neves)
 
 * \#190 Connection retries are now logged. (Jan Paul Posma)
 
