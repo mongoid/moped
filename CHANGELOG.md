@@ -10,6 +10,10 @@
 
 * Query.cursor will return a Enumerable instead of a Enumerator. (Arthur Neves)
 
+* Moped's BSON implementation has been removed in favor of the 10gen
+  bson gem 2.0 and higher. All `Moped::BSON` references should be changed
+  to just `BSON`.
+
 * \#190 Connection retries are now logged. (Jan Paul Posma)
 
 * \#133 Moped now supports the new read preferences that the core drivers
