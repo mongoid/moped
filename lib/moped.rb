@@ -3,6 +3,7 @@ require "logger"
 require "stringio"
 require "monitor"
 require "timeout"
+require 'resolv'
 require "bson"
 require "optionable"
 require "moped/errors"

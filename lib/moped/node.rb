@@ -253,7 +253,6 @@ module Moped
     #
     # @since 1.0.0
     def initialize(address, options = {})
-      @address = Address.new(address)
       @options = options
       @down_at = nil
       @refreshed_at = nil
@@ -261,6 +260,7 @@ module Moped
       @primary = nil
       @secondary = nil
       @instrumenter = options[:instrumenter] || Instrumentable::Log
+      @address = Address.new(address, timeout)
       @address.resolve(self)
     end
 
