@@ -302,6 +302,7 @@ module Moped
     #
     # @since 2.0.0
     def refreshable?(node)
+      return false if node.arbiter?
       node.down? ? node.down_at < down_boundary : node.needs_refresh?(refresh_boundary)
     end
 

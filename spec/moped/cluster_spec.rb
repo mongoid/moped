@@ -392,6 +392,29 @@ describe Moped::Cluster, replica_set: true do
       end
     end
   end
+
+  describe "#refreshable?" do
+
+    let(:cluster) do
+      described_class.new(seeds, {})
+    end
+
+    context "when the node is an arbiter" do
+
+      let(:node) do
+        cluster.nodes.first
+      end
+
+      before do
+        node.instance_variable_set(:@arbiter, true)
+        node.instance_variable_set(:@down_at, Time.new - 60)
+      end
+
+      it "returns false" do
+        expect(cluster.send(:refreshable?, node)).to be_false
+      end
+    end
+  end
 end
 
 describe Moped::Cluster, "authentication", mongohq: :auth do

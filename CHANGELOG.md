@@ -44,6 +44,10 @@
 
     The `:safe` option is no longer valid and will be ignored.
 
+### Resolved Issues
+
+* \#210 Moped no longer attempts to refresh arbiters as they cannot be queried.
+
 ## 1.5.1
 
 ### Resolved Issues
