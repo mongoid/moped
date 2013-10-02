@@ -26,10 +26,11 @@ module Moped
     # @param [ String ] address The host:port pair as a string.
     #
     # @since 2.0.0
-    def initialize(address)
+    def initialize(address, timeout)
       @original = address
       @host, port = address.split(":")
       @port = (port || 27017).to_i
+      @timeout = timeout
     end
 
     # Resolve the address for the provided node. If the address cannot be
@@ -45,9 +46,17 @@ module Moped
     # @since 2.0.0
     def resolve(node)
       begin
-        @ip ||= Socket.getaddrinfo(host, nil, Socket::AF_INET, Socket::SOCK_STREAM).first[3]
+        Timeout::timeout(@timeout) do
+          Resolv.each_address(host) do |ip|
+            if ip =~ Resolv::IPv4::Regex
+              @ip ||= ip
+              break
+            end
+          end
+          raise Resolv::ResolvError unless @ip
+        end
         @resolved ||= "#{ip}:#{port}"
-      rescue SocketError => e
+      rescue Timeout::Error, Resolv::ResolvError
         Loggable.warn("  MOPED:", "Could not resolve IP for: #{original}", "n/a")
         node.down! and false
       end
