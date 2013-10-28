@@ -5,7 +5,7 @@ describe Moped::Connection::Queue do
   describe "#empty?" do
 
     let(:queue) do
-      described_class.new(1) do
+      described_class.new(1, 0.5) do
         Moped::Connection.new("127.0.0.1", 27017, 5)
       end
     end
@@ -20,7 +20,7 @@ describe Moped::Connection::Queue do
     context "when the queue has no connections" do
 
       before do
-        queue.pop
+        queue.shift
       end
 
       it "returns true" do
@@ -32,7 +32,7 @@ describe Moped::Connection::Queue do
   describe "#initialize" do
 
     let(:queue) do
-      described_class.new(2) do
+      described_class.new(2, 0.5) do
         Moped::Connection.new("127.0.0.1", 27017, 5)
       end
     end
@@ -42,10 +42,10 @@ describe Moped::Connection::Queue do
     end
   end
 
-  describe "#pop" do
+  describe "#shift" do
 
     let(:queue) do
-      described_class.new(1) do
+      described_class.new(1, 0.5) do
         Moped::Connection.new("127.0.0.1", 27017, 5)
       end
     end
@@ -53,7 +53,7 @@ describe Moped::Connection::Queue do
     context "when a connection is available" do
 
       let(:popped) do
-        queue.pop
+        queue.shift
       end
 
       it "returns the connection" do
@@ -64,7 +64,7 @@ describe Moped::Connection::Queue do
     context "when a connection is not available" do
 
       before do
-        queue.pop
+        queue.shift
       end
 
       context "when a connection is pushed in the timeout period" do
@@ -81,14 +81,14 @@ describe Moped::Connection::Queue do
         end
 
         it "returns the connection" do
-          expect(queue.pop(2)).to equal(connection)
+          expect(queue.shift).to equal(connection)
         end
       end
 
       context "when no connection is pushed in the timeout period" do
 
         it "raises an error" do
-          expect { queue.pop(1) }.to raise_error(Timeout::Error)
+          expect { queue.shift }.to raise_error(Timeout::Error)
         end
       end
     end
@@ -101,7 +101,7 @@ describe Moped::Connection::Queue do
     end
 
     let(:queue) do
-      described_class.new(1) do
+      described_class.new(1, 0.5) do
         Moped::Connection.new("127.0.0.1", 27017, 5)
       end
     end
@@ -118,7 +118,7 @@ describe Moped::Connection::Queue do
   describe "#size" do
 
     let(:queue) do
-      described_class.new(1) do
+      described_class.new(1, 0.5) do
         Moped::Connection.new("127.0.0.1", 27017, 5)
       end
     end

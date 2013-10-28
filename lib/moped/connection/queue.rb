@@ -15,10 +15,11 @@ module Moped
       # @param [ Integer ] size The number of connections in the queue.
       #
       # @since 2.0.0
-      def initialize(size)
+      def initialize(size, timeout)
+        @timeout = timeout
         @queue = Array.new(size) { yield }
-        @mutex = Mutex.new
-        @resource = ConditionVariable.new
+        @monitor = Monitor.new
+        @cond = @monitor.new_cond
       end
 
       # Push a connection on the queue.
@@ -30,9 +31,9 @@ module Moped
       #
       # @since 2.0.0
       def push(connection)
-        mutex.synchronize do
-          queue.push(connection)
-          resource.broadcast
+        synchronize do
+          @queue.push(connection)
+          @cond.signal
         end
       end
 
@@ -46,9 +47,16 @@ module Moped
       # @return [ Moped::Connection ] The next connection.
       #
       # @since 2.0.0
-      def pop(timeout = 0.5)
-        mutex.synchronize do
-          wait_for_next(Time.now + timeout)
+      def shift
+        deadline = Time.now + @timeout
+
+        synchronize do
+          loop do
+            return @queue.shift unless @queue.empty?
+            wait = deadline - Time.now
+            raise Timeout::Error, "Waited for #{@timeout} seconds for connection but none was pushed." if wait <= 0
+            @cond.wait(wait)
+          end
         end
       end
 
@@ -61,7 +69,7 @@ module Moped
       #
       # @since 2.0.0
       def empty?
-        queue.empty?
+        @queue.empty?
       end
 
       # Get the current size of the queue.
@@ -73,20 +81,13 @@ module Moped
       #
       # @since 2.0.0
       def size
-        queue.size
+        @queue.size
       end
 
       private
 
-      attr_reader :queue, :mutex, :resource
-
-      def wait_for_next(deadline)
-        loop do
-          return queue.pop unless queue.empty?
-          wait = deadline - Time.now
-          raise Timeout::Error, "Waited for item but none was pushed." if wait <= 0
-          resource.wait(mutex, wait)
-        end
+      def synchronize
+        @monitor.synchronize { yield }
       end
     end
   end

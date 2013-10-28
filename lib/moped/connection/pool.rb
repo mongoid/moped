@@ -11,7 +11,7 @@ module Moped
       POOL_SIZE = 5
 
       # The default timeout for getting connections from the queue.
-      TIMEOUT = 0.25
+      TIMEOUT = 0.5
 
       # @!attribute host
       #   @return [ String ] The host the pool is for.
@@ -81,7 +81,7 @@ module Moped
         @mutex = Mutex.new
         @resource = ConditionVariable.new
         @pinned = {}
-        @unpinned = Queue.new(max_size) do
+        @unpinned = Queue.new(max_size, timeout) do
           Connection.new(host, port, options[:timeout] || Connection::TIMEOUT, options)
         end
         reaper.start
@@ -179,7 +179,7 @@ module Moped
 
       def next_connection
         reap if saturated?
-        unpinned.pop(timeout)
+        unpinned.shift
       end
 
       def saturated?
