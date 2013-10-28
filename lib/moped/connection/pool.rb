@@ -183,7 +183,7 @@ module Moped
       end
 
       def saturated?
-        size == max_size
+        unpinned.empty?
       end
 
       def thread_id
