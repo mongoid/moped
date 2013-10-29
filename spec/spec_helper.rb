@@ -32,6 +32,10 @@ RSpec.configure do |config|
     return true if value == :auth && !Support::MongoHQ.auth_node_configured?
   end
 
+  config.before :each do
+    Moped::Connection::Manager.instance_variable_set(:@pools, {})
+  end
+
   unless Support::MongoHQ.replica_set_configured? || Support::MongoHQ.auth_node_configured?
     $stderr.puts Support::MongoHQ.message
   end
