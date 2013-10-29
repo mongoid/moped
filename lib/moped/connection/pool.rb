@@ -36,16 +36,12 @@ module Moped
       # @since 2.0.0
       def checkout
         mutex.synchronize do
-          connection = pinned[thread_id]
-          if connection
-            unless connection.expired?
-              raise Errors::ConnectionInUse, "The connection on thread: #{thread_id} is in use."
-            else
-              lease(connection)
-            end
+          if connection = pinned[thread_id]
+            raise Errors::ConnectionInUse, "The connection on thread: #{thread_id} is in use."
           else
             connection = pinned[thread_id] = next_connection
-            lease(connection)
+            connection.lease
+            connection
           end
         end
       end
@@ -61,7 +57,10 @@ module Moped
       # @since 2.0.0
       def checkin(connection)
         mutex.synchronize do
-          expire(connection)
+          if connection == pinned[thread_id]
+            connection.expire
+            unpinned.push(pinned.delete(thread_id))
+          end
         end
       end
 
@@ -166,16 +165,6 @@ module Moped
       private
 
       attr_reader :mutex, :resource, :pinned, :unpinned
-
-      def expire(connection)
-        connection.expire
-        pinned[thread_id] = connection
-      end
-
-      def lease(connection)
-        connection.lease
-        connection
-      end
 
       def next_connection
         reap if saturated?

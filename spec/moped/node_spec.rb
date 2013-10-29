@@ -7,7 +7,7 @@ describe Moped::Node, replica_set: true do
   end
 
   let(:node) do
-    Moped::Node.new(replica_set_node.address)
+    Moped::Node.new(replica_set_node.address, pool_size: 1)
   end
 
   describe "#auto_discovering?" do
@@ -105,7 +105,7 @@ describe Moped::Node, replica_set: true do
     context "when the node is auto discovering" do
 
       let(:node) do
-        described_class.new("127.0.0.1:27017")
+        described_class.new("127.0.0.1:27017", pool_size: 1)
       end
 
       before do
