@@ -262,7 +262,7 @@ describe Moped::Connection::Pool do
       end
 
       it "returns the default" do
-        expect(pool.timeout).to eq(0.25)
+        expect(pool.timeout).to eq(Moped::Connection::Pool::TIMEOUT)
       end
     end
   end
