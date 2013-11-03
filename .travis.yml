@@ -26,3 +26,10 @@ matrix:
     - rvm: ruby-head
       jdk: openjdk7
       env: CI="travis"
+notifications:
+  email: false
+  irc:
+    on_success: change
+    on_failure: always
+    channels:
+      - "irc.freenode.org#mongoid"
