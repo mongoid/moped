@@ -28,12 +28,12 @@ describe Moped::Connection::Pool do
           pool.checkin(connection)
         end
 
-        it "keeps the connection pinned" do
-          expect(pinned[Thread.current.object_id]).to equal(connection)
+        it "releases the connection" do
+          expect(pinned[Thread.current.object_id]).to be_nil
         end
 
-        it "does not modify the unpinned connections" do
-          expect(unpinned.size).to eq(1)
+        it "sets to zero the pinned connections" do
+          expect(pinned.size).to eq(0)
         end
 
         it "expires the connection" do
@@ -103,8 +103,13 @@ describe Moped::Connection::Pool do
             pool.checkin(existing)
           end
 
-          it "returns the connection" do
-            expect(pool.checkout).to equal(existing)
+          let(:connection) do
+            pool.checkout
+          end
+
+          it "returns a new connection" do
+            expect(connection).to_not be_nil
+            expect(connection).to_not equal(existing)
           end
         end
 

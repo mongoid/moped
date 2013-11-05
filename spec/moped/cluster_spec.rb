@@ -270,7 +270,7 @@ describe Moped::Cluster, replica_set: true do
   context "with down interval" do
 
     let(:cluster) do
-      Moped::Cluster.new(seeds, { down_interval: 5 })
+      Moped::Cluster.new(seeds, { down_interval: 5, pool_size: 1 })
     end
 
     context "and all secondaries are down" do
