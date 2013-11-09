@@ -79,7 +79,9 @@ describe Moped::Node, replica_set: true do
     context "when the node is connected" do
 
       before do
-        node.connect
+        node.connection do |conn|
+          node.send(:connect, conn)
+        end
       end
 
       it "returns the latency in seconds" do

@@ -132,6 +132,26 @@ module Moped
         end
       end
 
+      # Disconnect all connections including the ones
+      # waiting on the pool and the ones in use.
+      #
+      # @example Disconnect all connections from the pool
+      #   pool.disconnect
+      #
+      # @since 2.0.0
+      def disconnect
+        mutex.synchronize do
+          pinned.values.each(&:disconnect)
+          conns = []
+          while unpinned.size > 0
+            conn = unpinned.shift
+            conn.disconnect
+            conns.push(conn)
+          end
+          conns.each { |c| unpinned.push(c) }
+        end
+      end
+
       # Get the timeout when attempting to check out items from the pool.
       #
       # @example Get the checkout timeout.

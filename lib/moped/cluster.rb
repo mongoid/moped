@@ -224,7 +224,8 @@ module Moped
       if node = nodes.find(&:primary?)
         begin
           node.ensure_primary do
-            return yield(node.apply_credentials(credentials))
+            node.credentials = credentials
+            return yield(node)
           end
         rescue Errors::ConnectionFailure, Errors::ReplicaSetReconfigured
         end
@@ -251,7 +252,8 @@ module Moped
       available_nodes = nodes.select(&:secondary?).shuffle!
       while node = available_nodes.shift
         begin
-          return yield(node.apply_credentials(credentials))
+          node.credentials = credentials
+          return yield(node)
         rescue Errors::ConnectionFailure => e
           next
         end
