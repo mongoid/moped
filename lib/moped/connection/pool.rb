@@ -127,7 +127,9 @@ module Moped
       #
       # @since 2.0.0
       def size
-        unpinned.size + pinned.size
+        mutex.synchronize do
+          unpinned.size + pinned.size
+        end
       end
 
       # Get the timeout when attempting to check out items from the pool.
