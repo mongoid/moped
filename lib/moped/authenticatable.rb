@@ -61,7 +61,7 @@ module Moped
     def login(database, username, password)
       getnonce = Protocol::Command.new(database, getnonce: 1)
       self.write([getnonce])
-      reply = self.receive_replies([getnonce]).first#.first.documents.first
+      reply = self.receive_replies([getnonce]).first
       if getnonce.failure?(reply)
         return
       end
@@ -87,7 +87,11 @@ module Moped
     # @since 2.0.0
     def logout(database)
       command = Protocol::Command.new(database, logout: 1)
-      Operation::Read.new(command).execute(self)
+      self.write([command])
+      reply = self.receive_replies([command]).first
+      if command.failure?(reply)
+        return
+      end
       credentials.delete(database)
     end
   end

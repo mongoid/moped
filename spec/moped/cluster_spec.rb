@@ -419,46 +419,63 @@ end
 
 describe Moped::Cluster, "authentication", mongohq: :auth do
 
-  let(:session) do
-    Support::MongoHQ.auth_session(false)
-  end
+  shared_examples_for "authenticable session" do
 
-  describe "logging in with valid credentials" do
+    context "when logging in with valid credentials" do
 
-    it "logs in and processes commands" do
-      session.login(*Support::MongoHQ.auth_credentials)
-      session.command(ping: 1).should eq("ok" => 1)
+      it "logs in and processes commands" do
+        session.login(*Support::MongoHQ.auth_credentials)
+        session.command(ping: 1).should eq("ok" => 1)
+      end
+    end
+
+    context "when logging in with invalid credentials" do
+
+      it "raises an AuthenticationFailure exception" do
+        session.login "invalid-user", "invalid-password"
+
+        lambda do
+          session.command(ping: 1)
+        end.should raise_exception(Moped::Errors::AuthenticationFailure)
+      end
+    end
+
+    context "when logging in with valid credentials and then logging out" do
+
+      before do
+        session.login(*Support::MongoHQ.auth_credentials)
+        session.command(ping: 1).should eq("ok" => 1)
+      end
+
+      it "logs out" do
+        lambda do
+          session.command dbStats: 1
+        end.should_not raise_exception
+
+        session.logout
+
+        lambda do
+          session.command dbStats: 1
+        end.should raise_exception(Moped::Errors::OperationFailure)
+      end
     end
   end
 
-  describe "logging in with invalid credentials" do
+  context "when there are multiple connections on the pool" do
 
-    it "raises an AuthenticationFailure exception" do
-      session.login "invalid-user", "invalid-password"
-
-      lambda do
-        session.command(ping: 1)
-      end.should raise_exception(Moped::Errors::AuthenticationFailure)
+    let(:session) do
+      Support::MongoHQ.auth_session(false)
     end
+
+    it_behaves_like "authenticable session"
   end
 
-  describe "logging in with valid credentials and then logging out" do
+  context "when there is one connections on the pool" do
 
-    before do
-      session.login(*Support::MongoHQ.auth_credentials)
-      session.command(ping: 1).should eq("ok" => 1)
+    let(:session) do
+      Support::MongoHQ.auth_session(false, pool_size: 1)
     end
 
-    it "logs out" do
-      lambda do
-        session.command dbStats: 1
-      end.should_not raise_exception
-
-      session.logout
-
-      lambda do
-        session.command dbStats: 1
-      end.should raise_exception(Moped::Errors::OperationFailure)
-    end
+    it_behaves_like "authenticable session"
   end
 end
