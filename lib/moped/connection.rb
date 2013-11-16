@@ -11,6 +11,7 @@ module Moped
   #
   # @since 2.0.0
   class Connection
+    include Authenticatable
 
     # The default connection timeout, in seconds.
     #

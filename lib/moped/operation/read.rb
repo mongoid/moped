@@ -47,12 +47,7 @@ module Moped
       def execute(node)
         node.process(operation) do |reply|
           if operation.failure?(reply)
-            if reply.unauthorized? && node.credentials.has_key?(database)
-              node.login(database, *node.credentials[database])
-              return execute(node)
-            else
-              raise operation.failure_exception(reply)
-            end
+            raise operation.failure_exception(reply)
           end
           operation.results(reply)
         end

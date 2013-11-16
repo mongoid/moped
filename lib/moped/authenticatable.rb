@@ -60,14 +60,19 @@ module Moped
     # @since 2.0.0
     def login(database, username, password)
       getnonce = Protocol::Command.new(database, getnonce: 1)
-      result = Operation::Read.new(getnonce).execute(self)
-      authenticate = Protocol::Commands::Authenticate.new(database, username, password, result["nonce"])
-      connection do |conn|
-        conn.write([ authenticate ])
-        document = conn.read.documents.first
-        raise Errors::AuthenticationFailure.new(authenticate, document) unless document["ok"] == 1
-        credentials[database] = [username, password]
+      self.write([getnonce])
+      reply = self.receive_replies([getnonce]).first
+      if getnonce.failure?(reply)
+        return
       end
+      result = getnonce.results(reply)
+
+      authenticate = Protocol::Commands::Authenticate.new(database, username, password, result["nonce"])
+      self.write([ authenticate ])
+      document = self.read.documents.first
+
+      raise Errors::AuthenticationFailure.new(authenticate, document) unless document["ok"] == 1
+      credentials[database] = [username, password]
     end
 
     # Logout the user from the provided database.
@@ -82,7 +87,11 @@ module Moped
     # @since 2.0.0
     def logout(database)
       command = Protocol::Command.new(database, logout: 1)
-      Operation::Read.new(command).execute(self)
+      self.write([command])
+      reply = self.receive_replies([command]).first
+      if command.failure?(reply)
+        return
+      end
       credentials.delete(database)
     end
   end

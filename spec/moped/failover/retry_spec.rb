@@ -21,10 +21,6 @@ describe Moped::Failover::Retry do
 
     context "when the retry fails" do
 
-      before do
-        node.send(:connect)
-      end
-
       it "re-raises the exception" do
         expect {
           described_class.execute(exception, node) do

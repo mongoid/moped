@@ -40,8 +40,9 @@ module Support
       ENV["MONGOHQ_SINGLE_NAME"]
     end
 
-    def auth_session(auth = true)
-      session = Moped::Session.new auth_seeds, database: auth_database
+    def auth_session(auth = true, options = {})
+      options.merge!(database: auth_database)
+      session = Moped::Session.new(auth_seeds, options)
       session.login(*auth_credentials) if auth
       session
     end

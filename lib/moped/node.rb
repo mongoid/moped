@@ -13,7 +13,6 @@ module Moped
   #
   # @since 1.0.0
   class Node
-    include Authenticatable
     include Executable
     include Instrumentable
 
@@ -28,6 +27,10 @@ module Moped
     # @!attribute refreshed_at
     #   @return [ Time ] The last time the node did a refresh.
     attr_reader :address, :down_at, :latency, :options, :refreshed_at
+
+    # @!attribute credentials
+    #   @return [ Hash ] The credentials of the node.
+    attr_accessor :credentials
 
     # Is this node equal to another?
     #
@@ -87,24 +90,6 @@ module Moped
       read(Protocol::Command.new(database, cmd, options))
     end
 
-    # Connect the node on the underlying connection.
-    #
-    # @example Connect the node.
-    #   node.connect
-    #
-    # @raise [ Errors::ConnectionFailure ] If connection failed.
-    #
-    # @return [ true ] If the connection suceeded.
-    #
-    # @since 2.0.0
-    def connect
-      start = Time.now
-      connection{ |conn| conn.connect }
-      @latency = Time.now - start
-      @down_at = nil
-      true
-    end
-
     # Is the node currently connected?
     #
     # @example Is the node connected?
@@ -131,20 +116,6 @@ module Moped
       end
     end
 
-    # Force the node to disconnect from the server.
-    #
-    # @example Disconnect the node.
-    #   node.disconnect
-    #
-    # @return [ true ] If the disconnection succeeded.
-    #
-    # @since 1.2.0
-    def disconnect
-      credentials.clear
-      connection{ |conn| conn.disconnect }
-      true
-    end
-
     # Is the node down?
     #
     # @example Is the node down?
@@ -155,6 +126,20 @@ module Moped
     # @since 1.0.0
     def down?
       @down_at
+    end
+
+    # Force the node to disconnect from the server.
+    #
+    # @example Disconnect the node.
+    #   node.disconnect
+    #
+    # @return [ true ] If the disconnection succeeded.
+    #
+    # @since 1.2.0
+    def disconnect
+      @credentials.clear
+      pool.disconnect
+      true
     end
 
     # Mark the node as down.
@@ -168,7 +153,7 @@ module Moped
     def down!
       @down_at = Time.new
       @latency = nil
-      disconnect if connected?
+      disconnect
     end
 
     # Yields the block if a connection can be established, retrying when a
@@ -185,15 +170,23 @@ module Moped
     #
     # @since 1.0.0
     def ensure_connected(&block)
-      return yield if executing?(:connection)
-      execute(:connection) do
-        begin
-          connect unless connected?
-          yield(self)
-        rescue Exception => e
-          Failover.get(e).execute(e, self, &block)
-        end
+      unless (conn = stack(:connection)).empty?
+        return yield(conn.first)
       end
+
+      begin
+        connection do |conn|
+          stack(:connection) << conn
+          connect(conn) unless conn.connected?
+          conn.apply_credentials(@credentials)
+          yield(conn)
+        end
+      rescue Exception => e
+        Failover.get(e).execute(e, self, &block)
+      ensure
+        end_execution(:connection)
+      end
+
     end
 
     # Set a flag on the node for the duration of provided block so that an
@@ -259,6 +252,7 @@ module Moped
       @latency = nil
       @primary = nil
       @secondary = nil
+      @credentials = {}
       @instrumenter = options[:instrumenter] || Instrumentable::Log
       @address = Address.new(address, timeout)
       @address.resolve(self)
@@ -523,6 +517,24 @@ module Moped
 
     private
 
+    # Connect the node on the underlying connection.
+    #
+    # @example Connect the node.
+    #   node.connect
+    #
+    # @raise [ Errors::ConnectionFailure ] If connection failed.
+    #
+    # @return [ true ] If the connection suceeded.
+    #
+    # @since 2.0.0
+    def connect(conn)
+      start = Time.now
+      conn.connect
+      @latency = Time.now - start
+      @down_at = nil
+      true
+    end
+
     # Configure the node based on the return from the ismaster command.
     #
     # @api private
@@ -554,7 +566,7 @@ module Moped
     def discover(*nodes)
       nodes.flatten.compact.each do |peer|
         node = Node.new(peer, options)
-        node.credentials.merge!(credentials)
+        node.credentials.merge!(@credentials)
         peers.push(node)
       end
     end
@@ -574,16 +586,14 @@ module Moped
     def flush(ops = queue)
       operations, callbacks = ops.transpose
       logging(operations) do
-        ensure_connected do
-          replies = nil
-          connection do |conn|
-            conn.write(operations)
-            replies = conn.receive_replies(operations)
-          end
-          replies.zip(callbacks).map do |reply, callback|
-            callback ? callback[reply] : reply
-          end.last
+        replies = nil
+        ensure_connected do |conn|
+          conn.write(operations)
+          replies = conn.receive_replies(operations)
         end
+        replies.zip(callbacks).map do |reply, callback|
+          callback ? callback[reply] : reply
+        end.last
       end
     ensure
       ops.clear

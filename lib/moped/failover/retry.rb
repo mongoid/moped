@@ -26,7 +26,9 @@ module Moped
       def execute(exception, node)
         node.disconnect
         begin
-          yield if block_given?
+          node.connection do |conn|
+            yield(conn) if block_given?
+          end
         rescue Exception => e
           node.down!
           raise(e)

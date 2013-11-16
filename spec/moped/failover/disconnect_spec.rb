@@ -12,10 +12,6 @@ describe Moped::Failover::Disconnect do
       Moped::Node.new("127.0.0.1:27017")
     end
 
-    before do
-      node.send(:connect)
-    end
-
     it "raises a socket error" do
       expect {
         described_class.execute(exception, node)
