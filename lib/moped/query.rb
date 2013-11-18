@@ -77,6 +77,17 @@ module Moped
       cursor.each(*args, &blk)
     end
 
+    # Get the Moped cursor to iterate over documents
+    # on the db.
+    #
+    # @example Iterate over the matching documents.
+    #   db[:people].cursor.each do |doc|
+    #     #...
+    #   end
+    #
+    # @return [ Moped::Cursor ]
+    #
+    # @since 2.0.0
     def cursor
       Cursor.new(session, operation)
     end
