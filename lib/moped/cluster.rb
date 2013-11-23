@@ -32,16 +32,32 @@ module Moped
     #   @return [ Array<Node> ] The seed nodes.
     attr_reader :options, :peers, :seeds
 
-    # Get the credentials for the cluster.
+    # Add a credential to the cluster
     #
     # @example Get the applied credentials.
     #   node.credentials
     #
-    # @return [ Hash ] The credentials.
+    # @return [ Boolean ] true
     #
     # @since 2.0.0
-    def credentials
+    def add_credential(db, username, password)
       @credentials ||= {}
+      @credentials[db] = [ username, password ]
+      apply_credentials
+    end
+
+    # Remove a credential from the cluster
+    #
+    # @example Get the applied credentials.
+    #   node.delete_credential(database_name)
+    #
+    # @return [ Boolean ] true
+    #
+    # @since 2.0.0
+    def delete_credential(db)
+      return true unless @credentials
+      @credentials.delete(db)
+      apply_credentials
     end
 
     # Disconnects all nodes in the cluster. This should only be used in cases
@@ -224,7 +240,6 @@ module Moped
       if node = nodes.find(&:primary?)
         begin
           node.ensure_primary do
-            node.credentials = credentials
             return yield(node)
           end
         rescue Errors::ConnectionFailure, Errors::ReplicaSetReconfigured
@@ -252,7 +267,6 @@ module Moped
       available_nodes = nodes.select(&:secondary?).shuffle!
       while node = available_nodes.shift
         begin
-          node.credentials = credentials
           return yield(node)
         rescue Errors::ConnectionFailure => e
           next
@@ -262,6 +276,23 @@ module Moped
     end
 
     private
+
+    # Apply the credentials on all nodes
+    #
+    # @api private
+    #
+    # @example Apply the credentials.
+    #   cluster.apply_credentials
+    #
+    # @return [ Boolean ] True
+    #
+    # @since 2.0.0
+    def apply_credentials
+      seeds.each do |node|
+        node.credentials = @credentials || {}
+      end
+      true
+    end
 
     # Get the boundary where a node that is down would need to be refreshed.
     #

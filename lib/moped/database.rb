@@ -112,7 +112,7 @@ module Moped
     #
     # @since 1.0.0
     def login(username, password)
-      cluster.credentials[name] = [ username, password ]
+      cluster.add_credential(name, username, password)
     end
 
     # Log out from the current database.
@@ -122,7 +122,7 @@ module Moped
     #
     # @since 1.0.0
     def logout
-      cluster.credentials.delete(name)
+      cluster.delete_credential(name)
     end
   end
 end

@@ -477,5 +477,34 @@ describe Moped::Cluster, "authentication", mongohq: :auth do
     end
 
     it_behaves_like "authenticable session"
+
+    context "when creating multiple sessions" do
+
+      before do
+        session.login(*Support::MongoHQ.auth_credentials)
+      end
+
+      let(:session_two) do
+        Support::MongoHQ.auth_session(true, pool_size: 1)
+      end
+
+      let(:connection) do
+        conn = nil
+        session.cluster.seeds.first.connection { |c| conn = c }
+        conn
+      end
+
+      it "logs in only once" do
+        expect(connection).to receive(:login).once.and_call_original
+        session.command(ping: 1).should eq("ok" => 1)
+        session_two.command(ping: 1).should eq("ok" => 1)
+      end
+
+      it "does not logout" do
+        expect(connection).to receive(:logout).never
+        session.command(ping: 1).should eq("ok" => 1)
+        session_two.command(ping: 1).should eq("ok" => 1)
+      end
+    end
   end
 end
