@@ -67,5 +67,25 @@ describe Moped::Cursor do
         cursor.request_limit.should eq(100)
       end
     end
+
+    context "when the cursor is iterated upon out-of-block" do
+
+      before do
+        session[:users].insert({ "name" => "create" })
+      end
+
+      let(:query) do
+        session[:users].find.limit(1)
+      end
+
+      let(:cursor) do
+        described_class.new(session, query.operation)
+      end
+
+      it "advances the cursor_id" do
+        cursor.take(1)
+        cursor.take(1).should be_empty
+      end
+    end
   end
 end
