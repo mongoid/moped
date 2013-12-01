@@ -3,12 +3,12 @@ bundler_args: --without development
 rvm:
   - 1.9.3
   - 2.0.0
-  - ruby-head
   - jruby
   - jruby-head
+  - ruby-head
 jdk:
-  - oraclejdk7
   - openjdk7
+  - oraclejdk7
 env: CI="travis"
 services:
   - mongodb
@@ -26,6 +26,7 @@ matrix:
     - rvm: ruby-head
       jdk: openjdk7
       env: CI="travis"
+  fast_finish: true
 notifications:
   email: false
   irc:

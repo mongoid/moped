@@ -16,5 +16,5 @@ Gem::Specification.new do |s|
   s.files = Dir.glob("lib/**/*") + %w(CHANGELOG.md LICENSE README.md)
   s.require_path = "lib"
   s.add_dependency("bson", ["~> 2.0.0.rc3"])
-  s.add_dependency("optionable", ["~> 0.1.1"])
+  s.add_dependency("optionable", ["~> 0.2.0"])
 end
