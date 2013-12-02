@@ -111,7 +111,7 @@ module Moped
     #
     # @since 2.0.0
     def connection
-      pool.with_connection do |conn|
+      pool.with do |conn|
         yield(conn)
       end
     end
@@ -138,7 +138,7 @@ module Moped
     # @since 1.2.0
     def disconnect
       @credentials.clear
-      pool.disconnect
+      connection{ |conn| conn.disconnect }
       true
     end
 

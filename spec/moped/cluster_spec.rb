@@ -495,13 +495,13 @@ describe Moped::Cluster, "authentication", mongohq: :auth do
       end
 
       it "logs in only once" do
-        expect(connection).to receive(:login).once.and_call_original
+        connection.should_receive(:login).once.and_call_original
         session.command(ping: 1).should eq("ok" => 1)
         session_two.command(ping: 1).should eq("ok" => 1)
       end
 
       it "does not logout" do
-        expect(connection).to receive(:logout).never
+        connection.should_receive(:logout).never
         session.command(ping: 1).should eq("ok" => 1)
         session_two.command(ping: 1).should eq("ok" => 1)
       end

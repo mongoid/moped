@@ -15,7 +15,7 @@ describe Moped::Connection::Manager do
       end
 
       it "returns the connection pool for the node" do
-        expect(pool).to be_a(Moped::Connection::Pool)
+        expect(pool).to be_a(ConnectionPool)
       end
     end
 
