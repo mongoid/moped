@@ -215,6 +215,11 @@ module Moped
     # @since 2.0.0
     option(:retry_interval).allow(Optionable.any(Numeric))
 
+    # Setup validation of allowed refresh interval options. (Any numeric)
+    #
+    # @since 2.0.0
+    option(:refresh_interval).allow(Optionable.any(Numeric))
+
     # Setup validation of allowed down interval options. (Any numeric)
     #
     # @since 2.0.0
