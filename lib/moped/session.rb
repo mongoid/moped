@@ -225,6 +225,11 @@ module Moped
     # @since 2.0.0
     option(:timeout).allow(Optionable.any(Numeric))
 
+    # Pass an object that responds to instrument as an instrumenter.
+    #
+    # @since 2.0.0
+    option(:instrumenter).allow(Optionable.any(Object))
+
     # Initialize a new database session.
     #
     # @example Initialize a new session.
