@@ -215,6 +215,11 @@ module Moped
     # @since 2.0.0
     option(:retry_interval).allow(Optionable.any(Numeric))
 
+    # Setup validation of allowed down interval options. (Any numeric)
+    #
+    # @since 2.0.0
+    option(:down_interval).allow(Optionable.any(Numeric))
+
     # Setup validation of allowed ssl options. (Any boolean)
     #
     # @since 2.0.0
