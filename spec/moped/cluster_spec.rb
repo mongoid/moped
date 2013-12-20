@@ -478,6 +478,22 @@ describe Moped::Cluster, "authentication", mongohq: :auth do
 
     it_behaves_like "authenticable session"
 
+    context "when disconnecting the session" do
+
+      before do
+        session.login(*Support::MongoHQ.auth_credentials)
+        session.disconnect
+      end
+
+      it "reconnects" do
+        session.command(ping: 1).should eq("ok" => 1)
+      end
+
+      it "authenticates" do
+        session[:users].find.entries.should eq([])
+      end
+    end
+
     context "when creating multiple sessions" do
 
       before do
