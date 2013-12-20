@@ -137,7 +137,6 @@ module Moped
     #
     # @since 1.2.0
     def disconnect
-      @credentials.clear
       connection{ |conn| conn.disconnect }
       true
     end
