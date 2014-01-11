@@ -2,11 +2,9 @@
 
 ## 2.0.0
 
-### New Features
-
-* \#196 Adding method on collection to rename itself (Arthur Neves)
-
 ### API Changes (Backwards Incompatible)
+
+* Moped 2 now only supports MongoDB 2.4.0 and higher.
 
 * Query.cursor will return a Enumerable instead of a Enumerator. (Arthur Neves)
 
@@ -47,6 +45,10 @@
         session.with(write: { w: -1 })[:users].insert(document)
 
     The `:safe` option is no longer valid and will be ignored.
+
+### New Features
+
+* \#196 Adding method on collection to rename itself (Arthur Neves)
 
 ### Resolved Issues
 
