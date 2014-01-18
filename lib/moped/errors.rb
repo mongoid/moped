@@ -100,7 +100,10 @@ module Moped
     class PotentialReconfiguration < MongoError
 
       # Not master error codes.
-      NOT_MASTER = [ 13435, 13436 ]
+      NOT_MASTER = [ 13435, 13436, 10009]
+
+      # Error codes received around reconfiguration
+      CONNECTION_ERRORS_RECONFIGURATION = [ 15988, 10276, 11600 ]
 
       # Replica set reconfigurations can be either in the form of an operation
       # error with code 13435, or with an error message stating the server is
@@ -108,6 +111,10 @@ module Moped
       def reconfiguring_replica_set?
         err = details["err"] || details["errmsg"] || details["$err"] || ""
         NOT_MASTER.include?(details["code"]) || err.include?("not master")
+      end
+
+      def connection_failure?
+        CONNECTION_ERRORS_RECONFIGURATION.include?(details["code"])
       end
     end
 
