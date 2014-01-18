@@ -49,6 +49,21 @@ describe Moped::Errors::MongoError do
       end
     end
 
+    context "when error code 10009" do
+
+      let(:details) do
+        { "code" => 10009 }
+      end
+
+      let(:error) do
+        Moped::Errors::PotentialReconfiguration.new({}, details)
+      end
+
+      it "returns true" do
+        error.should be_reconfiguring_replica_set
+      end
+    end
+
     context "when error code 13436" do
 
       let(:details) do

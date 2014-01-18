@@ -26,6 +26,8 @@ module Moped
       def execute(exception, node)
         if exception.reconfiguring_replica_set?
           raise(Errors::ReplicaSetReconfigured.new(exception.command, exception.details))
+        elsif exception.connection_failure?
+          raise Errors::ConnectionFailure.new(exception.inspect)
         end
         raise(exception)
       end
