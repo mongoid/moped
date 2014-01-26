@@ -60,12 +60,12 @@ module Moped
       !!@arbiter
     end
 
-    # Is the cluster auto-discovering new nodes in the cluster?
+    # Is the node auto-discovering new peers in the cluster?
     #
-    # @example Is the cluster auto discovering?
-    #   cluster.auto_discovering?
+    # @example Is the node auto discovering?
+    #   node.auto_discovering?
     #
-    # @return [ true, false ] If the cluster is auto discovering.
+    # @return [ true, false ] If the node is auto discovering.
     #
     # @since 2.0.0
     def auto_discovering?

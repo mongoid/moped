@@ -240,6 +240,11 @@ module Moped
     # @since 2.0.0
     option(:instrumenter).allow(Optionable.any(Object))
 
+    # Setup validation of allowed auto_discover preference options.
+    #
+    # @since 1.5.0
+    option(:auto_discover).allow(true, false)
+
     # Initialize a new database session.
     #
     # @example Initialize a new session.
