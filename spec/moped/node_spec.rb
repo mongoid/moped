@@ -231,6 +231,45 @@ describe Moped::Node, replica_set: true do
         end
       end
     end
+
+    context "when there is a connection error" do
+
+      let(:potential_reconfiguration_error) do
+        Moped::Errors::PotentialReconfiguration.new("", {})
+      end
+
+      before do
+        node.stub(:connect).and_raise(potential_reconfiguration_error)
+      end
+
+      context "and the reconfigation has a connection failure" do
+
+        before do
+          potential_reconfiguration_error.stub(:reconfiguring_replica_set?).and_return(false)
+          potential_reconfiguration_error.stub(:connection_failure?).and_return(true)
+        end
+
+        it "raises a ConnectionFailure error" do
+          expect {
+            node.ensure_connected {}
+          }.to raise_error(Moped::Errors::ConnectionFailure)
+        end
+      end
+
+      context "and the reconfigation does not have a connection failure" do
+
+        before do
+          potential_reconfiguration_error.stub(:reconfiguring_replica_set?).and_return(false)
+          potential_reconfiguration_error.stub(:connection_failure?).and_return(false)
+        end
+
+        it "raises a PotentialReconfiguration error" do
+          expect {
+            node.ensure_connected {}
+          }.to raise_error(Moped::Errors::PotentialReconfiguration)
+        end
+      end
+    end
   end
 
   describe "#initialize" do

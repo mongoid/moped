@@ -151,6 +151,8 @@ module Moped
       rescue Errors::PotentialReconfiguration => e
         if e.reconfiguring_replica_set?
           raise Errors::ReplicaSetReconfigured.new(e.command, e.details)
+        elsif e.connection_failure?
+          raise Errors::ConnectionFailure.new(e.inspect)
         end
         raise
       rescue Errors::DoNotDisconnect
