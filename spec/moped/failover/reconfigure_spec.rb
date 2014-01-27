@@ -21,6 +21,19 @@ describe Moped::Failover::Reconfigure do
       end
     end
 
+    context "when the exception is a conncetion failure with the server" do
+
+      let(:exception) do
+        Moped::Errors::QueryFailure.new({}, { "code" => 15988 })
+      end
+
+      it "raises a connection failure exception" do
+        expect {
+          described_class.execute(exception, node)
+        }.to raise_error(Moped::Errors::ConnectionFailure)
+      end
+    end
+
     context "when no replica set reconfiguration is happening" do
 
       let(:exception) do
