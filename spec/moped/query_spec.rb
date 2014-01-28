@@ -11,7 +11,7 @@ describe Moped::Query do
       end
 
       let(:users) do
-        session[:users]
+        session.with(safe: true)[:users]
       end
 
       let(:query) do
@@ -862,7 +862,7 @@ describe Moped::Query do
     end
 
     let(:users) do
-      session[:users]
+      session.with(safe: true)[:users]
     end
 
     let(:node_for_reads) do
@@ -926,7 +926,7 @@ describe Moped::Query do
     end
 
     let(:users) do
-      @session[:users]
+      @session.with(safe: true)[:users]
     end
 
     let(:node_for_reads) do
@@ -945,7 +945,7 @@ describe Moped::Query do
     end
 
     let(:users) do
-      @session[:users]
+      @session.with(safe: true)[:users]
     end
 
     let(:node_for_reads) do
@@ -966,7 +966,7 @@ describe Moped::Query do
     end
 
     let(:users) do
-      @session[:users]
+      @session.with(safe: true)[:users]
     end
 
     let(:node_for_reads) do
@@ -984,7 +984,7 @@ describe Moped::Query do
     end
 
     let(:users) do
-      @session[:users]
+      @session.with(safe: true)[:users]
     end
 
     let(:node_for_reads) do
@@ -1005,7 +1005,7 @@ describe Moped::Query do
     end
 
     let(:users) do
-      @session[:users]
+      @session.with(safe: true)[:users]
     end
 
     let(:node_for_reads) do
