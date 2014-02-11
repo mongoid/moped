@@ -49,6 +49,37 @@ describe Moped::Node, replica_set: true do
     end
   end
 
+  describe "#flush" do
+    let(:session) do
+      Moped::Session.new %w[127.0.0.1:27017], database: "moped_test"
+    end
+
+    context "when inserting" do
+      context "and the database is not authorized" do
+        it "retries" do
+          node
+          document = { "_id" => Moped::BSON::ObjectId.new }
+          mock_reply = mock(Moped::Protocol::Reply, :unauthorized? => true)
+          mock_connection = mock(:receive_replies => [mock_reply]).as_null_object
+          call_count = 0
+          real_connection = node.send(:connection)
+          node.stub(:connection) do
+            call_count += 1
+            if call_count == 3 || call_count == 4
+              mock_connection
+            else
+              real_connection
+            end
+          end
+          node.instance_variable_set(:@auth, {"moped_test" => {}})
+          node.should_receive(:login)
+          node.insert("moped_test", "users", [document], flags: [])
+          session[:users].find(document).one.should eq document
+        end
+      end
+    end
+  end
+
   describe "#disconnect" do
 
     context "when the node is running" do

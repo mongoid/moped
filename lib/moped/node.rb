@@ -585,6 +585,16 @@ module Moped
           connection.write operations
           replies = connection.receive_replies(operations)
 
+          if replies && replies.length > 0
+            replies.each_with_index do |reply, i|
+              operation = operations[i]
+              if reply && reply.unauthorized? && auth.has_key?(operation.database)
+                login(operation.database, *auth[operation.database])
+                flush([ops[i]])
+              end
+            end
+          end
+
           replies.zip(callbacks).map do |reply, callback|
             callback ? callback[reply] : reply
           end.last
