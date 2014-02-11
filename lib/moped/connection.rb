@@ -23,9 +23,7 @@ module Moped
     #   @return [ String ] The port the connection connects on.
     # @!attribute timeout
     #   @return [ Integer ] The timeout in seconds.
-    # @!attribute last_use
-    #   @return [ Time ] The time the connection was last checked out.
-    attr_reader :host, :options, :port, :timeout, :last_use
+    attr_reader :host, :options, :port, :timeout
 
     # Is the connection alive?
     #
@@ -101,44 +99,7 @@ module Moped
       @timeout = timeout
       @options = options
       @sock = nil
-      @last_use = nil
       @request_id = 0
-    end
-
-    # Expiring a connection means returning it to the connection pool.
-    #
-    # @example Expire the connection.
-    #   connection.expire
-    #
-    # @return [ nil ] nil.
-    #
-    # @since 2.0.0
-    def expire
-      @last_use = nil
-    end
-
-    # An expired connection is not currently being used.
-    #
-    # @example Is the connection expired?
-    #   connection.expired?
-    #
-    # @return [ true, false ] If the connection is expired.
-    #
-    # @since 2.0.0
-    def expired?
-      @last_use.nil?
-    end
-
-    # A leased connection is currently checkout out from the connection pool.
-    #
-    # @example Lease the connection.
-    #   connection.lease
-    #
-    # @return [ Time ] The current time of leasing.
-    #
-    # @since 2.0.0
-    def lease
-      @last_use = Time.now
     end
 
     # Read from the connection.
