@@ -59,7 +59,8 @@ describe Moped::Node, replica_set: true do
         it "retries" do
           node
           document = { "_id" => Moped::BSON::ObjectId.new }
-          mock_reply = mock(Moped::Protocol::Reply, :unauthorized? => true)
+          mock_reply_document = mock()
+          mock_reply = mock(Moped::Protocol::Reply, :unauthorized? => true, :documents => [mock_reply_document])
           mock_connection = mock(:receive_replies => [mock_reply]).as_null_object
           call_count = 0
           real_connection = node.send(:connection)

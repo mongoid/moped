@@ -93,6 +93,9 @@ module Moped
         result = reply.documents.first
         if reply.command_failure?
           if reply.unauthorized? && auth.has_key?(database)
+            if logger = Moped.logger
+              logger.info {"Received unauthorized reply for command #{cmd} on #{database}: #{reply.documents[0].inspect}"}
+            end
             login(database, *auth[database])
             result = command(database, cmd, options)
           else
@@ -378,6 +381,9 @@ module Moped
             # common case here is a rs.stepDown() which will reinitialize the
             # connection. In this case we need to requthenticate and try again,
             # otherwise we'll just raise the error to the user.
+            if logger = Moped.logger
+              logger.info {"Received unauthorized reply querying #{collection} on #{database}: #{reply.documents[0].inspect}"}
+            end
             login(database, *auth[database])
             reply = query(database, collection, selector, options)
           else
@@ -589,6 +595,9 @@ module Moped
             replies.each_with_index do |reply, i|
               operation = operations[i]
               if reply && reply.unauthorized? && auth.has_key?(operation.database)
+                if logger = Moped.logger
+                  logger.info {"Received unauthorized reply in flush for #{operation.database}: #{reply.documents[0].inspect}"}
+                end
                 login(operation.database, *auth[operation.database])
                 flush([ops[i]])
               end
