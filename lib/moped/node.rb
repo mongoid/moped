@@ -267,7 +267,28 @@ module Moped
     #
     # @since 1.0.0
     def insert(database, collection, documents, options = {})
-      process(Protocol::Insert.new(database, collection, documents, options))
+      operation = Protocol::Insert.new(database, collection, documents, options)
+
+      process(operation) do |reply|
+        if reply && reply.query_failed?
+          if reply.unauthorized? && auth.has_key?(database)
+            # If we got here, most likely this is the case of Moped
+            # authenticating successfully against the node originally, but the
+            # node has been reset or gone down and come back up. The most
+            # common case here is a rs.stepDown() which will reinitialize the
+            # connection. In this case we need to requthenticate and try again,
+            # otherwise we'll just raise the error to the user.
+            if logger = Moped.logger
+              logger.debug {"  MOPED Received unauthorized reply inserting #{collection} on #{database}: #{reply.documents[0].inspect}"}
+            end
+            login(database, *auth[database])
+            reply = insert(database, collection, selector, options)
+          else
+            raise Errors::QueryFailure.new(operation, reply.documents.first)
+          end
+        end
+        reply
+      end
     end
 
     # Kill all provided cursors on the node.
@@ -590,27 +611,10 @@ module Moped
     def flush(ops = queue)
       operations, callbacks = ops.transpose
 
-      if logger = Moped.logger
-        logger.debug {"  MOPED Flushing operations #{operations.inspect}"}
-      end
-
       logging(operations) do
         ensure_connected do
           connection.write operations
           replies = connection.receive_replies(operations)
-
-          if replies && replies.length > 0
-            replies.each_with_index do |reply, i|
-              operation = operations[i]
-              if reply && reply.unauthorized? && auth.has_key?(operation.database)
-                if logger = Moped.logger
-                  logger.debug {"  MOPED Received unauthorized reply in flush for #{operation.database}: #{reply.documents[0].inspect}"}
-                end
-                login(operation.database, *auth[operation.database])
-                flush([ops[i]])
-              end
-            end
-          end
 
           replies.zip(callbacks).map do |reply, callback|
             callback ? callback[reply] : reply
