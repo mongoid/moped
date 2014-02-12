@@ -94,7 +94,7 @@ module Moped
         if reply.command_failure?
           if reply.unauthorized? && auth.has_key?(database)
             if logger = Moped.logger
-              logger.info {"Received unauthorized reply for command #{cmd} on #{database}: #{reply.documents[0].inspect}"}
+              logger.debug {"MOPED Received unauthorized reply for command #{cmd} on #{database}: #{reply.documents[0].inspect}"}
             end
             login(database, *auth[database])
             result = command(database, cmd, options)
@@ -382,7 +382,7 @@ module Moped
             # connection. In this case we need to requthenticate and try again,
             # otherwise we'll just raise the error to the user.
             if logger = Moped.logger
-              logger.info {"Received unauthorized reply querying #{collection} on #{database}: #{reply.documents[0].inspect}"}
+              logger.debug {"MOPED Received unauthorized reply querying #{collection} on #{database}: #{reply.documents[0].inspect}"}
             end
             login(database, *auth[database])
             reply = query(database, collection, selector, options)
@@ -501,6 +501,10 @@ module Moped
     end
 
     def login(database, username, password)
+      if logger = Moped.logger
+        logger.debug {"MOPED login for #{username} on #{database}"}
+      end
+
       getnonce = Protocol::Command.new(database, getnonce: 1)
       connection.write [getnonce]
       result = connection.read.documents.first
@@ -596,7 +600,7 @@ module Moped
               operation = operations[i]
               if reply && reply.unauthorized? && auth.has_key?(operation.database)
                 if logger = Moped.logger
-                  logger.info {"Received unauthorized reply in flush for #{operation.database}: #{reply.documents[0].inspect}"}
+                  logger.debug {"MOPED Received unauthorized reply in flush for #{operation.database}: #{reply.documents[0].inspect}"}
                 end
                 login(operation.database, *auth[operation.database])
                 flush([ops[i]])
