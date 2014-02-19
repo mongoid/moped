@@ -127,6 +127,8 @@ module Moped
           raise Errors::ConnectionFailure, generate_message(e)
         rescue Errno::ETIMEDOUT => e
           raise Errors::ConnectionFailure, generate_message(e)
+        rescue Errno::ENETUNREACH => e
+          raise Errors::ConnectionFailure, generate_message(e)
         rescue IOError
           raise Errors::ConnectionFailure, "Connection timed out to Mongo on #{host}:#{port}"
         rescue OpenSSL::SSL::SSLError => e
