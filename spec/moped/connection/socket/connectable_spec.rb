@@ -66,5 +66,16 @@ describe Moped::Connection::Socket::Connectable do
         )
       end
     end
+
+    context "when a Errno::ENETUNREACH is raised" do
+
+      it "re-raises a ConnectionFailure" do
+        expect{
+          object.send(:handle_socket_errors) { raise Errno::ENETUNREACH }
+        }.to raise_error(
+          Moped::Errors::ConnectionFailure
+        )
+      end
+    end
   end
 end
