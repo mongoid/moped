@@ -56,7 +56,7 @@ module Moped
           raise Resolv::ResolvError unless @ip
         end
         @resolved ||= "#{ip}:#{port}"
-      rescue Timeout::Error, Resolv::ResolvError
+      rescue Timeout::Error, Resolv::ResolvError, SocketError
         Loggable.warn("  MOPED:", "Could not resolve IP for: #{original}", "n/a")
         node.down! and false
       end
