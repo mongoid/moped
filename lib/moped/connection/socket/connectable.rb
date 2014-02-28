@@ -117,13 +117,7 @@ module Moped
         # @since 1.0.0
         def handle_socket_errors
           yield
-        rescue Errno::ECONNREFUSED,
-          Errno::EHOSTUNREACH,
-          Errno::EPIPE,
-          Errno::ECONNRESET,
-          Errno::ETIMEDOUT,
-          Errno::ENETUNREACH => e
-
+        rescue SystemCallError => e
           raise Errors::ConnectionFailure, generate_message(e)
         rescue IOError
           raise Errors::ConnectionFailure, "Connection timed out to Mongo on #{host}:#{port}"
