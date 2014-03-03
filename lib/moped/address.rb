@@ -45,6 +45,7 @@ module Moped
     #
     # @since 2.0.0
     def resolve(node)
+      attempt = 1
       begin
         Timeout::timeout(@timeout) do
           Resolv.each_address(host) do |ip|
@@ -56,7 +57,15 @@ module Moped
           raise Resolv::ResolvError unless @ip
         end
         @resolved ||= "#{ip}:#{port}"
-      rescue Timeout::Error, Resolv::ResolvError, SocketError
+      rescue Timeout::Error, Resolv::ResolvError
+        Loggable.warn("  MOPED:", "Could not resolve IP for: #{original}", "n/a")
+        node.down! and false
+      rescue SocketError
+        if attempt <= 3
+          Loggable.warn("  MOPED:", "Retrying DNS Resolv for: #{original}, Retry: #{attempt}", "n/a")
+          attempt += 1
+          retry
+        end
         Loggable.warn("  MOPED:", "Could not resolve IP for: #{original}", "n/a")
         node.down! and false
       end
