@@ -109,7 +109,6 @@ module Moped
     #
     # @since 1.2.0
     def disconnect
-      auth.clear
       connection.disconnect
     end
 
