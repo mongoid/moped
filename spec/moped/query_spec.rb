@@ -404,6 +404,50 @@ describe Moped::Query do
       end
     end
 
+    describe "#min" do
+      let(:document1) do
+        { "_id" => BSON::ObjectId.new, "scope" => scope, "n" => 0 }
+      end
+
+      let(:document2) do
+        { "_id" => BSON::ObjectId.new, "scope" => scope, "n" => 1 }
+      end
+
+      let(:documents) do
+        [ document1, document2 ]
+      end
+
+      before do
+        users.insert(documents)
+      end
+
+      it "filter out documents lt than the indexed value" do
+        users.find(scope: scope).min(_id: document2['_id']).to_a.should eq [ document2 ]
+      end
+    end
+
+    describe "#max" do
+      let(:document1) do
+        { "_id" => BSON::ObjectId.new, "scope" => scope, "n" => 0 }
+      end
+
+      let(:document2) do
+        { "_id" => BSON::ObjectId.new, "scope" => scope, "n" => 1 }
+      end
+
+      let(:documents) do
+        [ document1, document2 ]
+      end
+
+      before do
+        users.insert(documents)
+      end
+
+      it "filter out documents gte than the indexed value" do
+        users.find(scope: scope).max(_id: document2['_id']).to_a.should eq [ document1 ]
+      end
+    end
+
     describe "#distinct" do
 
       let(:documents) do

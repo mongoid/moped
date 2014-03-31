@@ -173,6 +173,42 @@ module Moped
       self
     end
 
+    # Specify the inclusive lower bound for a specific index in order to
+    # constrain the results of find(). min() provides a way to specify lower
+    # bounds on compound key indexes.
+    #
+    # @example Set the lower bond on the age index to 21 years
+    # (provided the collection has a {"age" => 1} index)
+    #   db[:people].find.min("age" => 21)
+    #
+    # @param [ Hash ] indexBounds The inclusive lower bound for the index keys.
+    #
+    # @return [ Query ] self
+    #
+    def min(index_bounds)
+      upgrade_to_advanced_selector
+      operation.selector["$min"] = index_bounds
+      self
+    end
+
+    # Specifies the exclusive upper bound for a specific index in order to
+    # constrain the results of find().  max() provides a way to specify an
+    # upper bound on compound key indexes.
+    #
+    # @example Set the upper bond on the age index to 21 years
+    # (provided the collection has a {"age" => -11} index)
+    #   db[:people].find.min("age" => 21)
+    #
+    # @param [ Hash ] indexBounds The exclusive upper bound for the index keys.
+    #
+    # @return [ Query ] self
+    #
+    def max(index_bounds)
+      upgrade_to_advanced_selector
+      operation.selector["$max"] = index_bounds
+      self
+    end
+
     # Initialize the query.
     #
     # @example Initialize the query.
