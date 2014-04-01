@@ -377,7 +377,7 @@ describe Moped::Query do
       it "raises an error when hinting an invalid index" do
         expect {
           users.find(scope: scope).hint(scope: 1).to_a
-        }.to raise_error(Moped::Errors::QueryFailure, %r{failed with error 10113: "bad hint"})
+        }.to raise_error(Moped::Errors::QueryFailure)
       end
     end
 
