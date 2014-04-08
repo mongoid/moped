@@ -377,7 +377,7 @@ describe Moped::Query do
       it "raises an error when hinting an invalid index" do
         expect {
           users.find(scope: scope).hint(scope: 1).to_a
-        }.to raise_error(Moped::Errors::QueryFailure, %r{failed with error 10113: "bad hint"})
+        }.to raise_error(Moped::Errors::QueryFailure)
       end
     end
 
@@ -401,6 +401,50 @@ describe Moped::Query do
 
       it "limits the number of documents returned" do
         users.find(scope: scope).max_scan(1).to_a.size.should eq(1)
+      end
+    end
+
+    describe "#min" do
+      let(:document1) do
+        { "_id" => BSON::ObjectId.new, "scope" => scope, "n" => 0 }
+      end
+
+      let(:document2) do
+        { "_id" => BSON::ObjectId.new, "scope" => scope, "n" => 1 }
+      end
+
+      let(:documents) do
+        [ document1, document2 ]
+      end
+
+      before do
+        users.insert(documents)
+      end
+
+      it "filter out documents lt than the indexed value" do
+        users.find(scope: scope).min(_id: document2['_id']).to_a.should eq [ document2 ]
+      end
+    end
+
+    describe "#max" do
+      let(:document1) do
+        { "_id" => BSON::ObjectId.new, "scope" => scope, "n" => 0 }
+      end
+
+      let(:document2) do
+        { "_id" => BSON::ObjectId.new, "scope" => scope, "n" => 1 }
+      end
+
+      let(:documents) do
+        [ document1, document2 ]
+      end
+
+      before do
+        users.insert(documents)
+      end
+
+      it "filter out documents gte than the indexed value" do
+        users.find(scope: scope).max(_id: document2['_id']).to_a.should eq [ document1 ]
       end
     end
 
