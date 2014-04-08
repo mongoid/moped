@@ -42,7 +42,8 @@ module Moped
       # @since 2.0.0
       def with_node(cluster, &block)
         with_retry(cluster) do
-          nearest = cluster.nodes.sort_by(&:latency).first
+          # Exclude nodes without a latency. If none have a latency yet use the first node in the list
+          nearest = cluster.nodes.select(&:latency).sort_by(&:latency).first || cluster.nodes.first
           if nearest
             block.call(nearest)
           else
