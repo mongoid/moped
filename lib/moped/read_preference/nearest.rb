@@ -42,12 +42,11 @@ module Moped
       # @since 2.0.0
       def with_node(cluster, &block)
         with_retry(cluster) do
-          # Exclude nodes without a latency. If none have a latency yet use the first node in the list
-          nearest = cluster.nodes.select(&:latency).sort_by(&:latency).first || cluster.nodes.first
-          if nearest
+          # Find node with lowest latency, if not calculated yet use :primary
+          if nearest = cluster.nodes.select(&:latency).sort_by(&:latency).first
             block.call(nearest)
           else
-            raise Errors::ConnectionFailure, "No nodes available to select in the cluster"
+            cluster.with_primary(&block)
           end
         end
       end
