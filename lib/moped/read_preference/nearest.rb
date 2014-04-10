@@ -41,7 +41,7 @@ module Moped
       #
       # @since 2.0.0
       def with_node(cluster, &block)
-        with_retry(cluster) do
+        cluster.with_retry do
           # Find node with lowest latency, if not calculated yet use :primary
           if nearest = cluster.nodes.select(&:latency).sort_by(&:latency).first
             block.call(nearest)
