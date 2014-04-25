@@ -72,6 +72,18 @@ module Moped
       @auto_discovering ||= options[:auto_discover].nil? ? true : options[:auto_discover]
     end
 
+    # Must the node resolve its host name to its IP address
+    #
+    # @example Must the node resolve its node name?
+    #   node.resolve?
+    #
+    # @return [ true, false ] If the node resolves its host name to its IP address
+    #
+    # @since 2.0.0
+    def resolve?
+      @resolve ||= options[:resolve].nil? ? true : options[:resolve]
+    end
+
     # Execute a command against a database.
     #
     # @example Execute a command.
