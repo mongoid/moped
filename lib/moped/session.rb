@@ -245,6 +245,11 @@ module Moped
     # @since 1.5.0
     option(:auto_discover).allow(true, false)
 
+    # Setup validation of allowed resolve options
+    #
+    # @since 2.0.0
+    option(:resolve).allow(true, false)
+
     # Initialize a new database session.
     #
     # @example Initialize a new session.
