@@ -103,7 +103,7 @@ module Moped
       NOT_MASTER = [ 13435, 13436, 10009]
 
       # Error codes received around reconfiguration
-      CONNECTION_ERRORS_RECONFIGURATION = [ 15988, 10276, 11600, 9001 ]
+      CONNECTION_ERRORS_RECONFIGURATION = [ 15988, 10276, 11600, 9001, 13639 ]
 
       # Replica set reconfigurations can be either in the form of an operation
       # error with code 13435, or with an error message stating the server is
