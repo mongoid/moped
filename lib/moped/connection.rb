@@ -74,7 +74,6 @@ module Moped
     #
     # @since 1.0.0
     def disconnect
-      credentials.clear
       @sock.close
     rescue
     ensure
