@@ -11,22 +11,20 @@ module Moped
     # @example Apply the authentication credentials.
     #   node.apply_credentials({ "moped_test" => [ "user", "pass" ]})
     #
-    # @param [ Hash ] credentials The authentication credentials in the form:
+    # @param [ Hash ] logins The authentication credentials in the form:
     #   { database_name: [ user, password ]}
     #
     # @return [ Object ] The authenticated object.
     #
     # @since 2.0.0
     def apply_credentials(logins)
-      unless credentials == logins
-        logouts = credentials.keys - logins.keys
-        logouts.each do |database|
-          logout(database)
-        end
-        logins.each do |database, (username, password)|
-          unless credentials[database] == [ username, password ]
-            login(database, username, password)
-          end
+      logouts = credentials.keys - logins.keys
+      logouts.each do |database|
+        logout(database)
+      end
+      logins.each do |database, (username, password)|
+        unless logged_in_databases[database] && credentials[database] == [ username, password ]
+          login(database, username, password)
         end
       end
       self
@@ -42,6 +40,10 @@ module Moped
     # @since 2.0.0
     def credentials
       @credentials ||= {}
+    end
+
+    def logged_in_databases
+      @logged_in_databases ||= {}
     end
 
     # Login the user to the provided database with the supplied password.
@@ -73,6 +75,7 @@ module Moped
 
       raise Errors::AuthenticationFailure.new(authenticate, document) unless document["ok"] == 1
       credentials[database] = [username, password]
+      logged_in_databases[database] = true
     end
 
     # Logout the user from the provided database.
@@ -93,6 +96,7 @@ module Moped
         return
       end
       credentials.delete(database)
+      logged_in_databases.delete(database)
     end
   end
 end
