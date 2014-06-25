@@ -91,6 +91,29 @@ describe Moped::Address do
       end
     end
 
+    context "when the host is a name and is not resolved" do
+
+      let(:node) do
+        Moped::Node.new("localhost:27017", resolve: false)
+      end
+
+      let(:address) do
+        Moped::Address.new("localhost:27017", 2)
+      end
+
+      before do
+        address.resolve(Moped::Node.new("localhost:27017", resolve: false))
+      end
+
+      it "sets the resolved address" do
+        expect(address.resolved).to eq("localhost:27017")
+      end
+
+      it "sets the ip" do
+        expect(address.ip).to eq(nil)
+      end
+    end
+
     context "when the host cannot be resolved" do
 
       let(:node) do

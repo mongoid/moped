@@ -16,7 +16,7 @@ module Moped
     TIMEOUT = 5
 
     # @!attribute host
-    #   @return [ String ] The ip address of the host.
+    #   @return [ String ] The host name or ip address of the host.
     # @!attribute options
     #   @return [ Hash ] The connection options.
     # @!attribute port

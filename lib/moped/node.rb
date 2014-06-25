@@ -72,6 +72,18 @@ module Moped
       @auto_discovering ||= options[:auto_discover].nil? ? true : options[:auto_discover]
     end
 
+    # Must the node resolve its host name to its IP address
+    #
+    # @example Must the node resolve its node name?
+    #   node.resolve?
+    #
+    # @return [ true, false ] If the node resolves its host name to its IP address
+    #
+    # @since 2.0.0
+    def resolve?
+      @resolve ||= options[:resolve].nil? ? true : options[:resolve]
+    end
+
     # Execute a command against a database.
     #
     # @example Execute a command.
@@ -287,7 +299,7 @@ module Moped
       process(Protocol::KillCursors.new(cursor_ids))
     end
 
-    # Can we send messages to this node in normal cirucmstances? This is true
+    # Can we send messages to this node in normal circumstances? This is true
     # only if the node is a primary or secondary node - arbiters or passives
     # cannot be sent anything.
     #
@@ -434,7 +446,7 @@ module Moped
             raise Errors::ReplicaSetReconfigured.new("#{inspect} is no longer the primary node.", {})
           elsif !messagable?
             # not primary or secondary so mark it as down, since it's probably
-            # a recovering node withing the replica set
+            # a recovering node within the replica set
             down!
           end
         rescue Timeout::Error
@@ -511,7 +523,7 @@ module Moped
     #
     # @since 1.0.0
     def inspect
-      "<#{self.class.name} resolved_address=#{address.resolved.inspect}>"
+      "<#{self.class.name} resolved_address=#{address.resolved.inspect}, address=#{address.original.inspect}, arbiter=#{arbiter?}, passive=#{passive?}, primary=#{primary?}, secondary=#{secondary?}, down_at=#{down_at.inspect}, latency=#{latency.inspect}>"
     end
 
     private

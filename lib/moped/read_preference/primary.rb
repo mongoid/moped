@@ -51,7 +51,7 @@ module Moped
       #
       # @since 2.0.0
       def with_node(cluster, &block)
-        with_retry(cluster) do
+        cluster.with_retry do
           cluster.with_primary(&block)
         end
       end

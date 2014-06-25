@@ -220,16 +220,12 @@ module Moped
       @retry_interval ||= options[:retry_interval] || RETRY_INTERVAL
     end
 
-    # Yields the replica set's primary node to the provided block. This method
-    # will retry the block in case of connection errors or replica set
-    # reconfiguration.
+    # Yields the replica set's primary node to the provided block.
     #
     # @example Yield the primary to the block.
     #   cluster.with_primary do |node|
     #     # ...
     #   end
-    #
-    # @param [ Integer ] retries The number of times to retry.
     #
     # @raises [ ConnectionFailure ] When no primary node can be found
     #
@@ -238,27 +234,22 @@ module Moped
     # @since 1.0.0
     def with_primary(&block)
       if node = nodes.find(&:primary?)
-        begin
-          node.ensure_primary do
-            return yield(node)
-          end
-        rescue Errors::ConnectionFailure, Errors::ReplicaSetReconfigured
+        node.ensure_primary do
+          return yield(node)
         end
       end
       raise Errors::ConnectionFailure, "Could not connect to a primary node for replica set #{inspect}"
     end
 
-    # Yields a secondary node if available, otherwise the primary node. This
-    # method will retry the block in case of connection errors.
+    # Yields a secondary node
+    # When multiple secondary nodes are present, one is yielded at random
     #
     # @example Yield the secondary to the block.
     #   cluster.with_secondary do |node|
     #     # ...
     #   end
     #
-    # @param [ Integer ] retries The number of times to retry.
-    #
-    # @raises [ ConnectionFailure ] When no primary node can be found
+    # @raises [ ConnectionFailure ] When no secondary node can be found
     #
     # @return [ Object ] The result of the yield.
     #
@@ -273,6 +264,46 @@ module Moped
         end
       end
       raise Errors::ConnectionFailure, "Could not connect to a secondary node for replica set #{inspect}"
+    end
+
+    # Execute the provided block on the cluster and retry if the execution
+    # fails.
+    #
+    # @example Execute with retry.
+    #   cluster.with_retry(retries) do
+    #     cluster.with_primary do |node|
+    #       node.refresh
+    #     end
+    #   end
+    #
+    # @param [ Cluster ] cluster The cluster.
+    # @param [ Integer ] retries The number of times to retry.
+    #
+    # @return [ Object ] The result of the block.
+    #
+    # @since 2.0.0
+    def with_retry(retries = max_retries, &block)
+      begin
+        block.call
+      rescue Errors::OperationFailure, Moped::Errors::QueryFailure => e
+        if retries > 0 && e.reconfiguring_replica_set?
+          Loggable.warn("  MOPED:", "Operation Failure, Retrying connection attempt #{retries} more time(s).", "n/a")
+          sleep(retry_interval)
+          refresh
+          retries -= 1
+          retry
+        end
+        raise e
+      rescue Errors::ConnectionFailure => e
+        if retries > 0
+          Loggable.warn("  MOPED:", "ConnectionFailure, Retrying connection attempt #{retries} more time(s).", "n/a")
+          sleep(retry_interval)
+          refresh
+          retries -= 1
+          retry
+        end
+        raise e
+      end
     end
 
     private

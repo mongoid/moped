@@ -121,8 +121,10 @@ module Moped
     # @since 1.0.0
     def insert(documents, flags = nil)
       docs = documents.is_a?(Array) ? documents : [ documents ]
-      cluster.with_primary do |node|
-        node.insert(database.name, name, docs, write_concern, flags: flags || [])
+      cluster.with_retry do
+        cluster.with_primary do |node|
+          node.insert(database.name, name, docs, write_concern, flags: flags || [])
+        end
       end
     end
 
