@@ -114,7 +114,8 @@ module Moped
       end
 
       def connection_failure?
-        CONNECTION_ERRORS_RECONFIGURATION.include?(details["code"])
+        err = details["err"] || details["errmsg"] || details["$err"] || ""
+        CONNECTION_ERRORS_RECONFIGURATION.include?(details["code"]) || err.include?("could not get last error from shard")
       end
     end
 
