@@ -268,7 +268,7 @@ module Moped
       while node = available_nodes.shift
         begin
           return yield(node)
-        rescue Errors::ConnectionFailure => e
+        rescue Errors::ConnectionFailure, Errors::ReplicaSetReconfigured => e
           next
         end
       end
