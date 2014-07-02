@@ -45,17 +45,23 @@ module Moped
     #
     # @since 2.0.0
     def resolve(node)
+      unless node.resolve?
+        @resolved = "#{host}:#{port}"
+        @ip       = nil
+        return @resolved
+      end
+
       begin
         Timeout::timeout(@timeout) do
           Resolv.each_address(host) do |ip|
             if ip =~ Resolv::IPv4::Regex
-              @ip ||= ip
+              @ip = ip
               break
             end
           end
           raise Resolv::ResolvError unless @ip
         end
-        @resolved ||= "#{ip}:#{port}"
+        @resolved = "#{ip}:#{port}"
       rescue Timeout::Error, Resolv::ResolvError, SocketError
         Loggable.warn("  MOPED:", "Could not resolve IP for: #{original}", "n/a")
         node.down! and false
