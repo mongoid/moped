@@ -284,6 +284,10 @@ module Support
       rescue
       end
 
+      def kill_cursors(cursor_ids)
+        # Do nothing
+      end
+
       private
 
       # Checks a message to see if it's an `ismaster` query.

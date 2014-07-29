@@ -264,7 +264,7 @@ module Moped
     #
     # @since 1.0.0
     def with_secondary(&block)
-      available_nodes = nodes.select(&:secondary?).shuffle!
+      available_nodes = available_secondary_nodes
       while node = available_nodes.shift
         begin
           return yield(node)
@@ -276,6 +276,10 @@ module Moped
     end
 
     private
+
+    def available_secondary_nodes
+      nodes.select(&:secondary?).shuffle!
+    end
 
     # Apply the credentials on all nodes
     #
