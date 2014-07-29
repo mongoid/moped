@@ -100,7 +100,7 @@ module Moped
     class PotentialReconfiguration < MongoError
 
       # Not master error codes.
-      NOT_MASTER = [ 13435, 13436, 10009]
+      NOT_MASTER = [ 13435, 13436, 10009, 15986]
 
       # Error codes received around reconfiguration
       CONNECTION_ERRORS_RECONFIGURATION = [ 15988, 10276, 11600, 9001, 13639, 10009 ]
