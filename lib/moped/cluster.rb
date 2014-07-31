@@ -17,7 +17,7 @@ module Moped
     # The default interval that a node should be refreshed in.
     #
     # @since 2.0.0
-    REFRESH_INTERVAL = 300
+    REFRESH_INTERVAL = 10
 
     # The default time to wait to retry an operation.
     #
@@ -94,7 +94,7 @@ module Moped
     # @option options :down_interval number of seconds to wait before attempting
     #   to reconnect to a down node. (30)
     # @option options :refresh_interval number of seconds to cache information
-    #   about a node. (300)
+    #   about a node. (10)
     # @option options [ Integer ] :timeout The time in seconds to wait for an
     #   operation to timeout. (5)
     #
