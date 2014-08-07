@@ -127,7 +127,7 @@ module Moped
 
       def connection_failure?
         err = details["err"] || details["errmsg"] || details["$err"] || ""
-        CONNECTION_ERRORS_RECONFIGURATION.include?(details["code"]) || err.include?("could not get last error from shard")
+        CONNECTION_ERRORS_RECONFIGURATION.include?(details["code"]) || err.include?("could not get last error")
       end
 
       # Is the error due to a namespace not being found?

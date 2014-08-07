@@ -155,5 +155,20 @@ describe Moped::Errors::MongoError do
         error.should be_connection_failure
       end
     end
+
+    context "when 'err' contains could not get last error from a shard" do
+
+      let(:details) do
+        { "errmsg" => "could not get last error from a shard rs0/localhost:37017,localhost:37018,localhost:37019" }
+      end
+
+      let(:error) do
+        Moped::Errors::PotentialReconfiguration.new({}, details)
+      end
+
+      it "returns true" do
+        error.should be_connection_failure
+      end
+    end
   end
 end
