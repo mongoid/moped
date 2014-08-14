@@ -172,12 +172,24 @@ module Moped
     # Setup validation of allowed write concern options.
     #
     # @since 2.0.0
-    option(:write).allow({ w: Optionable.any(Integer) }, { "w" => Optionable.any(Integer) })
-    option(:write).allow({ w: Optionable.any(String) }, { "w" => Optionable.any(String) })
-    option(:write).allow({ j: true }, { "j" => true })
-    option(:write).allow({ j: false }, { "j" => false })
-    option(:write).allow({ fsync: true }, { "fsync" => true })
-    option(:write).allow({ fsync: false }, { "fsync" => false })
+    option(:write).allow(Optionable.any(Hash))
+
+    class WriteOption
+      include Optionable
+
+      option(:w).allow(Optionable.any(Integer))
+      option('w').allow(Optionable.any(Integer))
+      option(:j).allow(true, false)
+      option('j').allow(true, false)
+      option(:fsync).allow(true, false)
+      option('fsync').allow(true, false)
+      option(:wtimeout).allow(Optionable.any(Integer))
+      option('wtimeout').allow(Optionable.any(Integer))
+
+      def initialize(opts)
+        validate_strict(opts)
+      end
+    end
 
     # Setup validation of allowed read preference options.
     #
@@ -258,6 +270,7 @@ module Moped
     # @since 1.0.0
     def initialize(seeds, options = {})
       validate_strict(options)
+      WriteOption.new(options[:write])
       @options = options
       @cluster = Cluster.new(seeds, options)
     end
