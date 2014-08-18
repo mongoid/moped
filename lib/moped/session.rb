@@ -179,6 +179,8 @@ module Moped
 
       option(:w).allow(Optionable.any(Integer))
       option('w').allow(Optionable.any(Integer))
+      option(:w).allow(Optionable.any(String))
+      option('w').allow(Optionable.any(String))
       option(:j).allow(true, false)
       option('j').allow(true, false)
       option(:fsync).allow(true, false)
