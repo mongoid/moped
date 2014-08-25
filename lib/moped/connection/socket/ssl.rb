@@ -19,11 +19,30 @@ module Moped
         # @param [ Integer ] port The port.
         #
         # @since 1.2.0
-        def initialize(host, port)
+        def initialize(host, port, options)
           @host, @port = host, port
           handle_socket_errors do
             @socket = TCPSocket.new(host, port)
-            super(socket)
+
+            context = OpenSSL::SSL::SSLContext.new
+            if options.is_a?(Hash)
+              if options['ca_path']
+                context.ca_path = options['ca_path']
+              elsif options['ca_file']
+                context.ca_file = options['ca_file']
+              else
+                store = OpenSSL::X509::Store.new
+                store.set_default_paths
+                context.cert_store = store
+              end
+
+              if options.has_key?('client_cert') && options.has_key?('client_key')
+                context.cert = OpenSSL::X509::Certificate.new(File.read(options['client_cert']))
+                context.key = OpenSSL::PKey::RSA.new(File.read(options['client_key']))
+              end
+            end
+
+            super(socket, context)
             self.sync_close = true
             connect
           end
