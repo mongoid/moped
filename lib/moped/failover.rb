@@ -17,7 +17,7 @@ module Moped
     #
     # @since 2.0.0
     STRATEGIES = {
-      Errors::AuthenticationFailure => Ignore,
+      Errors::AuthenticationFailure => Retry,
       Errors::ConnectionFailure => Retry,
       Errors::CursorNotFound => Ignore,
       Errors::OperationFailure => Reconfigure,
