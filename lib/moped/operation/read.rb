@@ -46,7 +46,9 @@ module Moped
       # @since 2.0.0
       def execute(node)
         node.process(operation) do |reply|
-          if operation.failure?(reply)
+          if reply.unauthorized?
+            raise Errors::AuthenticationFailure.new(operation, reply.documents.first)
+          elsif operation.failure?(reply)
             raise operation.failure_exception(reply)
           end
           operation.results(reply)
