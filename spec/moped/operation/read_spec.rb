@@ -39,6 +39,11 @@ describe Moped::Operation::Read do
             replica_set_node.unauthorized_on_next_message!
           end
 
+          it "should mark the node as down" do
+            expect(node).to receive(:down!)
+            read.execute(node) rescue nil
+          end
+
           it "raises a failure error" do
             expect {
               read.execute(node)
@@ -51,6 +56,10 @@ describe Moped::Operation::Read do
 
         before do
           replica_set_node.query_failure_on_next_message!
+        end
+
+        it "should not mark the node as down" do
+          expect(node).to_not receive(:down!)
         end
 
         it "raises a failure error" do

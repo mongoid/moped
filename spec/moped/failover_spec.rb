@@ -56,8 +56,8 @@ describe Moped::Failover do
           described_class.get(Moped::Errors::AuthenticationFailure.new({}, {}))
         end
 
-        it "returns an ignore" do
-          expect(failover).to be_a(Moped::Failover::Ignore)
+        it "returns a retry" do
+          expect(failover).to be_a(Moped::Failover::Retry)
         end
       end
 

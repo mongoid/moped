@@ -47,6 +47,7 @@ module Moped
       def execute(node)
         node.process(operation) do |reply|
           if operation.failure?(reply)
+            node.down! if reply.unauthorized?
             raise operation.failure_exception(reply)
           end
           operation.results(reply)
