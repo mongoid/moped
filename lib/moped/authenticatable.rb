@@ -71,7 +71,14 @@ module Moped
       self.write([ authenticate ])
       document = self.read.documents.first
 
-      raise Errors::AuthenticationFailure.new(authenticate, document) unless document["ok"] == 1
+      unless document["ok"] == 1
+        # It may be the case that there are socket errors when trying to connect to the host
+        reconfig = Errors::PotentialReconfiguration.new(authenticate, document)
+        if reconfig.reconfiguring_replica_set? || reconfig.connection_failure?
+          raise reconfig
+        end
+        raise Errors::AuthenticationFailure.new(authenticate, document)
+      end
       credentials[database] = [username, password]
     end
 
