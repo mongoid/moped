@@ -321,14 +321,16 @@ module Moped
     #
     # @since 1.0.0
     def remove
-      cluster.with_primary do |node|
-        node.remove(
-          operation.database,
-          operation.collection,
-          operation.basic_selector,
-          write_concern,
-          flags: [ :remove_first ]
-        )
+      cluster.with_retry do
+        cluster.with_primary do |node|
+          node.remove(
+            operation.database,
+            operation.collection,
+            operation.basic_selector,
+            write_concern,
+            flags: [ :remove_first ]
+          )
+        end
       end
     end
 
@@ -341,13 +343,15 @@ module Moped
     #
     # @since 1.0.0
     def remove_all
-      cluster.with_primary do |node|
-        node.remove(
-          operation.database,
-          operation.collection,
-          operation.basic_selector,
-          write_concern
-        )
+      cluster.with_retry do
+        cluster.with_primary do |node|
+          node.remove(
+            operation.database,
+            operation.collection,
+            operation.basic_selector,
+            write_concern
+          )
+        end
       end
     end
 
@@ -423,15 +427,17 @@ module Moped
     #
     # @since 1.0.0
     def update(change, flags = nil)
-      cluster.with_primary do |node|
-        node.update(
-          operation.database,
-          operation.collection,
-          operation.selector["$query"] || operation.selector,
-          change,
-          write_concern,
-          flags: flags
-        )
+      cluster.with_retry do
+        cluster.with_primary do |node|
+          node.update(
+            operation.database,
+            operation.collection,
+            operation.selector["$query"] || operation.selector,
+            change,
+            write_concern,
+            flags: flags
+          )
+        end
       end
     end
 
