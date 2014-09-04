@@ -275,6 +275,36 @@ module Moped
       raise Errors::ConnectionFailure, "Could not connect to a secondary node for replica set #{inspect}"
     end
 
+    # Execute the provided block on the cluster and retry if the execution
+    # fails.
+    #
+    # @example Execute with retry.
+    #   cluster.with_retry do
+    #     cluster.with_primary do |node|
+    #       node.refresh
+    #     end
+    #   end
+    #
+    # @param [ Integer ] retries The number of times to retry.
+    #
+    # @return [ Object ] The result of the block.
+    #
+    # @since 2.0.0
+    def with_retry(retries = max_retries, &block)
+      begin
+        block.call
+      rescue Errors::ConnectionFailure => e
+        if retries > 0
+          Loggable.warn("  MOPED:", "Retrying connection attempt #{retries} more time(s).", "n/a")
+          sleep(retry_interval)
+          refresh
+          with_retry(retries - 1, &block)
+        else
+          raise e
+        end
+      end
+    end
+
     private
 
     # Apply the credentials on all nodes
