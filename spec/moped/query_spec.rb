@@ -1018,6 +1018,42 @@ describe Moped::Query do
     end
   end
 
+  context "with test commands enabled" do
+
+    let(:session) do
+      Moped::Session.new([ "127.0.0.1:#{port}" ], database: "moped_test")
+    end
+
+    let(:users) do
+      session.with(safe: true)[:users]
+    end
+
+    describe "when a query take too long" do
+      let(:port) { 31104 }
+
+      before do
+        start_mongo_server(port, "--setParameter enableTestCommands=1")
+        Process.detach(spawn("echo 'db.adminCommand({sleep: 1, w: true, secs: 10})' | mongo localhost:#{port} 2>&1 > /dev/null"))
+        sleep 1 # to sleep command on mongodb begins work
+      end
+
+      after do
+        stop_mongo_server(port)
+      end
+
+      it "raises a operation timeout exception" do
+        time = Benchmark.realtime do
+          expect {
+            Timeout::timeout(7) do
+              users.find("age" => { "$gte" => 65 }).first
+            end
+          }.to raise_exception("Took more than 5 seconds to receive data.")
+        end
+        expect(time).to be < 5.5
+      end
+    end
+  end
+
   context "with a remote connection", mongohq: :auth do
 
     before(:all) do
