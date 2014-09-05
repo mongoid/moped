@@ -524,3 +524,143 @@ describe Moped::Cluster, "authentication", mongohq: :auth do
     end
   end
 end
+
+describe Moped::Cluster, "after a reconfiguration" do
+  let(:options) do
+    {
+      max_retries: 30,
+      retry_interval: 1,
+      timeout: 5,
+      database: 'test_db',
+      read: :primary,
+      write: {w: 'majority'}
+    }
+  end
+
+  let(:replica_set_name) { 'dev' }
+
+  let(:session) do
+    Moped::Session.new([ "127.0.0.1:31100", "127.0.0.1:31101", "127.0.0.1:31102" ], options)
+  end
+
+  def step_down_servers
+    file = Tempfile.new('step_down')
+    begin
+      user_data = with_authentication? ? ", 'admin', 'admin_pwd'" : ""
+      file.puts %{
+        function stepDown(dbs) {
+          for (i in dbs) {
+            dbs[i].adminCommand({replSetFreeze:5});
+            try { dbs[i].adminCommand({replSetStepDown:5}); } catch(e) { print(e) };
+          }
+        };
+
+        var db1 = connect('localhost:31100/admin'#{user_data});
+        var db2 = connect('localhost:31101/admin'#{user_data});
+        var db3 = connect('localhost:31102/admin'#{user_data});
+
+        var dbs = [db1, db2, db3];
+        stepDown(dbs);
+
+        while (db1.adminCommand({ismaster:1}).ismaster || db2.adminCommand({ismaster:1}).ismaster || db2.adminCommand({ismaster:1}).ismaster) {
+          stepDown(dbs);
+        }
+      }
+      file.close
+
+      system "mongo --nodb #{file.path} 2>&1 > /dev/null"
+
+    ensure
+       file.close
+       file.unlink   # deletes the temp file
+    end
+  end
+
+  shared_examples_for "recover the session" do
+    it "should execute commands normally before the stepDown" do
+      time = Benchmark.realtime do
+        session[:foo].find().remove_all()
+        session[:foo].find().to_a.count.should eql(0)
+        session[:foo].insert({ name: "bar 1" })
+        session[:foo].find().to_a.count.should eql(1)
+        expect {
+          session[:foo].insert({ name: "bar 1" })
+        }.to raise_exception
+      end
+      time.should be < 2
+    end
+
+    it "should recover and execute a find" do
+      session[:foo].find().remove_all()
+      session[:foo].insert({ name: "bar 1" })
+      step_down_servers
+      time = Benchmark.realtime do
+        session[:foo].find().to_a.count.should eql(1)
+      end
+      time.should be > 5
+      time.should be < 29
+    end
+
+    it "should recover and execute an insert" do
+      session[:foo].find().remove_all()
+      session[:foo].insert({ name: "bar 1" })
+      step_down_servers
+      time = Benchmark.realtime do
+        session[:foo].insert({ name: "bar 2" })
+        session[:foo].find().to_a.count.should eql(2)
+      end
+      time.should be > 5
+      time.should be < 29
+
+      session[:foo].insert({ name: "bar 3" })
+      session[:foo].find().to_a.count.should eql(3)
+    end
+
+    it "should recover and try an insert which hit a constraint" do
+      session[:foo].find().remove_all()
+      session[:foo].insert({ name: "bar 1" })
+      step_down_servers
+      time = Benchmark.realtime do
+        expect {
+          session[:foo].insert({ name: "bar 1" })
+        }.to raise_exception
+      end
+      time.should be > 5
+      time.should be < 29
+
+      session[:foo].find().to_a.count.should eql(1)
+
+      session[:foo].insert({ name: "bar 2" })
+      session[:foo].find().to_a.count.should eql(2)
+    end
+  end
+
+  describe "with authentication off" do
+    before do
+      rs_initiated = `echo 'db.isMaster().me' | mongo --quiet --port 31100 2>/dev/null`.chomp.end_with?("31100")
+      unless rs_initiated
+        start_mongo_server(31100, "--replSet #{replica_set_name}")
+        start_mongo_server(31101, "--replSet #{replica_set_name}")
+        start_mongo_server(31102, "--replSet #{replica_set_name}")
+
+        `echo "rs.initiate({_id : '#{replica_set_name}', 'members' : [{_id:0, host:'localhost:31100'},{_id:1, host:'localhost:31101'},{_id:2, host:'localhost:31102'}]})"  | mongo --port 31100`
+        rs_up = false
+        while !rs_up
+          status = `echo 'rs.status().members[0].stateStr + "|" + rs.status().members[1].stateStr + "|" + rs.status().members[2].stateStr' | mongo --quiet --port 31100`.chomp.split("|")
+          rs_up = status.all?{|st| st == "PRIMARY" || st == "SECONDARY"}
+        end
+
+        master = `echo 'db.isMaster().primary' | mongo --quiet --port 31100`.chomp
+
+        `echo "
+        use test_db;
+        db.foo.ensureIndex({name:1}, {unique:1});
+        " | mongo #{master}`
+      end
+    end
+
+    let(:with_authentication?) { false }
+
+    it_should_behave_like "recover the session"
+  end
+end
