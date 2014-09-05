@@ -663,4 +663,64 @@ describe Moped::Cluster, "after a reconfiguration" do
 
     it_should_behave_like "recover the session"
   end
+
+  describe "with authentication on" do
+    before do
+      rs_initiated = `echo 'db.isMaster().me' | mongo --quiet --port 31100 -u admin -p admin_pwd --authenticationDatabase admin 2>/dev/null`.chomp.end_with?("31100")
+      unless rs_initiated
+        keyfile = File.join(Dir.tmpdir, "31000", "keyfile")
+        FileUtils.mkdir_p(File.dirname(keyfile))
+        File.open(keyfile, "w") do |f| f.puts "SyrfEmAevWPEbgRZoZx9qZcZtJAAfd269da+kzi0H/7OuowGLxM3yGGUHhD379qP
+nw4X8TT2T6ecx6aqJgxG+biJYVOpNK3HHU9Dp5q6Jd0bWGHGGbgFHV32/z2FFiti
+EFLimW/vfn2DcJwTW29nQWhz2wN+xfMuwA6hVxFczlQlz5hIY0+a+bQChKw8wDZk
+rW1OjTQ//csqPbVA8fwB49ghLGp+o84VujhRxLJ+0sbs8dKoIgmVlX2kLeHGQSf0
+KmF9b8kAWRLwLneOR3ESovXpEoK0qpQb2ym6BNqP32JKyPA6Svb/smVONhjUI71f
+/zQ2ETX7ylpxIzw2SMv/zOWcVHBqIbdP9Llrxb3X0EsB6J8PeI8qLjpS94FyEddw
+ACMcAxbP+6BaLjXyJ2WsrEeqThAyUC3uF5YN/oQ9XiATqP7pDOTrmfn8LvryyzcB
+ByrLRTPOicBaG7y13ATcCbBdrYH3BE4EeLkTUZOg7VzvRnATvDpt0wOkSnbqXow8
+GQ6iMUgd2XvUCuknQLD6gWyoUyHiPADKrLsgnd3Qo9BPxYJ9VWSKB4phK3N7Bic+
+BwxlcpDFzGI285GR4IjcJbRRjjywHq5XHOxrJfN+QrZ/6wy6yu2+4NTPj+BPC5iX
+/dNllTEyn7V+pr6FiRv8rv8RcxJgf3nfn/Xz0t2zW2olcalEFxwKKmR20pZxPnSv
+Kr6sVHEzh0mtA21LoK5G8bztXsgFgWU7hh9z8UUo7KQQnDfyPb6k4xroeeQtWBNo
+TZF1pI5joLytNSEtT+BYA5wQSYm4WCbhG+j7ipcPIJw6Un4ZtAZs0aixDfVE0zo0
+w2FWrYH2dmmCMbz7cEXeqvQiHh9IU/hkTrKGY95STszGGFFjhtS2TbHAn2rRoFI0
+VwNxMJCC+9ZijTWBeGyQOuEupuI4C9IzA5Gz72048tpZ0qMJ9mOiH3lZFtNTg/5P
+28Td2xzaujtXjRnP3aZ9z2lKytlr
+"
+        end
+
+        File.chmod(0600, keyfile)
+
+        start_mongo_server(31100, "--replSet #{replica_set_name} --keyFile #{keyfile} --auth")
+        start_mongo_server(31101, "--replSet #{replica_set_name} --keyFile #{keyfile} --auth")
+        start_mongo_server(31102, "--replSet #{replica_set_name} --keyFile #{keyfile} --auth")
+
+        `echo "rs.initiate({_id : '#{replica_set_name}', 'members' : [{_id:0, host:'localhost:31100'},{_id:1, host:'localhost:31101'},{_id:2, host:'localhost:31102'}]})"  | mongo --port 31100`
+        rs_up = false
+        while !rs_up
+          status = `echo 'rs.status().members[0].stateStr + "|" + rs.status().members[1].stateStr + "|" + rs.status().members[2].stateStr' | mongo --quiet --port 31100`.chomp.split("|")
+          rs_up = status.all?{|st| st == "PRIMARY" || st == "SECONDARY"}
+        end
+
+        master = `echo 'db.isMaster().primary' | mongo --quiet --port 31100`.chomp
+
+        `echo "
+        use admin;
+        db.addUser('admin', 'admin_pwd');
+        " | mongo #{master}`
+
+        `echo "
+        use test_db;
+        db.addUser('common', 'common_pwd');
+        db.foo.ensureIndex({name:1}, {unique:1});
+        " | mongo #{master} -u admin -p admin_pwd --authenticationDatabase admin`
+      end
+
+      session.login('common', 'common_pwd')
+    end
+
+    let(:with_authentication?) { true }
+
+    it_should_behave_like "recover the session"
+  end
 end
