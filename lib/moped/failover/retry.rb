@@ -24,7 +24,6 @@ module Moped
       #
       # @since 2.0.0
       def execute(exception, node)
-        node.disconnect
         begin
           node.connection do |conn|
             yield(conn) if block_given?

@@ -69,6 +69,7 @@ module Moped
       #
       # @since 2.0.0
       def failure_exception(reply)
+        return Errors::CursorNotFound.new(self, cursor_id) if reply.cursor_not_found?
         reply.failure_exception || Errors::QueryFailure.new(self, reply.documents.first)
       end
 

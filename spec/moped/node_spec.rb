@@ -230,40 +230,50 @@ describe Moped::Node, replica_set: true do
 
     context "when there is a reconfiguration" do
 
-      let(:potential_reconfiguration_error) do
-        Moped::Errors::QueryFailure.new("", {})
-      end
+      let(:error) { Moped::Errors::QueryFailure.new("", {}) }
 
       before do
         node.connection do |conn|
           conn.stub(:connected?).and_return(false)
-          conn.stub(:connect).and_raise(potential_reconfiguration_error)
+          conn.stub(:connect).and_raise(error)
         end
       end
 
-      context "and the reconfigation is of a replica set" do
 
-        before do
-          potential_reconfiguration_error.stub(:reconfiguring_replica_set?).and_return(true)
+
+      context "and the cluster returns 'not master' error" do
+
+        let(:error) { Moped::Errors::NotMaster.new("", {}) }
+
+        it "it retries and reraises same error" do
+          expect {
+            node.ensure_connected { raise error }
+          }.to raise_error(error.class)
         end
 
-        it "raises a ReplicaSetReconfigured error" do
+        it "it disconnects" do
+          expect(node).to receive(:disconnect)
           expect {
-            node.ensure_connected {}
-          }.to raise_error(Moped::Errors::ReplicaSetReconfigured)
+            node.ensure_connected { raise error }
+          }.to raise_error
         end
       end
 
-      context "and the reconfigation is not of a replica set" do
+      context "and the cluster returns authorization error" do
 
-        before do
-          potential_reconfiguration_error.stub(:reconfiguring_replica_set?).and_return(false)
+        let(:error) { Moped::Errors::AuthorizationFailure.new("", {}) }
+
+        it "it retries and reraises same error" do
+          expect {
+            node.ensure_connected { raise error }
+          }.to raise_error(error.class)
         end
 
-        it "raises a PotentialReconfiguration error" do
+        it "it disconnects" do
+          expect(node).to receive(:disconnect)
           expect {
-            node.ensure_connected {}
-          }.to raise_error(Moped::Errors::PotentialReconfiguration)
+            node.ensure_connected { raise error }
+          }.to raise_error
         end
       end
     end

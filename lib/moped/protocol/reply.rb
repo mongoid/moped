@@ -79,7 +79,6 @@ module Moped
         return Errors::AuthorizationFailure.new(self, documents.first) if unauthorized?
         return Errors::NotMaster.new(self, documents.first) if not_master?
         return Errors::ReplicaSetReconfigured.new(self, documents.first) if connection_failure?
-        return Errors::CursorNotFound.new(self, cursor_id) if reply.cursor_not_found?
       end
 
       # Error codes received around reconfiguration
@@ -97,7 +96,7 @@ module Moped
         result = documents[0]
         return false if result.nil?
         err = error_message(result)
-        NOT_MASTER.include?(result["code"]) || err.include?("not master")
+        NOT_MASTER.include?(result["code"]) || err && err.include?("not master")
       end
 
       # Was the provided cursor id not found on the server?
