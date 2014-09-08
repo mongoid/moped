@@ -20,7 +20,6 @@ module Moped
     # Generic error class for exceptions related to connection failures.
     class ConnectionFailure < StandardError; end
 
-
     # Raised when a database name is invalid.
     class InvalidDatabaseName < StandardError; end
 
@@ -41,8 +40,6 @@ module Moped
         super("'#{string}' is not a valid object id.")
       end
     end
-
-
 
     # Generic error class for exceptions generated on the remote MongoDB
     # server.
@@ -109,10 +106,10 @@ module Moped
 
     # @api private
     #
-    # Internal exception raised by Node#ensure_primary and captured by
-    # Cluster#with_primary.
+    # Exception indicating that replica set was most likely reconfigured
     class ReplicaSetReconfigured < MongoError; end
 
+    # Exception raised when database responds with 'not master' error
     class NotMaster < ReplicaSetReconfigured; end
 
     # Exception raised when authentication fails.
@@ -121,7 +118,7 @@ module Moped
     # Exception raised when authorization fails.
     class AuthorizationFailure < MongoError; end
 
-    # Classes of errors that could be caused by a replica set reconfiguration.
+    # Exception raised when operation fails
     class OperationFailure < MongoError
 
       # Is the error due to a namespace not being found?
@@ -149,7 +146,6 @@ module Moped
       end
     end
 
-
     # Exception raised on invalid queries.
     class QueryFailure < MongoError; end
 
@@ -159,7 +155,6 @@ module Moped
         super(operation, {"errmsg" => "cursor #{cursor_id} not found"})
       end
     end
-
 
     # Tag applied to unhandled exceptions on a node.
     module SocketError; end

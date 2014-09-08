@@ -15,7 +15,7 @@ module Moped
 
       # Error codes
       UNAUTHORIZED = [ 13, 10057, 16550, 16544 ]
-      NOT_MASTER = [ 13435, 13436, 10009, 10058 ]
+      NOT_MASTER = [ 13435, 13436, 10009, 10054, 10056, 10058 ]
       CONNECTION_ERRORS_RECONFIGURATION = [ 15988, 10276, 11600, 9001, 13639, 10009 ]
 
 
@@ -74,10 +74,12 @@ module Moped
         (result["ok"] != 1.0 && result["ok"] != true) || error?
       end
 
+      # Returns specific exception if it can be determined from error code or message returned by DB
       def failure_exception
         return Errors::AuthorizationFailure.new(self, documents.first) if unauthorized?
         return Errors::NotMaster.new(self, documents.first) if not_master?
         return Errors::ReplicaSetReconfigured.new(self, documents.first) if connection_failure?
+        return Errors::CursorNotFound.new(self, cursor_id) if reply.cursor_not_found?
       end
 
       # Error codes received around reconfiguration
@@ -89,8 +91,8 @@ module Moped
 
       # Not master error codes.
       # Replica set reconfigurations can be either in the form of an operation
-      # error with code 13435, or with an error message stating the server is
-      # not a master. (This encapsulates codes 10054, 10056, 10058)
+      # error falling into ReplicaSetReconfigured error or with an error message stating the server is
+      # not a master.
       def not_master?
         result = documents[0]
         return false if result.nil?

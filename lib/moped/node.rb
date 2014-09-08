@@ -589,7 +589,7 @@ module Moped
           conn.write(operations)
           replies = conn.receive_replies(operations)
           replies.zip(callbacks).map do |reply, callback|
-            callback ? callback[reply] : reply
+            callback ? callback.call(reply) : reply
           end.last
         end
       end

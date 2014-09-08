@@ -39,9 +39,6 @@ module Moped
         options[:flags] |= [ :slave_ok ]
         options
       end
-
-      private
-
     end
   end
 end
