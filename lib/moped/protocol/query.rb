@@ -91,7 +91,7 @@ module Moped
       #
       # @since 2.0.0
       def failure_exception(reply)
-        Errors::QueryFailure.new(self, reply.documents.first)
+        reply.failure_exception || Errors::QueryFailure.new(self, reply.documents.first)
       end
 
       # Determine if the provided reply message is a failure with respect to a
