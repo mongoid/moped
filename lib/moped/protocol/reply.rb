@@ -14,9 +14,22 @@ module Moped
       include Message
 
       # Error codes
-      UNAUTHORIZED = [ 13, 10057, 16550, 16544 ]
-      NOT_MASTER = [ 13435, 13436, 10009, 10054, 10056, 10058 ]
-      CONNECTION_ERRORS_RECONFIGURATION = [ 15988, 10276, 11600, 9001, 13639, 10009 ]
+      UNAUTHORIZED = [
+        13,    # not authorized for query on ...
+        10057,
+        16550, # not authorized for query on ...
+        16544, # not authorized for insert on ...
+      ]
+      NOT_MASTER = [ 13435, 13436, 10009, 10054, 10056, 10058, 10107]
+
+      CONNECTION_ERRORS_RECONFIGURATION = [
+        9001,
+        10009,
+        10276, # DBClientBase::findN: transport error
+        11600, # interrupted at shutdown
+        13639, # can't connect to new replica set master
+        15988, # error querying server
+      ]
 
 
       # @attribute

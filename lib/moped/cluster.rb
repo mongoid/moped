@@ -238,11 +238,8 @@ module Moped
     # @since 1.0.0
     def with_primary(&block)
       if node = nodes.find(&:primary?)
-        begin
-          node.ensure_primary do
-            return yield(node)
-          end
-        rescue Errors::ConnectionFailure, Errors::ReplicaSetReconfigured
+        node.ensure_primary do
+          return yield(node)
         end
       end
       raise Errors::ConnectionFailure, "Could not connect to a primary node for replica set #{inspect}"
@@ -295,7 +292,7 @@ module Moped
         block.call
       rescue Errors::ConnectionFailure, Errors::ReplicaSetReconfigured, Errors::AuthorizationFailure => e
         if retries > 0
-          Loggable.warn("  MOPED:", "Retrying connection attempt #{retries} more time(s).", "n/a")
+          Loggable.warn("  MOPED:", "Retrying connection attempt #{retries} more time(s). Exception: #{ e.class.name }, #{ e.message }", "n/a")
           sleep(retry_interval)
           refresh
           with_retry(retries - 1, &block)

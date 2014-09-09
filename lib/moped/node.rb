@@ -548,6 +548,7 @@ module Moped
       @arbiter = settings["arbiterOnly"]
       @passive = settings["passive"]
       @primary = settings["ismaster"]
+      @down_at = nil
       @secondary = settings["secondary"]
       discover(settings["hosts"]) if auto_discovering?
     end

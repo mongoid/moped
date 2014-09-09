@@ -9,7 +9,7 @@ module Moped
     module Retry
       extend self
 
-      # Executes the failover strategy. In the case of retyr, we disconnect and
+      # Executes the failover strategy. In the case of retry, we disconnect and
       # reconnect, then try the operation one more time.
       #
       # @example Execute the retry strategy.
@@ -24,6 +24,7 @@ module Moped
       #
       # @since 2.0.0
       def execute(exception, node)
+        node.disconnect
         begin
           node.connection do |conn|
             yield(conn) if block_given?
