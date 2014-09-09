@@ -252,7 +252,7 @@ describe Moped::Node, replica_set: true do
         end
 
         it "it disconnects" do
-          expect(node).to receive(:disconnect)
+          expect(node).to receive(:disconnect).at_least(:once)
           expect {
             node.ensure_connected { raise error }
           }.to raise_error
@@ -270,7 +270,7 @@ describe Moped::Node, replica_set: true do
         end
 
         it "it disconnects" do
-          expect(node).to receive(:disconnect)
+          expect(node).to receive(:disconnect).at_least(:once)
           expect {
             node.ensure_connected { raise error }
           }.to raise_error
