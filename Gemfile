@@ -1,6 +1,7 @@
 source "http://rubygems.org"
 
 group :test do
+  gem "popen4"
   gem "rspec", "~> 2.13"
   unless ENV["CI"]
     gem "guard-rspec"
