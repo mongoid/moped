@@ -18,6 +18,7 @@ $:.unshift((Pathname(__FILE__).dirname.parent + "lib").to_s)
 require "benchmark"
 require "fileutils"
 require "tmpdir"
+require "tempfile"
 require "popen4"
 require "moped"
 require "support/examples"
@@ -41,6 +42,8 @@ RSpec.configure do |config|
 
   config.after(:suite) do
     stop_mongo_server(31100)
+    stop_mongo_server(31101)
+    stop_mongo_server(31102)
   end
 
   unless Support::MongoHQ.replica_set_configured? || Support::MongoHQ.auth_node_configured?
