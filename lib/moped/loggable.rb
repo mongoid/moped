@@ -1,4 +1,5 @@
 require "moped/log_format/default_format"
+require "moped/log_format/shell_format"
 
 # encoding: utf-8
 module Moped

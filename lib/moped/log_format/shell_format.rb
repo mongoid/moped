@@ -4,6 +4,7 @@ require "moped/log_format/shell_format/core_ext/bson/object_id"
 require "moped/log_format/shell_format/core_ext/regexp"
 require "moped/log_format/shell_format/core_ext/time"
 
+require "moped/log_format/shell_format/shellable"
 require "moped/log_format/shell_format/command"
 require "moped/log_format/shell_format/query"
 require "moped/log_format/shell_format/insert"
@@ -132,7 +133,7 @@ module Moped
       #
       # @since 2.0.0
       def self.kill_cursors(event)
-        "#{event.database}: db.killOp(#{event.cursor_id})"
+        "db.killOp(#{event.cursor_ids})"
       end
     end
   end
