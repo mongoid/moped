@@ -28,7 +28,7 @@ module Moped
             alias_method :as_json, :as_json_with_mongo_shell
           else
             alias_method :to_json_without_mongo_shell, :to_json
-            alias_method :to_json, :as_json_with_mongo_shell
+            alias_method :to_json, :to_json_with_mongo_shell
           end
         end
       end
