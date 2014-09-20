@@ -50,7 +50,7 @@ module Moped
 
           arguments = []
           arguments << dump_json(selector)
-          arguments << dump_json(event.fields) if not event.fields.blank?
+          arguments << dump_json(event.fields) if not nil_if_blank(event.fields).nil?
 
           return shell :find, arguments
         end
@@ -91,7 +91,7 @@ module Moped
           if command_name = MethodsToCommand[command]
             result = event.send(command)
 
-            if not result.blank?
+            if not nil_if_blank(result).nil?
               return shell command_name, dump_json(result)
             else
               return nil
@@ -101,7 +101,7 @@ module Moped
           if modifier_name = CommandToModifiers[command]
             result = event.selector[modifier_name]
 
-            if not result.blank?
+            if not nil_if_blank(result).nil?
               return shell command, dump_json(result)
             else
               return nil

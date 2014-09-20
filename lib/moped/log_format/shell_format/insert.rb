@@ -25,7 +25,7 @@ module Moped
         end
 
         def flags
-          return if event.flags.blank?
+          return if nil_if_blank(event.flags).nil?
           dump_json(event.flags)
         end
       end

@@ -48,7 +48,7 @@ module Moped
         end
 
         def argument
-          if event.selector[name].blank?
+          if nil_if_blank(event.selector[name]).nil?
             return nil
           else
             dump_json event.selector[name]
@@ -59,7 +59,7 @@ module Moped
           selector = event.selector.dup
           selector.delete name
 
-          if selector.blank?
+          if selector.empty?
             return nil
           else
             dump_json selector

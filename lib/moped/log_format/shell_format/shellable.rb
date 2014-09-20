@@ -54,7 +54,7 @@ module Moped
         end
 
         def flags
-          return if event.flags.blank?
+          return if nil_if_blank(event.flags).nil?
           flags = Hash[event.flags.map {|f| [f, 1]}]
 
           dump_json(flags)
@@ -71,7 +71,17 @@ module Moped
         end
 
         def nil_if_blank(obj)
-          obj.blank? ? nil : obj
+          return if obj.nil? || obj == false
+
+          if obj.respond_to? :blank?
+            return obj.blank? ? nil : obj
+          end
+
+          if obj.respond_to? :empty?
+            return obj.empty? ? nil : obj
+          end
+
+          return obj
         end
       end
     end
