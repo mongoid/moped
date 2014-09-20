@@ -98,12 +98,7 @@ module Moped
       end
 
       def log_inspect
-        type = "UPDATE"
-
-        "%-12s database=%s collection=%s selector=%s update=%s flags=%s" % [type, database, collection,
-                                                                            selector.inspect,
-                                                                            update.inspect,
-                                                                            flags.inspect]
+        Moped.log_format.update(self)
       end
 
       private

@@ -115,8 +115,7 @@ module Moped
       #
       # @since 1.0.0
       def log_inspect
-        type = "GET_MORE"
-        "%-12s database=%s collection=%s limit=%s cursor_id=%s" % [type, database, collection, limit, cursor_id]
+        Moped.log_format.get_more(self)
       end
 
       undef op_code

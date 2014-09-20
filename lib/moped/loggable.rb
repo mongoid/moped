@@ -1,3 +1,5 @@
+require "moped/log_format/default_format"
+
 # encoding: utf-8
 module Moped
 
@@ -19,12 +21,12 @@ module Moped
     def self.log_operations(prefix, ops, runtime)
       indent  = " "*prefix.length
       if ops.length == 1
-        Moped.logger.debug([ prefix, ops.first.log_inspect, "runtime: #{runtime}" ].join(' '))
+        Moped.logger.debug(Moped.log_format.log(prefix, ops.first.log_inspect, runtime))
       else
         first, *middle, last = ops
-        Moped.logger.debug([ prefix, first.log_inspect ].join(' '))
-        middle.each { |m| Moped.logger.debug([ indent, m.log_inspect ].join(' ')) }
-        Moped.logger.debug([ indent, last.log_inspect, "runtime: #{runtime}" ].join(' '))
+        Moped.logger.debug(Moped.log_format.log(prefix, first.log_inspect))
+        middle.each { |m| Moped.logger.debug(Moped.log_format.log(indent, m.log_inspect)) }
+        Moped.logger.debug(Moped.log_format.log(indent, last.log_inspect, runtime))
       end
     end
 
@@ -39,7 +41,7 @@ module Moped
     #
     # @since 2.0.0
     def self.debug(prefix, payload, runtime)
-      Moped.logger.debug([ prefix, payload, "runtime: #{runtime}" ].join(' '))
+      Moped.logger.debug(Moped.log_format.log(prefix, payload, runtime))
     end
 
     # Log the payload to warn.
@@ -53,7 +55,7 @@ module Moped
     #
     # @since 2.0.0
     def self.warn(prefix, payload, runtime)
-      Moped.logger.warn([ prefix, payload, "runtime: #{runtime}" ].join(' '))
+      Moped.logger.warn(Moped.log_format.log(prefix, payload, runtime))
     end
 
     # Get the logger.
@@ -105,6 +107,31 @@ module Moped
     # @since 1.0.0
     def logger=(logger)
       @logger = logger
+    end
+
+    # Get the log format.
+    #
+    # @example Get the log format.
+    #   Loggable.logger
+    #
+    # @return [ Logger ] The log format.
+    #
+    # @since 2.0.0
+    def log_format
+      return @log_format if defined?(@log_format)
+      @log_format = Moped::LogFormat::DefaultFormat
+    end
+
+    # Set the log formatt.
+    #
+    # @example Set the log formatt.
+    #   Loggable.log_format = format
+    #
+    # @return [ LogFormat ] The log format.
+    #
+    # @since 2.0.0
+    def log_format=(format)
+      @log_format = format
     end
   end
 end

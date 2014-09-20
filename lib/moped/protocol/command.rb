@@ -63,8 +63,7 @@ module Moped
       #
       # @since 1.0.0
       def log_inspect
-        type = "COMMAND"
-        "%-12s database=%s command=%s" % [type, database, selector.inspect]
+        Moped.log_format.command(self)
       end
 
       # Take the provided reply and return the expected results to api
