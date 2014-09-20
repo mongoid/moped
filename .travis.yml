@@ -6,7 +6,9 @@ rvm:
   - 2.1.0
   - jruby
   - jruby-head
-env: CI="travis"
+env:
+  - CI="travis"
+  - CI="travis" MOPED_LOG_FORMAT="Moped::LogFormat::ShellFormat"
 services:
   - mongodb
 matrix:
