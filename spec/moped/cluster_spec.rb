@@ -398,7 +398,7 @@ describe Moped::Cluster, replica_set: true do
     end
 
     let(:node) do
-      stub
+      double
     end
 
     context "when a node has no peers" do
