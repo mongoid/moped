@@ -478,37 +478,43 @@ describe Moped::Cluster, "after a reconfiguration" do
     Moped::Session.new([ "127.0.0.1:31100", "127.0.0.1:31101", "127.0.0.1:31102" ], options)
   end
 
+  def servers_status
+    auth = has_user_admin? ? "-u admin -p admin_pwd --authenticationDatabase admin" : ""
+    `echo 'rs.status().members[0].stateStr + "|" + rs.status().members[1].stateStr + "|" + rs.status().members[2].stateStr' | mongo --quiet --port 31100 #{auth} 2>/dev/null`.chomp.split("|")
+  end
+
+  def has_user_admin?
+    auth = with_authentication? ? "-u admin -p admin_pwd --authenticationDatabase admin" : ""
+    `echo 'db.getSisterDB("admin").getUser("admin").user' | mongo --quiet --port 31100 #{auth} 2>/dev/null`.chomp   == "admin"
+  end
+
   def step_down_servers
-    file = Tempfile.new('step_down')
-    begin
-      user_data = with_authentication? ? ", 'admin', 'admin_pwd'" : ""
-      file.puts %{
-        function stepDown(dbs) {
-          for (i in dbs) {
-            dbs[i].adminCommand({replSetFreeze:5});
-            try { dbs[i].adminCommand({replSetStepDown:5}); } catch(e) { print(e) };
-          }
-        };
+    step_down_file = File.join(Dir.tmpdir, with_authentication? ? "step_down_with_authentication.js" : "step_down_without_authentication.js")
+    unless File.exists?(step_down_file)
+      File.open(step_down_file, "w") do |file|
+        user_data = with_authentication? ? ", 'admin', 'admin_pwd'" : ""
+        file.puts %{
+          function stepDown(dbs) {
+            for (i in dbs) {
+              dbs[i].adminCommand({replSetFreeze:5});
+              try { dbs[i].adminCommand({replSetStepDown:5}); } catch(e) { print(e) };
+            }
+          };
 
-        var db1 = connect('localhost:31100/admin'#{user_data});
-        var db2 = connect('localhost:31101/admin'#{user_data});
-        var db3 = connect('localhost:31102/admin'#{user_data});
+          var db1 = connect('localhost:31100/admin'#{user_data});
+          var db2 = connect('localhost:31101/admin'#{user_data});
+          var db3 = connect('localhost:31102/admin'#{user_data});
 
-        var dbs = [db1, db2, db3];
-        stepDown(dbs);
-
-        while (db1.adminCommand({ismaster:1}).ismaster || db2.adminCommand({ismaster:1}).ismaster || db2.adminCommand({ismaster:1}).ismaster) {
+          var dbs = [db1, db2, db3];
           stepDown(dbs);
+
+          while (db1.adminCommand({ismaster:1}).ismaster || db2.adminCommand({ismaster:1}).ismaster || db2.adminCommand({ismaster:1}).ismaster) {
+            stepDown(dbs);
+          }
         }
-      }
-      file.close
-
-      system "mongo --nodb #{file.path} 2>&1 > /dev/null"
-
-    ensure
-       file.close
-       file.unlink   # deletes the temp file
+      end
     end
+    system "mongo --nodb #{step_down_file} 2>&1 > /dev/null"
   end
 
   shared_examples_for "recover the session" do
@@ -572,18 +578,13 @@ describe Moped::Cluster, "after a reconfiguration" do
 
   describe "with authentication off" do
     before do
-      rs_initiated = `echo 'db.isMaster().me' | mongo --quiet --port 31100 2>/dev/null`.chomp.end_with?("31100")
-      unless rs_initiated
+      unless servers_status.all?{|st| st == "PRIMARY" || st == "SECONDARY"} && !has_user_admin?
         start_mongo_server(31100, "--replSet #{replica_set_name}")
         start_mongo_server(31101, "--replSet #{replica_set_name}")
         start_mongo_server(31102, "--replSet #{replica_set_name}")
 
         `echo "rs.initiate({_id : '#{replica_set_name}', 'members' : [{_id:0, host:'localhost:31100'},{_id:1, host:'localhost:31101'},{_id:2, host:'localhost:31102'}]})"  | mongo --port 31100`
-        rs_up = false
-        while !rs_up
-          status = `echo 'rs.status().members[0].stateStr + "|" + rs.status().members[1].stateStr + "|" + rs.status().members[2].stateStr' | mongo --quiet --port 31100`.chomp.split("|")
-          rs_up = status.all?{|st| st == "PRIMARY" || st == "SECONDARY"}
-        end
+        sleep 0.1 while !servers_status.all?{|st| st == "PRIMARY" || st == "SECONDARY"}
 
         master = `echo 'db.isMaster().primary' | mongo --quiet --port 31100`.chomp
 
@@ -601,8 +602,7 @@ describe Moped::Cluster, "after a reconfiguration" do
 
   describe "with authentication on" do
     before do
-      rs_initiated = `echo 'db.isMaster().me' | mongo --quiet --port 31100 -u admin -p admin_pwd --authenticationDatabase admin 2>/dev/null`.chomp.end_with?("31100")
-      unless rs_initiated
+      unless servers_status.all?{|st| st == "PRIMARY" || st == "SECONDARY"} && has_user_admin?
         keyfile = File.join(Dir.tmpdir, "31000", "keyfile")
         FileUtils.mkdir_p(File.dirname(keyfile))
         File.open(keyfile, "w") do |f| f.puts "SyrfEmAevWPEbgRZoZx9qZcZtJAAfd269da+kzi0H/7OuowGLxM3yGGUHhD379qP
@@ -631,11 +631,7 @@ VwNxMJCC+9ZijTWBeGyQOuEupuI4C9IzA5Gz72048tpZ0qMJ9mOiH3lZFtNTg/5P
         start_mongo_server(31102, "--replSet #{replica_set_name} --keyFile #{keyfile} --auth")
 
         `echo "rs.initiate({_id : '#{replica_set_name}', 'members' : [{_id:0, host:'localhost:31100'},{_id:1, host:'localhost:31101'},{_id:2, host:'localhost:31102'}]})"  | mongo --port 31100`
-        rs_up = false
-        while !rs_up
-          status = `echo 'rs.status().members[0].stateStr + "|" + rs.status().members[1].stateStr + "|" + rs.status().members[2].stateStr' | mongo --quiet --port 31100`.chomp.split("|")
-          rs_up = status.all?{|st| st == "PRIMARY" || st == "SECONDARY"}
-        end
+        sleep 0.1 while !servers_status.all?{|st| st == "PRIMARY" || st == "SECONDARY"}
 
         master = `echo 'db.isMaster().primary' | mongo --quiet --port 31100`.chomp
 
