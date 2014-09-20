@@ -20,7 +20,15 @@ require "support/stats"
 
 # Log to a StringIO instance to make sure no exceptions are rasied by our
 # logging code.
-Moped.logger = Logger.new(StringIO.new, Logger::DEBUG)
+if ENV.has_key? "MOPED_PRINT_LOG"
+  Moped.logger = Logger.new($stdout, Logger::DEBUG)
+else
+  Moped.logger = Logger.new(StringIO.new, Logger::DEBUG)
+end
+
+if ENV.has_key? "MOPED_LOG_FORMAT"
+  Moped.log_format = Module.const_get ENV["MOPED_LOG_FORMAT"]
+end
 
 RSpec.configure do |config|
   Support::Stats.install!
