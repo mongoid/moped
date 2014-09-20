@@ -118,7 +118,7 @@ module Moped
       #
       # @since 2.0.0
       def self.get_more(event)
-        "cursor.next() cursor_id: #{event.cursor_id}"
+        "#{event.database}: cursor.next() cursor_id: #{event.cursor_id}"
       end
 
       # Format the db.killOp(opid) event
@@ -132,7 +132,7 @@ module Moped
       #
       # @since 2.0.0
       def self.kill_cursors(event)
-        "db.killOp(#{event.cursor_id})"
+        "#{event.database}: db.killOp(#{event.cursor_id})"
       end
     end
   end

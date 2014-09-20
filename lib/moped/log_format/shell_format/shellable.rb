@@ -24,7 +24,7 @@ module Moped
             commands << comandify(item)
           end
 
-          commands.compact.join(".")
+          "#{event.database}: #{commands.compact.join(".")}"
         end
 
         def comandify(command)
