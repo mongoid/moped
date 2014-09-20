@@ -19,7 +19,6 @@ require "benchmark"
 require "fileutils"
 require "tmpdir"
 require "tempfile"
-require "popen4"
 require "moped"
 require "support/examples"
 require "support/mongohq"
@@ -55,14 +54,9 @@ def start_mongo_server(port, extra_options=nil)
   stop_mongo_server(port)
   dbpath = File.join(Dir.tmpdir, port.to_s)
   FileUtils.mkdir_p(dbpath)
-  POpen4::popen4("mongod --oplogSize 40 --noprealloc --smallfiles --port #{port} --dbpath #{dbpath} --logpath #{dbpath}/log --pidfilepath #{dbpath}/pid --fork #{extra_options}") do |stdout, stderr, stdin, pid|
-    error_message = stderr.read.strip unless stderr.eof
-    raise StandardError.new error_message unless error_message.nil?
-  end
+  `mongod --oplogSize 40 --noprealloc --smallfiles --port #{port} --dbpath #{dbpath} --logpath #{dbpath}/log --pidfilepath #{dbpath}/pid --fork #{extra_options}`
 
-  while `echo 'db.runCommand({ping:1}).ok' | mongo --quiet --port #{port}`.chomp != "1"
-    sleep 0.1
-  end
+  sleep 0.1 while `echo 'db.runCommand({ping:1}).ok' | mongo --quiet --port #{port}`.chomp != "1"
 end
 
 def stop_mongo_server(port)
