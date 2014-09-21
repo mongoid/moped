@@ -934,7 +934,7 @@ describe Moped::Query do
 
       before do
         start_mongo_server(port, "--setParameter enableTestCommands=1")
-        Process.detach(spawn("echo 'db.adminCommand({sleep: 1, w: true, secs: 10})' | mongo localhost:#{port}", :out => "/dev/null", :err => "/dev/null"))
+        Process.detach(spawn("echo 'db.adminCommand({sleep: 1, w: true, secs: 10})' | mongo localhost:#{port} 2>&1 > /dev/null"))
         sleep(1) # to sleep command on mongodb begins work
       end
 
