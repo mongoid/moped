@@ -26,8 +26,9 @@ else
   Moped.logger = Logger.new(StringIO.new, Logger::DEBUG)
 end
 
-if ENV.has_key? "MOPED_LOG_FORMAT"
-  Moped.log_format = Module.const_get ENV["MOPED_LOG_FORMAT"]
+case ENV["MOPED_LOG_FORMAT"]
+when 'shell'
+  Moped.log_format = Moped::LogFormat::ShellFormat
 end
 
 RSpec.configure do |config|
