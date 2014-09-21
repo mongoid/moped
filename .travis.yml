@@ -8,7 +8,7 @@ rvm:
   - jruby-head
 env:
   - CI="travis"
-  - CI="travis" MOPED_LOG_FORMAT="Moped::LogFormat::ShellFormat"
+  - CI="travis" MOPED_LOG_FORMAT="shell"
 services:
   - mongodb
 matrix:
