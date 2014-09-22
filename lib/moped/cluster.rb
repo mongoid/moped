@@ -195,6 +195,10 @@ module Moped
       refreshed_nodes
     end
 
+    def refresh_authentication(nodes_to_refresh = seeds)
+      nodes_to_refresh.each(&:refresh_authentication)
+    end
+
     # Get the interval in which the node list should be refreshed.
     #
     # @example Get the refresh interval, in seconds.

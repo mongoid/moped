@@ -94,5 +94,11 @@ module Moped
       end
       credentials.delete(database)
     end
+
+    def refresh_authentication
+      credentials.each do |database, (username, password)|
+        login(database, username, password)
+      end
+    end
   end
 end

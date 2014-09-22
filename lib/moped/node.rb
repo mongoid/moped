@@ -443,6 +443,12 @@ module Moped
       end
     end
 
+    def refresh_authentication
+      connection do |conn|
+        conn.refresh_authentication
+      end
+    end
+
     # Execute a remove command for the provided selector.
     #
     # @example Remove documents.
