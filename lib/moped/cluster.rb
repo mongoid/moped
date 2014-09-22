@@ -290,7 +290,8 @@ module Moped
     def with_retry(retries = max_retries, &block)
       begin
         block.call
-      rescue Errors::ConnectionFailure, Errors::ReplicaSetReconfigured, Errors::AuthorizationFailure => e
+      rescue StandardError => e
+        raise e unless Failover::STRATEGIES[e.class] == Failover::Retry
         if retries > 0
           Loggable.warn("  MOPED:", "Retrying connection attempt #{retries} more time(s). Exception: #{ e.class.name }, #{ e.message }", "n/a")
           sleep(retry_interval)
