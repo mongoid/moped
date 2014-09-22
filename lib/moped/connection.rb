@@ -47,7 +47,7 @@ module Moped
     # @since 1.0.0
     def connect
       @sock = if !!options[:ssl]
-        Socket::SSL.connect(host, port, timeout)
+        Socket::SSL.connect(host, port, timeout, options[:ssl])
       else
         Socket::TCP.connect(host, port, timeout)
       end
@@ -191,12 +191,24 @@ module Moped
     #
     # @since 1.2.9
     def read_data(socket, length)
-      data = socket.read(length)
-      unless data
-        raise Errors::ConnectionFailure.new(
-          "Attempted to read #{length} bytes from the socket but nothing was returned."
-        )
+      # Block on data to read for op_timeout seconds
+      begin
+        op_timeout = @options[:op_timeout] || timeout
+        ready = IO.select([socket], nil, [socket], op_timeout)
+        unless ready
+          raise Errors::OperationTimeout.new("Took more than #{op_timeout} seconds to receive data.")
+        end
+      rescue IOError => e
+        raise Errors::ConnectionFailure
       end
+
+      # Read data from socket
+      begin
+        data = socket.read(length)
+      rescue SystemCallError, IOError => e
+        raise Errors::ConnectionFailure.new("Attempted to read #{length} bytes from the socket but an error happend #{e.message}.")
+      end
+
       if data.length < length
         data << read_data(socket, length - data.length)
       end

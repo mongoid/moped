@@ -139,10 +139,10 @@ module Moped
           # @return [ TCPSocket ] The socket.
           #
           # @since 1.0.0
-          def connect(host, port, timeout)
+          def connect(host, port, timeout, options=nil)
             begin
               Timeout::timeout(timeout) do
-                sock = new(host, port)
+                sock = new(host, port, options)
                 sock.set_encoding('binary')
                 timeout_val = [ timeout, 0 ].pack("l_2")
                 sock.setsockopt(::Socket::IPPROTO_TCP, ::Socket::TCP_NODELAY, 1)
