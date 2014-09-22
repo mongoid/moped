@@ -39,7 +39,7 @@ describe Moped::Operation::Read do
             replica_set_node.unauthorized_on_next_message!
           end
 
-          it "does not raise a failure error (it retries and succeeds)" do
+          it "does not raise a failure error (as it retries and succeeds)" do
             expect {
               read.execute(node)
             }.to_not raise_error

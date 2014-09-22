@@ -54,6 +54,29 @@ describe Moped::Cluster, replica_set: true do
         end.should raise_exception(Moped::Errors::ConnectionFailure)
       end
     end
+
+    describe '#with_retry' do
+      it 'retries' do
+        cluster.should_receive(:with_retry).twice.and_call_original
+        lambda do
+          cluster.with_retry do
+            cluster.with_secondary do |node|
+              node.command("admin", ping: 1)
+            end
+          end
+        end.should raise_exception(Moped::Errors::ConnectionFailure)
+      end
+
+      it 'raises connection error' do
+        lambda do
+          cluster.with_retry do
+            cluster.with_secondary do |node|
+              node.command("admin", ping: 1)
+            end
+          end
+        end.should raise_exception(Moped::Errors::ConnectionFailure)
+      end
+    end
   end
 
   context "when the replica set hasn't connected yet" do
@@ -95,6 +118,19 @@ describe Moped::Cluster, replica_set: true do
             end
           end.should raise_exception(Moped::Errors::ConnectionFailure)
         end
+
+        context 'with_retry' do
+          it 'raises connection error after retrying' do
+            cluster.should_receive(:with_retry).twice.and_call_original
+            lambda do
+              cluster.with_retry do
+                cluster.with_primary do |node|
+                  node.command("admin", ping: 1)
+                end
+              end
+            end.should raise_exception(Moped::Errors::ConnectionFailure)
+          end
+        end
       end
 
       describe "#with_secondary" do
@@ -102,6 +138,17 @@ describe Moped::Cluster, replica_set: true do
         it "connects and yields a secondary node" do
           cluster.with_secondary do |node|
             @secondaries.map(&:address).should include node.address.original
+          end
+        end
+
+        context 'with_retry' do
+          it 'does not retry' do
+            cluster.should_receive(:with_retry).once.and_call_original
+            cluster.with_retry do
+              cluster.with_secondary do |node|
+                node.command("admin", ping: 1)
+              end
+            end
           end
         end
       end
