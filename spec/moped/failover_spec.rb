@@ -23,7 +23,7 @@ describe Moped::Failover do
           described_class.get(Moped::Errors::OperationFailure.new({}, {}))
         end
 
-        it "returns a ignore" do
+        it "returns an ignore" do
           expect(failover).to be_a(Moped::Failover::Ignore)
         end
       end
@@ -34,7 +34,7 @@ describe Moped::Failover do
           described_class.get(Moped::Errors::QueryFailure.new({}, {}))
         end
 
-        it "returns a ignore" do
+        it "returns an ignore" do
           expect(failover).to be_a(Moped::Failover::Ignore)
         end
       end
