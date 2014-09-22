@@ -74,8 +74,10 @@ module Moped
       unless result["ok"] == 1
         # See if we had connectivity issues so we can retry
         e = Errors::PotentialReconfiguration.new(authenticate, document)
-        if e.reconfiguring_replica_set? || e.connection_failure?
-          raise e
+        if e.reconfiguring_replica_set?
+          raise Errors::ReplicaSetReconfigured.new(e.command, e.details)
+        elsif e.connection_failure?
+          raise Errors::ConnectionFailure.new(e.inspect)
         end
 
         raise Errors::AuthenticationFailure.new(authenticate, document)
