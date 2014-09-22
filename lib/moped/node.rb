@@ -170,7 +170,7 @@ module Moped
     # @since 1.0.0
     def ensure_connected(&block)
       begin
-        unless (conn = stack(:connection)).empty?
+        if (conn = stack(:connection)).length > 0
            yield(conn.first)
         else
           connection do |conn|
