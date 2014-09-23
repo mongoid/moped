@@ -357,13 +357,7 @@ module Support
 
         servers.each do |server|
           Moped.logger.debug "replica_set: accepting new client for #{server.port}"
-          begin
-            @clients << server.accept
-          rescue IOError, Errno::EBADF, TypeError
-            # Looks like we hit a bad file descriptor or closed connection.
-            Moped.logger.debug "replica_set: io error, retrying"
-            retry
-          end
+          @clients << server.accept
         end
 
         Moped.logger.debug "replica_set: closing dead clients"
