@@ -192,19 +192,18 @@ module Moped
     # @since 1.2.9
     def read_data(socket, length)
       # Block on data to read for op_timeout seconds
+      # using the suggested implementation of http://www.ruby-doc.org/core-2.1.3/Kernel.html#method-i-select
+      # to work with SSL connections
+      time_left = op_timeout = @options[:op_timeout] || timeout
       begin
-        op_timeout = @options[:op_timeout] || timeout
-        ready = IO.select([socket], nil, [socket], op_timeout)
-        unless ready
-          raise Errors::OperationTimeout.new("Took more than #{op_timeout} seconds to receive data.")
-        end
-      rescue IOError => e
-        raise Errors::ConnectionFailure
-      end
-
-      # Read data from socket
-      begin
-        data = socket.read(length)
+        raise Errors::OperationTimeout.new("Took more than #{op_timeout} seconds to receive data.") if (time_left -= 0.1) <= 0
+        data = socket.read_nonblock(length)
+      rescue IO::WaitReadable
+        Kernel::select([socket], nil, [socket], 0.1)
+        retry
+      rescue IO::WaitWritable
+        Kernel::select(nil, [socket], [socket], 0.1)
+        retry
       rescue SystemCallError, IOError => e
         raise Errors::ConnectionFailure.new("Attempted to read #{length} bytes from the socket but an error happend #{e.message}.")
       end
