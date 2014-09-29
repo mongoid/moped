@@ -113,8 +113,8 @@ describe Moped::Cluster, replica_set: true do
     ].each do |ex|
 
       context "and a secondary raises an #{ex.class} error" do
-        let(:first_node) {@secondaries.first}
-        let(:second_node_address) {@secondaries[1].address}
+        let(:first_node) { @secondaries.first }
+        let(:second_node_address) { @secondaries[1].address }
 
         before :each do
           # We need to effectively stub out the shuffle! so we can deterministically check that we get the second node
