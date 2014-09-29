@@ -502,7 +502,18 @@ module Moped
       authenticate = Protocol::Commands::Authenticate.new(database, username, password, result["nonce"])
       connection.write [authenticate]
       result = connection.read.documents.first
-      raise Errors::AuthenticationFailure.new(authenticate, result) unless result["ok"] == 1
+
+      unless result["ok"] == 1
+        # See if we had connectivity issues so we can retry
+        e = Errors::PotentialReconfiguration.new(authenticate, result)
+        if e.reconfiguring_replica_set?
+          raise Errors::ReplicaSetReconfigured.new(e.command, e.details)
+        elsif e.connection_failure?
+          raise Errors::ConnectionFailure.new(e.inspect)
+        end
+
+        raise Errors::AuthenticationFailure.new(authenticate, result)
+      end
       auth[database] = [username, password]
     end
 
