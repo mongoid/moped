@@ -253,6 +253,9 @@ module Moped
           warning("  MOPED: Connection failed to secondary node #{node.inspect}, trying next node.")
           # That node's no good, so let's try the next one.
           next
+        rescue Errors::ReplicaSetReconfigured
+          # That node's no good, so let's try the next one.
+          next
         end
       end
 
