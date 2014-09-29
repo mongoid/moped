@@ -169,16 +169,16 @@ module Moped
     #
     # @since 1.0.0
     def ensure_connected(&block)
-      unless (conn = stack(:connection)).empty?
-        return yield(conn.first)
-      end
-
       begin
-        connection do |conn|
-          stack(:connection) << conn
-          connect(conn) unless conn.connected?
-          conn.apply_credentials(@credentials)
-          yield(conn)
+        if (conn = stack(:connection)).length > 0
+           yield(conn.first)
+        else
+          connection do |conn|
+            stack(:connection) << conn
+            connect(conn) unless conn.connected?
+            conn.apply_credentials(@credentials)
+            yield(conn)
+          end
         end
       rescue Exception => e
         Failover.get(e).execute(e, self, &block)
@@ -548,6 +548,7 @@ module Moped
       @arbiter = settings["arbiterOnly"]
       @passive = settings["passive"]
       @primary = settings["ismaster"]
+      @down_at = nil
       @secondary = settings["secondary"]
       discover(settings["hosts"]) if auto_discovering?
     end
@@ -585,14 +586,13 @@ module Moped
     def flush(ops = queue)
       operations, callbacks = ops.transpose
       logging(operations) do
-        replies = nil
         ensure_connected do |conn|
           conn.write(operations)
           replies = conn.receive_replies(operations)
+          replies.zip(callbacks).map do |reply, callback|
+            callback ? callback.call(reply) : reply
+          end.last
         end
-        replies.zip(callbacks).map do |reply, callback|
-          callback ? callback[reply] : reply
-        end.last
       end
     ensure
       ops.clear

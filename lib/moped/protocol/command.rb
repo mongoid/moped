@@ -37,7 +37,7 @@ module Moped
       #
       # @since 2.0.0
       def failure_exception(reply)
-        Errors::OperationFailure.new(self, reply.documents.first)
+        reply.failure_exception || Errors::OperationFailure.new(self, reply.documents.first)
       end
 
       # Instantiate the new command.

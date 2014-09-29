@@ -238,11 +238,8 @@ module Moped
     # @since 1.0.0
     def with_primary(&block)
       if node = nodes.find(&:primary?)
-        begin
-          node.ensure_primary do
-            return yield(node)
-          end
-        rescue Errors::ConnectionFailure, Errors::ReplicaSetReconfigured
+        node.ensure_primary do
+          return yield(node)
         end
       end
       raise Errors::ConnectionFailure, "Could not connect to a primary node for replica set #{inspect}"
@@ -273,6 +270,37 @@ module Moped
         end
       end
       raise Errors::ConnectionFailure, "Could not connect to a secondary node for replica set #{inspect}"
+    end
+
+    # Execute the provided block on the cluster and retry if the execution
+    # fails.
+    #
+    # @example Execute with retry.
+    #   cluster.with_retry do
+    #     cluster.with_primary do |node|
+    #       node.refresh
+    #     end
+    #   end
+    #
+    # @param [ Integer ] retries The number of times to retry.
+    #
+    # @return [ Object ] The result of the block.
+    #
+    # @since 2.0.0
+    def with_retry(retries = max_retries, &block)
+      begin
+        block.call
+      rescue StandardError => e
+        raise e unless Failover::STRATEGIES[e.class] == Failover::Retry
+        if retries > 0
+          Loggable.warn("  MOPED:", "Retrying connection attempt #{retries} more time(s). Exception: #{ e.class.name }, #{ e.message }", "n/a")
+          sleep(retry_interval)
+          refresh
+          with_retry(retries - 1, &block)
+        else
+          raise e
+        end
+      end
     end
 
     private

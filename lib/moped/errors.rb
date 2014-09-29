@@ -28,7 +28,6 @@ module Moped
 
     # Raised when providing an invalid string from an object id.
     class InvalidObjectId < StandardError
-
       # Create the new error.
       #
       # @example Create the new error.
@@ -105,29 +104,22 @@ module Moped
       end
     end
 
-    # Classes of errors that should not disconnect connections.
-    class DoNotDisconnect < MongoError; end
+    # @api private
+    #
+    # Exception indicating that replica set was most likely reconfigured
+    class ReplicaSetReconfigured < MongoError; end
 
-    # Classes of errors that could be caused by a replica set reconfiguration.
-    class PotentialReconfiguration < MongoError
+    # Exception raised when database responds with 'not master' error
+    class NotMaster < ReplicaSetReconfigured; end
 
-      # Not master error codes.
-      NOT_MASTER = [ 13435, 13436, 10009 ]
+    # Exception raised when authentication fails.
+    class AuthenticationFailure < MongoError; end
 
-      # Error codes received around reconfiguration
-      CONNECTION_ERRORS_RECONFIGURATION = [ 15988, 10276, 11600, 9001, 13639, 10009 ]
+    # Exception raised when authorization fails.
+    class AuthorizationFailure < MongoError; end
 
-      # Replica set reconfigurations can be either in the form of an operation
-      # error with code 13435, or with an error message stating the server is
-      # not a master. (This encapsulates codes 10054, 10056, 10058)
-      def reconfiguring_replica_set?
-        err = details["err"] || details["errmsg"] || details["$err"] || ""
-        NOT_MASTER.include?(details["code"]) || err.include?("not master")
-      end
-
-      def connection_failure?
-        CONNECTION_ERRORS_RECONFIGURATION.include?(details["code"])
-      end
+    # Exception raised when operation fails
+    class OperationFailure < MongoError
 
       # Is the error due to a namespace not being found?
       #
@@ -154,28 +146,15 @@ module Moped
       end
     end
 
-    # Exception raised when authentication fails.
-    class AuthenticationFailure < DoNotDisconnect; end
-
-    # Exception class for exceptions generated as a direct result of an
-    # operation, such as a failed insert or an invalid command.
-    class OperationFailure < PotentialReconfiguration; end
-
     # Exception raised on invalid queries.
-    class QueryFailure < PotentialReconfiguration; end
+    class QueryFailure < MongoError; end
 
     # Exception raised if the cursor could not be found.
-    class CursorNotFound < DoNotDisconnect
+    class CursorNotFound < MongoError
       def initialize(operation, cursor_id)
         super(operation, {"errmsg" => "cursor #{cursor_id} not found"})
       end
     end
-
-    # @api private
-    #
-    # Internal exception raised by Node#ensure_primary and captured by
-    # Cluster#with_primary.
-    class ReplicaSetReconfigured < DoNotDisconnect; end
 
     # Tag applied to unhandled exceptions on a node.
     module SocketError; end

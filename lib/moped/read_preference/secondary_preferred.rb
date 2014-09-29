@@ -40,7 +40,7 @@ module Moped
       #
       # @since 2.0.0
       def with_node(cluster, &block)
-        with_retry(cluster) do
+        cluster.with_retry do
           begin
             cluster.with_secondary(&block)
           rescue Errors::ConnectionFailure

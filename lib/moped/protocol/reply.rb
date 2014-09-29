@@ -13,8 +13,24 @@ module Moped
     class Reply
       include Message
 
-      # Unauthorized assertion errors.
-      UNAUTHORIZED = [ 10057, 16550 ]
+      # Error codes
+      UNAUTHORIZED = [
+        13,    # not authorized for query on ...
+        10057,
+        16550, # not authorized for query on ...
+        16544, # not authorized for insert on ...
+      ]
+      NOT_MASTER = [ 13435, 13436, 10009, 10054, 10056, 10058, 10107]
+
+      CONNECTION_ERRORS_RECONFIGURATION = [
+        9001,
+        10009,
+        10276, # DBClientBase::findN: transport error
+        11600, # interrupted at shutdown
+        13639, # can't connect to new replica set master
+        15988, # error querying server
+      ]
+
 
       # @attribute
       # @return [Number] the length of the message
@@ -69,6 +85,31 @@ module Moped
       def command_failure?
         result = documents.first
         (result["ok"] != 1.0 && result["ok"] != true) || error?
+      end
+
+      # Returns specific exception if it can be determined from error code or message returned by DB
+      def failure_exception
+        return Errors::AuthorizationFailure.new(self, documents.first) if unauthorized?
+        return Errors::NotMaster.new(self, documents.first) if not_master?
+        return Errors::ReplicaSetReconfigured.new(self, documents.first) if connection_failure?
+      end
+
+      # Error codes received around reconfiguration
+      def connection_failure?
+        result = documents[0]
+        return false if result.nil?
+        CONNECTION_ERRORS_RECONFIGURATION.include?(result["code"])
+      end
+
+      # Not master error codes.
+      # Replica set reconfigurations can be either in the form of an operation
+      # error falling into ReplicaSetReconfigured error or with an error message stating the server is
+      # not a master.
+      def not_master?
+        result = documents[0]
+        return false if result.nil?
+        err = error_message(result)
+        NOT_MASTER.include?(result["code"]) || err && err.include?("not master")
       end
 
       # Was the provided cursor id not found on the server?
