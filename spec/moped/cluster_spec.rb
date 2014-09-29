@@ -107,6 +107,30 @@ describe Moped::Cluster, replica_set: true do
       end
     end
 
+    [
+      Moped::Errors::ReplicaSetReconfigured.new({}, {}),
+      Moped::Errors::ConnectionFailure.new
+    ].each do |ex|
+
+      context "and a secondary raises an #{ex.class} error" do
+        let(:first_node) { @secondaries.first }
+        let(:second_node_address) { @secondaries[1].address }
+
+        before :each do
+          # We need to effectively stub out the shuffle! so we can deterministically check that we get the second node
+          cluster.stub(:available_secondary_nodes).and_return(@secondaries.dup)
+          first_node.stub(:kill_cursors).and_raise(ex)
+        end
+
+        it "connects and yields a secondary node" do
+          cluster.with_secondary do |node|
+            node.kill_cursors([123])
+            node.address.should eq second_node_address
+          end
+        end
+      end
+    end
+
     context "and a single secondary is down" do
 
       before do
