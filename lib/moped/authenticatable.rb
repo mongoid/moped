@@ -71,7 +71,17 @@ module Moped
       self.write([ authenticate ])
       document = self.read.documents.first
 
-      raise Errors::AuthenticationFailure.new(authenticate, document) unless document["ok"] == 1
+      unless result["ok"] == 1
+        # See if we had connectivity issues so we can retry
+        e = Errors::PotentialReconfiguration.new(authenticate, document)
+        if e.reconfiguring_replica_set?
+          raise Errors::ReplicaSetReconfigured.new(e.command, e.details)
+        elsif e.connection_failure?
+          raise Errors::ConnectionFailure.new(e.inspect)
+        end
+
+        raise Errors::AuthenticationFailure.new(authenticate, document)
+      end
       credentials[database] = [username, password]
     end
 
