@@ -210,6 +210,11 @@ module Moped
     # @since 2.0.0
     option(:pool_size).allow(Optionable.any(Integer))
 
+    # Setup validation of allowed pool timeout options. (Any numeric)
+    #
+    # @since 2.0.0
+    option(:pool_timeout).allow(Optionable.any(Numeric))
+
     # Setup validation of allowed retry interval options. (Any numeric)
     #
     # @since 2.0.0
