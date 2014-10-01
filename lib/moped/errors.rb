@@ -110,12 +110,12 @@ module Moped
       # not a master. (This encapsulates codes 10054, 10056, 10058)
       def reconfiguring_replica_set?
         err = details["err"] || details["errmsg"] || details["$err"] || ""
-        NOT_MASTER.include?(details["code"]) || err.include?("not master")
+        NOT_MASTER.include?(details["code"]) || err.include?("not master") || err.include?("could not contact primary")
       end
 
       def connection_failure?
         err = details["err"] || details["errmsg"] || details["$err"] || ""
-        CONNECTION_ERRORS_RECONFIGURATION.include?(details["code"]) || err.include?("could not get last error")
+        CONNECTION_ERRORS_RECONFIGURATION.include?(details["code"]) || err.include?("could not get last error") || err.include?("connection attempt failed") || err.include?("possible socket exception")
       end
     end
 
