@@ -46,6 +46,7 @@ module Moped
     #
     # @since 1.0.0
     def connect
+      credentials.clear
       @sock = if !!options[:ssl]
         Socket::SSL.connect(host, port, timeout)
       else
@@ -74,7 +75,6 @@ module Moped
     #
     # @since 1.0.0
     def disconnect
-      credentials.clear
       @sock.close
     rescue
     ensure
@@ -217,7 +217,10 @@ module Moped
     #
     # @since 1.3.0
     def with_connection
-      connect if @sock.nil? || !@sock.alive?
+      if @sock.nil? || !@sock.alive?
+        connect
+        apply_credentials(@original_credentials || {})
+      end
       yield @sock
     end
   end

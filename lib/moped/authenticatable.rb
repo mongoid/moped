@@ -28,6 +28,7 @@ module Moped
             login(database, username, password)
           end
         end
+        @original_credentials = credentials.dup
       end
       self
     end
