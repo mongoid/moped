@@ -137,7 +137,7 @@ module Moped
     #
     # @since 1.2.0
     def disconnect
-      connection{ |conn| conn.disconnect }
+      connection{ |conn| conn.disconnect } if address.resolved
       true
     end
 
