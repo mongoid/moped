@@ -1,5 +1,16 @@
 # Overview
 
+## 2.0.1
+
+### Resolved Issues
+
+* \#288, \#278, \#252, \#247, \#275, \#290
+  Re-apply credentials when connection is lost with the server. (zarqman)
+
+* mongoid/mongoid\#3790 Allow Session pool_timeout option. (Niels Ganser)
+
+* \#297 Better retry on authentication. (Jonathan Hyman)
+
 ## 2.0.0
 
 ### API Changes (Backwards Incompatible)
