@@ -215,6 +215,7 @@ describe Moped::Node, replica_set: true do
       before do
         node.connection do |conn|
           conn.stub(:connected?).and_return(true)
+          conn.stub(:alive?).and_return(false)
           conn.instance_variable_set(:@sock, nil)
         end
       end

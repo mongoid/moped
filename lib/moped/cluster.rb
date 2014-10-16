@@ -174,7 +174,13 @@ module Moped
       seen = {}
       # Set up a recursive lambda function for refreshing a node and it's peers.
       refresh_node = ->(node) do
-        unless seen[node]
+        unless node.address.resolved
+          begin
+            node.refresh
+          rescue Errors::ConnectionFailure
+          end
+        end
+        unless seen[node] || !node.address.resolved
           seen[node] = true
           # Add the node to the global list of known nodes.
           seeds.push(node) unless seeds.include?(node)
@@ -369,8 +375,10 @@ module Moped
     # @since 1.0.0
     def refresh_peers(node, &block)
       node.peers.each do |node|
-        block.call(node) unless seeds.include?(node)
-        peers.push(node) unless peers.include?(node)
+        if node.address.resolved
+          block.call(node) unless seeds.include?(node)
+          peers.push(node) unless peers.include?(node)
+        end
       end
     end
   end
