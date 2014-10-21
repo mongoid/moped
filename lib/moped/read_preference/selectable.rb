@@ -63,7 +63,7 @@ module Moped
       def with_retry(cluster, retries = cluster.max_retries, &block)
         begin
           block.call
-        rescue Errors::ConnectionFailure => e
+        rescue Errors::ConnectionFailure, Errors::PotentialReconfiguration => e
           if retries > 0
             Loggable.warn("  MOPED:", "Retrying connection attempt #{retries} more time(s).", "n/a")
             sleep(cluster.retry_interval)
