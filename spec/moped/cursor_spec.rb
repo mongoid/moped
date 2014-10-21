@@ -53,6 +53,31 @@ describe Moped::Cursor do
       end
     end
 
+    context "when the query has a batch size of 1" do
+      let(:query) do
+        users.find.batch_size(1)
+      end
+
+      let(:users) do
+        session[:users]
+      end
+
+      before do
+        users.find.remove_all
+        users.insert([ { "name" => "one" } , { "name" => "two" } , { "name" => "three" } ])
+      end
+
+      it "iterates over each user" do
+        docs = []
+
+        query.each do |doc|
+          docs << doc
+        end
+
+        docs.count.should eq(3)
+      end
+    end
+
     context "when the query has a limit and batch size" do
 
       let(:query) do
