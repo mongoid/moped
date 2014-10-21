@@ -622,6 +622,41 @@ describe Moped::Cluster, "after a reconfiguration" do
       time.should be > 5
       time.should be < 29
     end
+
+    it "should recover and execute an insert" do
+      session[:foo].find().remove_all()
+      session[:foo].insert({ name: "bar 1" })
+      step_down_servers
+      time = Benchmark.realtime do
+        session[:foo].insert({ name: "bar 2" })
+        session[:foo].find().to_a.count.should eql(2)
+      end
+      time.should be > 5
+      time.should be < 29
+
+      session[:foo].insert({ name: "bar 3" })
+      session[:foo].find().to_a.count.should eql(3)
+    end
+
+    it "should recover and try an insert which hit a constraint" do
+      session[:foo].find().remove_all()
+      session[:foo].insert({ name: "bar 1" })
+      step_down_servers
+      time = Benchmark.realtime do
+        expect {
+          session[:foo].insert({ name: "bar 1" })
+        }.to raise_exception(Moped::Errors::OperationFailure, /duplicate/)
+      end
+      session.cluster.nodes.map(&:refresh)
+      expect{ session.cluster.nodes.any?{ |node| node.primary? } }.to be_true
+      time.should be > 5
+      time.should be < 29
+
+      session[:foo].find().to_a.count.should eql(1)
+
+      session[:foo].insert({ name: "bar 2" })
+      session[:foo].find().to_a.count.should eql(2)
+    end
   end
 
   describe "with authentication off" do
