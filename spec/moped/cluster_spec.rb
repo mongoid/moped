@@ -657,6 +657,69 @@ describe Moped::Cluster, "after a reconfiguration" do
       session[:foo].insert({ name: "bar 2" })
       session[:foo].find().to_a.count.should eql(2)
     end
+
+    it "should recover and execute an update" do
+      session[:foo].find().remove_all()
+      session[:foo].insert({ name: "bar 1" })
+      cursor = session[:foo].find({ name: "bar 1" })
+      step_down_servers
+      time = Benchmark.realtime do
+        cursor.update({ name: "bar 2" })
+      end
+      time.should be > 5
+      time.should be < 29
+
+      session[:foo].find().to_a.count.should eql(1)
+      session[:foo].find({ name: "bar 1" }).to_a.count.should eql(0)
+      session[:foo].find({ name: "bar 2" }).to_a.count.should eql(1)
+    end
+
+    it "should recover and execute a remove" do
+      session[:foo].find().remove_all()
+      session[:foo].insert({ name: "bar 1", type: "some" })
+      session[:foo].insert({ name: "bar 2", type: "some" })
+      cursor = session[:foo].find({ type: "some" })
+      step_down_servers
+      time = Benchmark.realtime do
+        cursor.remove()
+      end
+      time.should be > 5
+      time.should be < 29
+
+      session[:foo].find().to_a.count.should eql(1)
+      session[:foo].find({ name: "bar 1" }).to_a.count.should eql(0)
+      session[:foo].find({ name: "bar 2" }).to_a.count.should eql(1)
+    end
+
+    it "should recover and execute a remove_all" do
+      session[:foo].find().remove_all()
+      session[:foo].insert({ name: "bar 1", type: "some" })
+      session[:foo].insert({ name: "bar 2", type: "some" })
+      cursor = session[:foo].find({ type: "some" })
+      step_down_servers
+      time = Benchmark.realtime do
+        cursor.remove_all()
+      end
+      time.should be > 5
+      time.should be < 29
+
+      session[:foo].find().to_a.count.should eql(0)
+      session[:foo].find({ name: "bar 1" }).to_a.count.should eql(0)
+      session[:foo].find({ name: "bar 2" }).to_a.count.should eql(0)
+    end
+
+    it "should recover and execute an operation using the basic command method" do
+      session[:foo].find().remove_all()
+      session[:foo].insert({ name: "bar 1", type: "some" })
+      session[:foo].insert({ name: "bar 2", type: "some" })
+      cursor = session[:foo].find({ type: "some" })
+      step_down_servers
+      time = Benchmark.realtime do
+        cursor.count.should eql(2)
+      end
+      time.should be > 5
+      time.should be < 29
+    end
   end
 
   describe "with authentication off" do
