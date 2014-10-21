@@ -1,5 +1,6 @@
 # encoding: utf-8
 require "moped/query"
+require "moped/retryable"
 
 module Moped
 
@@ -8,6 +9,7 @@ module Moped
   # @since 1.0.0
   class Collection
     include Readable
+    include Retryable
 
     # @!attribute database
     #   @return [ Database ] The database for the collection.
@@ -120,9 +122,11 @@ module Moped
     #
     # @since 1.0.0
     def insert(documents, flags = nil)
-      docs = documents.is_a?(Array) ? documents : [ documents ]
-      cluster.with_primary do |node|
-        node.insert(database.name, name, docs, write_concern, flags: flags || [])
+      with_retry(cluster) do
+        docs = documents.is_a?(Array) ? documents : [ documents ]
+        cluster.with_primary do |node|
+          node.insert(database.name, name, docs, write_concern, flags: flags || [])
+        end
       end
     end
 
