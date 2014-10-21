@@ -29,7 +29,8 @@ module Moped
       begin
         block.call
       rescue Errors::ConnectionFailure, Errors::PotentialReconfiguration => e
-        raise e if e.is_a?(Errors::PotentialReconfiguration) && ! e.message.include?("not master")
+        raise e if e.is_a?(Errors::PotentialReconfiguration) &&
+          ! (e.message.include?("not master") || e.message.include?("Not primary"))
 
         if retries > 0
           Loggable.warn("  MOPED:", "Retrying connection attempt #{retries} more time(s).", "n/a")
