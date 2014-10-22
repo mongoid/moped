@@ -111,12 +111,23 @@ describe Moped::Node, replica_set: true do
       end
 
       before do
-        node.should_receive(:command).with("admin", ismaster: 1).and_return(info)
+        node.should_receive(:command).at_least(:once).with("admin", ismaster: 1).and_return(info)
         node.refresh
       end
 
       it "auto discovers additional host nodes" do
         expect(node.peers.size).to eq(2)
+      end
+
+      context "when calling refresh for second time" do
+
+        before do
+          node.refresh
+        end
+
+        it "does not add new nodes" do
+          expect(node.peers.size).to eq(2)
+        end
       end
     end
 
