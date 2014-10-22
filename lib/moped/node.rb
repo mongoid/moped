@@ -566,7 +566,7 @@ module Moped
       nodes.flatten.compact.each do |peer|
         node = Node.new(peer, options)
         node.credentials.merge!(@credentials)
-        peers.push(node)
+        peers.push(node) unless peers.include?(node)
       end
     end
 
