@@ -4,6 +4,7 @@ module Moped
       module Connectable
 
         attr_reader :host, :port
+        attr_accessor :timeout
 
         # Is the socket connection alive?
         #
@@ -44,7 +45,14 @@ module Moped
         # @since 1.2.0
         def read(length)
           check_if_alive!
-          handle_socket_errors { super }
+          handle_socket_errors {
+            if Kernel.select([self], nil, [self], @timeout)
+              super
+            else
+              raise Errors::ConnectionFailure,
+              "timeout #{@timeout} exceeded on read from #{host}:#{port}"
+            end
+          }
         end
 
         # Write to the socket.
@@ -145,9 +153,7 @@ module Moped
                 sock = new(host, port)
                 sock.set_encoding('binary')
                 timeout_val = [ timeout, 0 ].pack("l_2")
-                sock.setsockopt(::Socket::IPPROTO_TCP, ::Socket::TCP_NODELAY, 1)
-                sock.setsockopt(::Socket::SOL_SOCKET, ::Socket::SO_RCVTIMEO, timeout_val)
-                sock.setsockopt(::Socket::SOL_SOCKET, ::Socket::SO_SNDTIMEO, timeout_val)
+                sock.timeout = timeout
                 sock
               end
             rescue Timeout::Error
