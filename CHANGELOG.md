@@ -1,5 +1,13 @@
 # Overview
 
+## 2.0.2
+
+### Resolved Issues
+
+* Dont include peers if node already in the list
+  There was a big memory leak, that was including all
+  nodes in the list in every refresh cycle(Arthur Neves)
+
 ## 2.0.1
 
 ### Resolved Issues
