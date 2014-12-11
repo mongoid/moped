@@ -35,7 +35,9 @@ module Moped
     #
     # @since 2.0.0
     def get(exception)
-      STRATEGIES.fetch(exception.class, Disconnect)
+      strategy=STRATEGIES.fetch(exception.class, Disconnect)
+      Moped.logger.warn("MOPED:  Failover strategy for exception #{exception.class} executing #{strategy}") 
+      strategy
     end
   end
 end
