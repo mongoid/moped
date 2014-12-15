@@ -63,6 +63,18 @@ describe Moped::Node, replica_set: true do
     end
   end
 
+  pending '#down!' do
+
+    before do
+      node.connected?
+      node.down!
+    end
+
+    it 'clears out the connection pool' do
+      expect(node.instance_variable_get(:@pool)).to be_nil
+    end
+  end
+
   describe "#latency" do
 
     let(:node) do
