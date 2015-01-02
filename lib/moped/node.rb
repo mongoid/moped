@@ -137,7 +137,7 @@ module Moped
     #
     # @since 1.2.0
     def disconnect
-      connection{ |conn| conn.disconnect } if address.resolved
+      connection{ |conn| conn.disconnect }
       true
     end
 
@@ -150,9 +150,10 @@ module Moped
     #
     # @since 2.0.0
     def down!
+      @pool = Connection::Manager.shutdown(self)
       @down_at = Time.new
       @latency = nil
-      disconnect
+      true
     end
 
     # Yields the block if a connection can be established, retrying when a
@@ -185,7 +186,6 @@ module Moped
       ensure
         end_execution(:connection)
       end
-
     end
 
     # Set a flag on the node for the duration of provided block so that an
