@@ -1,12 +1,19 @@
 # Overview
 
+## 2.0.3
+
+### Resolved Issues
+
+* \#333, \#336
+  Disconnect even when IP address not resolved and fix shutdown pool for node. (durran)
+
 ## 2.0.2
 
 ### Resolved Issues
 
 * Dont include peers if node already in the list
   There was a big memory leak, that was including all
-  nodes in the list in every refresh cycle(Arthur Neves)
+  nodes in the list in every refresh cycle. (Arthur Neves)
 
 ## 2.0.1
 
