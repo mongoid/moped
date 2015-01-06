@@ -548,3 +548,198 @@ describe Moped::Cluster, "authentication", mongohq: :auth do
     end
   end
 end
+
+describe Moped::Cluster, "after a reconfiguration" do
+  let(:options) do
+    {
+      max_retries: 30,
+      retry_interval: 1,
+      timeout: 5,
+      database: 'test_db',
+      read: :primary,
+      write: {w: 'majority'}
+    }
+  end
+
+  let(:replica_set_name) { 'dev' }
+
+  let(:session) do
+    Moped::Session.new([ "127.0.0.1:31100", "127.0.0.1:31101", "127.0.0.1:31102" ], options)
+  end
+
+  def step_down_servers
+    step_down_file = File.join(Dir.tmpdir, with_authentication? ? "step_down_with_authentication.js" : "step_down_without_authentication.js")
+    unless File.exists?(step_down_file)
+      File.open(step_down_file, "w") do |file|
+        user_data = with_authentication? ? ", 'admin', 'admin_pwd'" : ""
+        file.puts %{
+          function stepDown(dbs) {
+            for (i in dbs) {
+              dbs[i].adminCommand({replSetFreeze:5});
+              try { dbs[i].adminCommand({replSetStepDown:5}); } catch(e) { print(e) };
+            }
+          };
+
+          var db1 = connect('localhost:31100/admin'#{user_data});
+          var db2 = connect('localhost:31101/admin'#{user_data});
+          var db3 = connect('localhost:31102/admin'#{user_data});
+
+          var dbs = [db1, db2, db3];
+          stepDown(dbs);
+
+          while (db1.adminCommand({ismaster:1}).ismaster || db2.adminCommand({ismaster:1}).ismaster || db2.adminCommand({ismaster:1}).ismaster) {
+            stepDown(dbs);
+          }
+        }
+      end
+    end
+    system "mongo --nodb #{step_down_file} 2>&1 > /dev/null"
+  end
+
+  shared_examples_for "recover the session" do
+    it "should execute commands normally before the stepDown" do
+      time = Benchmark.realtime do
+        session[:foo].find().remove_all()
+        session[:foo].find().to_a.count.should eql(0)
+        session[:foo].insert({ name: "bar 1" })
+        session[:foo].find().to_a.count.should eql(1)
+        expect {
+          session[:foo].insert({ name: "bar 1" })
+        }.to raise_exception(Moped::Errors::OperationFailure, /duplicate/)
+      end
+      time.should be < 2
+    end
+
+    it "should recover and execute a find" do
+      session[:foo].find().remove_all()
+      session[:foo].insert({ name: "bar 1" })
+      step_down_servers
+      time = Benchmark.realtime do
+        session[:foo].find().to_a.count.should eql(1)
+      end
+      session.cluster.nodes.map(&:refresh)
+      expect{ session.cluster.nodes.any?{ |node| node.primary? } }.to be_true
+      time.should be > 5
+      time.should be < 29
+    end
+
+    it "should recover and execute an insert" do
+      session[:foo].find().remove_all()
+      session[:foo].insert({ name: "bar 1" })
+      step_down_servers
+      time = Benchmark.realtime do
+        session[:foo].insert({ name: "bar 2" })
+        session[:foo].find().to_a.count.should eql(2)
+      end
+      time.should be > 5
+      time.should be < 29
+
+      session[:foo].insert({ name: "bar 3" })
+      session[:foo].find().to_a.count.should eql(3)
+    end
+
+    it "should recover and try an insert which hit a constraint" do
+      session[:foo].find().remove_all()
+      session[:foo].insert({ name: "bar 1" })
+      step_down_servers
+      time = Benchmark.realtime do
+        expect {
+          session[:foo].insert({ name: "bar 1" })
+        }.to raise_exception(Moped::Errors::OperationFailure, /duplicate/)
+      end
+      session.cluster.nodes.map(&:refresh)
+      expect{ session.cluster.nodes.any?{ |node| node.primary? } }.to be_true
+      time.should be > 5
+      time.should be < 29
+
+      session[:foo].find().to_a.count.should eql(1)
+
+      session[:foo].insert({ name: "bar 2" })
+      session[:foo].find().to_a.count.should eql(2)
+    end
+
+    it "should recover and execute an update" do
+      session[:foo].find().remove_all()
+      session[:foo].insert({ name: "bar 1" })
+      cursor = session[:foo].find({ name: "bar 1" })
+      step_down_servers
+      time = Benchmark.realtime do
+        cursor.update({ name: "bar 2" })
+      end
+      time.should be > 5
+      time.should be < 29
+
+      session[:foo].find().to_a.count.should eql(1)
+      session[:foo].find({ name: "bar 1" }).to_a.count.should eql(0)
+      session[:foo].find({ name: "bar 2" }).to_a.count.should eql(1)
+    end
+
+    it "should recover and execute a remove" do
+      session[:foo].find().remove_all()
+      session[:foo].insert({ name: "bar 1", type: "some" })
+      session[:foo].insert({ name: "bar 2", type: "some" })
+      cursor = session[:foo].find({ type: "some" })
+      step_down_servers
+      time = Benchmark.realtime do
+        cursor.remove()
+      end
+      time.should be > 5
+      time.should be < 29
+
+      session[:foo].find().to_a.count.should eql(1)
+      session[:foo].find({ name: "bar 1" }).to_a.count.should eql(0)
+      session[:foo].find({ name: "bar 2" }).to_a.count.should eql(1)
+    end
+
+    it "should recover and execute a remove_all" do
+      session[:foo].find().remove_all()
+      session[:foo].insert({ name: "bar 1", type: "some" })
+      session[:foo].insert({ name: "bar 2", type: "some" })
+      cursor = session[:foo].find({ type: "some" })
+      step_down_servers
+      time = Benchmark.realtime do
+        cursor.remove_all()
+      end
+      time.should be > 5
+      time.should be < 29
+
+      session[:foo].find().to_a.count.should eql(0)
+      session[:foo].find({ name: "bar 1" }).to_a.count.should eql(0)
+      session[:foo].find({ name: "bar 2" }).to_a.count.should eql(0)
+    end
+
+    it "should recover and execute an operation using the basic command method" do
+      session[:foo].find().remove_all()
+      session[:foo].insert({ name: "bar 1", type: "some" })
+      session[:foo].insert({ name: "bar 2", type: "some" })
+      cursor = session[:foo].find({ type: "some" })
+      step_down_servers
+      time = Benchmark.realtime do
+        cursor.count.should eql(2)
+      end
+      time.should be > 5
+      time.should be < 29
+    end
+  end
+
+  describe "with authentication off" do
+    before do
+      setup_replicaset_environment(with_authentication?)
+    end
+
+    let(:with_authentication?) { false }
+
+    it_should_behave_like "recover the session"
+  end
+
+  describe "with authentication on" do
+    before do
+      setup_replicaset_environment(with_authentication?)
+      session.login('common', 'common_pwd')
+    end
+
+    let(:with_authentication?) { true }
+
+    it_should_behave_like "recover the session"
+  end
+end
