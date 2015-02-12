@@ -1,5 +1,12 @@
 # Overview
 
+## Next
+
+### Resolved Issues
+
+* \#345
+  Writes fail with ConnectionPool::PoolShuttingDownError. (fedenusy, dblock)
+
 ## 2.0.3
 
 ### Resolved Issues
