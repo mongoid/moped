@@ -63,15 +63,33 @@ describe Moped::Node, replica_set: true do
     end
   end
 
-  pending '#down!' do
+  describe '#down!' do
+    describe 'when connected' do
+      before do
+        node.connected?
+      end
 
-    before do
-      node.connected?
-      node.down!
-    end
+      describe 'shutdown' do
+        before do
+          node.down!
+        end
 
-    it 'clears out the connection pool' do
-      expect(node.instance_variable_get(:@pool)).to be_nil
+        it 'clears out the connection pool' do
+          expect(node.instance_variable_get(:@pool)).to be_nil
+        end
+      end
+
+      describe 'shutdown from multiple threads' do
+        before do
+          # fake the behavior of @pool that holds its value until shutdown returns
+          allow(Moped::Connection::Manager).to receive(:shutdown).and_return(node.instance_variable_get(:@pool)).once
+          node.down!
+        end
+
+        it 'clears out the connection pool before returning' do
+          expect(node.instance_variable_get(:@pool)).to be_nil
+        end
+      end
     end
   end
 
