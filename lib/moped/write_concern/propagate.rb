@@ -29,7 +29,7 @@ module Moped
       def normalize(options)
         opts = {}
         options.each do |key, value|
-          opts[key] = value.is_a?(Symbol) ? value.to_s : value
+          opts[key.to_sym] = value.is_a?(Symbol) ? value.to_s : value
         end
         opts
       end

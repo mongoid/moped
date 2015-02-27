@@ -315,6 +315,29 @@ describe Moped::Session do
           expect(unverified.write_concern).to be_a(Moped::WriteConcern::Unverified)
         end
       end
+
+      context "when the value is an integer" do
+
+        let(:verified) do
+          described_class.new([ "127.0.0.1:27017" ], write: { w: 1 })
+        end
+
+        it "returns the corresponding write concern" do
+          expect(verified.write_concern).to be_a(Moped::WriteConcern::Propagate)
+        end
+      end
+
+      context "when the value is an string" do
+
+        let(:verified) do
+          described_class.new([ "127.0.0.1:27017" ], write: { w: "majority" })
+        end
+
+        it "returns the corresponding write concern" do
+          expect(verified.write_concern).to be_a(Moped::WriteConcern::Propagate)
+          expect(verified.write_concern.operation[:w]).to eq('majority')
+        end
+      end
     end
 
     context "when no write option is provided" do
@@ -325,6 +348,87 @@ describe Moped::Session do
 
       it "returns the propagate write concern" do
         expect(propagate.write_concern).to be_a(Moped::WriteConcern::Propagate)
+      end
+    end
+
+    context "when a timeout option is provided" do
+
+      context "when the option is a symbol" do
+
+        let(:verified) do
+          described_class.new([ "127.0.0.1:27017" ], write: { wtimeout: 10000 })
+        end
+
+        it "returns the corresponding write concern" do
+          expect(verified.write_concern).to be_a(Moped::WriteConcern::Propagate)
+          expect(verified.write_concern.operation[:wtimeout]).to eq(10000)
+        end
+      end
+
+      context "when the option is a string" do
+
+        let(:verified) do
+          described_class.new([ "127.0.0.1:27017" ], write: { 'wtimeout' => 10000 })
+        end
+
+        it "returns the corresponding write concern" do
+          expect(verified.write_concern).to be_a(Moped::WriteConcern::Propagate)
+          expect(verified.write_concern.operation[:wtimeout]).to eq(10000)
+        end
+      end
+    end
+
+    context "when a journal option is provided" do
+
+      context "when the option is a symbol" do
+
+        let(:verified) do
+          described_class.new([ "127.0.0.1:27017" ], write: { j: true })
+        end
+
+        it "returns the corresponding write concern" do
+          expect(verified.write_concern).to be_a(Moped::WriteConcern::Propagate)
+          expect(verified.write_concern.operation[:j]).to eq(true)
+        end
+      end
+
+      context "when the option is a string" do
+
+        let(:verified) do
+          described_class.new([ "127.0.0.1:27017" ], write: { 'j' => true })
+        end
+
+        it "returns the corresponding write concern" do
+          expect(verified.write_concern).to be_a(Moped::WriteConcern::Propagate)
+          expect(verified.write_concern.operation[:j]).to eq(true)
+        end
+      end
+    end
+
+    context "when an fsync option is provided" do
+
+      context "when the option is a symbol" do
+
+        let(:verified) do
+          described_class.new([ "127.0.0.1:27017" ], write: { fsync: true })
+        end
+
+        it "returns the corresponding write concern" do
+          expect(verified.write_concern).to be_a(Moped::WriteConcern::Propagate)
+          expect(verified.write_concern.operation[:fsync]).to eq(true)
+        end
+      end
+
+      context "when the option is a string" do
+
+        let(:verified) do
+          described_class.new([ "127.0.0.1:27017" ], write: { 'fsync' => true })
+        end
+
+        it "returns the corresponding write concern" do
+          expect(verified.write_concern).to be_a(Moped::WriteConcern::Propagate)
+          expect(verified.write_concern.operation[:fsync]).to eq(true)
+        end
       end
     end
   end
