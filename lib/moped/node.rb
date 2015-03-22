@@ -111,8 +111,14 @@ module Moped
     #
     # @since 2.0.0
     def connection
-      pool.with do |conn|
-        yield(conn)
+      connection_acquired = false
+      begin
+        pool.with do |conn|
+          connection_acquired = true
+          yield(conn)
+        end
+      rescue Timeout::Error => e
+        raise connection_acquired ? e : Errors::PoolTimeout.new(e)
       end
     end
 
