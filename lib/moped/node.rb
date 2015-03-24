@@ -151,8 +151,9 @@ module Moped
     # @since 2.0.0
     def down!
       @down_at = Time.new
+      @pool = nil
       @latency = nil
-      disconnect
+      Connection::Manager.shutdown(self)
     end
 
     # Yields the block if a connection can be established, retrying when a
@@ -175,9 +176,9 @@ module Moped
 
       begin
         connection do |conn|
-          stack(:connection) << conn
-          connect(conn) unless conn.connected?
+          connect(conn) unless conn.alive?
           conn.apply_credentials(@credentials)
+          stack(:connection) << conn
           yield(conn)
         end
       rescue Exception => e
@@ -185,7 +186,6 @@ module Moped
       ensure
         end_execution(:connection)
       end
-
     end
 
     # Set a flag on the node for the duration of provided block so that an
@@ -566,7 +566,7 @@ module Moped
       nodes.flatten.compact.each do |peer|
         node = Node.new(peer, options)
         node.credentials.merge!(@credentials)
-        peers.push(node)
+        peers.push(node) unless peers.include?(node)
       end
     end
 

@@ -35,6 +35,26 @@ module Moped
         end
       end
 
+      # Shutdown the connection pool for the provided node. In the case of
+      # unresolved IP addresses the resolved address would be nil resulting in
+      # the same pool for all nodes that did not have IP resolved.
+      #
+      # @example Shut down the connection pool.
+      #   Manager.shutdown(node)
+      #
+      # @param [ Node ] node The node.
+      #
+      # @return [ nil ] Always nil.
+      #
+      # @since 2.0.3
+      def shutdown(node)
+        MUTEX.synchronize do
+          pool = pools.delete(node.address.resolved)
+          pool.shutdown{ |conn| conn.disconnect } if pool
+          nil
+        end
+      end
+
       private
 
       # Create a new connection pool for the provided node.
