@@ -46,9 +46,21 @@ module Moped
       # @since 2.0.0
       def execute(node)
         node.process(operation) do |reply|
+          if reply.unauthorized? && node.credentials.key?(@database)
+            Moped.logger.debug {"Received unauthorized reply for #{@database}, attempting login and retry"}
+            node.connection do |conn|
+              username, password = node.credentials[@database]
+              if username && password
+                conn.login(operation.database, username, password)
+                return execute(node)
+              end
+            end
+          end
+
           if operation.failure?(reply)
             raise operation.failure_exception(reply)
           end
+
           operation.results(reply)
         end
       end
