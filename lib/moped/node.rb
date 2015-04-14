@@ -162,6 +162,12 @@ module Moped
       Connection::Manager.shutdown(self)
     end
 
+    def flush_connection_credentials
+      connection do |conn|
+        conn.credentials.clear
+      end
+    end
+
     # Yields the block if a connection can be established, retrying when a
     # connection error is raised.
     #
