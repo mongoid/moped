@@ -29,6 +29,7 @@ module Moped
       # @return [ Array ] the flags for this message
       flags :flags, tailable:          2 ** 1,
                     slave_ok:          2 ** 2,
+                    oplog_replay:      2 ** 3,
                     no_cursor_timeout: 2 ** 4,
                     await_data:        2 ** 5,
                     exhaust:           2 ** 6
