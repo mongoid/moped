@@ -28,8 +28,15 @@ module Moped
     # @since 2.0.0
     def initialize(address, timeout)
       @original = address
-      @host, port = address.split(":")
-      @port = (port || 27017).to_i
+
+      if (parts = address.match(/\[(.+)\]:?(.+)?/))
+        @host = parts[1]
+        @port = (parts[2] || 27017).to_i
+      else
+        @host, port = address.split(":")
+        @port = (port || 27017).to_i
+      end
+
       @timeout = timeout
     end
 
@@ -49,7 +56,7 @@ module Moped
         return @resolved if @resolved
         Timeout::timeout(@timeout) do
           Resolv.each_address(host) do |ip|
-            if ip =~ Resolv::IPv4::Regex
+            if ip =~ Resolv::IPv4::Regex || ip =~ Resolv::IPv6::Regex
               @ip ||= ip
               break
             end
