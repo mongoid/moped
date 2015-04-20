@@ -83,11 +83,11 @@ describe Moped::Address do
       end
 
       it "sets the resolved address" do
-        expect(address.resolved).to eq("127.0.0.1:27017")
+        expect(address.resolved).to satisfy { |a| a == "127.0.0.1:27017" || a == "::1:27017" }
       end
 
       it "sets the ip" do
-        expect(address.ip).to eq("127.0.0.1")
+        expect(address.ip).to satisfy { |a| a == "127.0.0.1" || a == "::1" }
       end
     end
 
