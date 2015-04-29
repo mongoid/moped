@@ -399,14 +399,14 @@ describe Moped::Cluster, replica_set: true do
 
   context "with tagsets" do
     let(:cluster) do
-      Moped::Cluster.new(seeds,{tags: {tag: "test"}})
+      Moped::Cluster.new(seeds,{tags: {"tag" => "test"}})
     end
 
     it "reads tags from all nodes" do
       cluster.nodes.map(&:tags).reject{|x| x.empty?}.size.should eq(@secondaries.size)
       cluster.nodes.map(&:tags).reject{|x| x.empty?}.uniq.size.should eq(1)
       cluster.nodes.select {|n| n.primary? }.map(&:tags).reject{|x| x.empty?}.size.should eq(0)
-      cluster.nodes.select {|n| n.secondary?}.map(&:tags)[0].should eq({tag: "test"})
+      cluster.nodes.select {|n| n.secondary?}.map(&:tags)[0].should eq({"tag" => "test"})
     end
 
     context "when only one secondary is tagged" do
@@ -432,8 +432,8 @@ describe Moped::Cluster, replica_set: true do
         it "connects and yields a tagged secondary node" do
           cluster.with_secondary do |node|
             @secondaries.map(&:address).should include node.address.original
-            node.tags.has_key?(:tag).should eq(true)
-            node.tags[:tag].should eq("test")
+            node.tags.has_key?("tag").should eq(true)
+            node.tags["tag"].should eq("test")
           end
         end
       end
@@ -443,7 +443,7 @@ describe Moped::Cluster, replica_set: true do
       context " and the new node is tagged" do
         before do
           @secondaries.each do |s|
-            s.tags = {tag: "test"}
+            s.tags = {"tag" => "test"}
             s.restart
           end
           node = @replica_set.add_node
@@ -461,7 +461,7 @@ describe Moped::Cluster, replica_set: true do
       context" and the new node is untagged" do
         before do
           @secondaries.each do |s|
-            s.tags = {tag: "test"}
+            s.tags = {"tag" => "test"}
             s.restart
           end
           node = @replica_set.add_node

@@ -550,7 +550,7 @@ module Moped
       @passive = settings["passive"]
       @primary = settings["ismaster"]
       @secondary = settings["secondary"]
-      @tags = settings["tags"] ? settings["tags"].to_hash.inject({}){|memo,(k,v)| memo[k.to_sym] = v; memo} : {}
+      @tags = settings["tags"] ? settings["tags"].to_hash : {}
       discover(settings["hosts"]) if auto_discovering?
     end
 
