@@ -284,7 +284,11 @@ module Moped
     private
 
     def available_secondary_nodes
-      nodes.select(&:secondary?).shuffle!
+      secondary =nodes.select(&:secondary?)
+      if options[:tags] && !options[:tags].empty?
+        secondary = secondary.select{|node| node.tags.merge(options[:tags]) == node.tags}
+      end
+      secondary
     end
 
     # Apply the credentials on all nodes
