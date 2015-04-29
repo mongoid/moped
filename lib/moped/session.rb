@@ -319,7 +319,7 @@ module Moped
     #
     # @since 2.0.0
     def read_preference
-      @read_preference ||= ReadPreference.get(options[:read] || :primary)
+      @read_preference ||= ReadPreference.get((options[:read] || :primary), options[:tags])
     end
 
     # Switch the session's current database.
