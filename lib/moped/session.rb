@@ -250,6 +250,8 @@ module Moped
     # @since 1.5.0
     option(:auto_discover).allow(true, false)
 
+    option(:tags).allow(Optionable.any(Hash))
+
     # Initialize a new database session.
     #
     # @example Initialize a new session.
