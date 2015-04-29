@@ -114,15 +114,15 @@ module Moped
       with_connection do |socket|
         reply = Protocol::Reply.allocate
         data = read_data(socket, 36)
-        response = data.unpack('l<5q<l<2')
+        response = data.unpack('l<5q<l<2'.freeze)
         reply.length,
-            reply.request_id,
-            reply.response_to,
-            reply.op_code,
-            reply.flags,
-            reply.cursor_id,
-            reply.offset,
-            reply.count = response
+          reply.request_id,
+          reply.response_to,
+          reply.op_code,
+          reply.flags,
+          reply.cursor_id,
+          reply.offset,
+          reply.count = response
 
         if reply.count == 0
           reply.documents = []

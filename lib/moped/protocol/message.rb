@@ -244,11 +244,11 @@ module Moped
             end
 
             def serialize_#{name}(buffer)
-              buffer << [#{name}].pack('l<')
+              buffer << [#{name}].pack('l<'.freeze)
             end
 
             def deserialize_#{name}(buffer)
-              self.#{name}, = buffer.read(4).unpack('l<')
+              self.#{name}, = buffer.read(4).unpack('l<'.freeze)
             end
           RUBY
 
@@ -280,7 +280,7 @@ module Moped
               end
 
               def serialize_#{name}(buffer)
-                buffer << #{name}.pack('q<*')
+                buffer << #{name}.pack('q<*'.freeze)
               end
 
               def deserialize_#{name}(buffer)
@@ -294,11 +294,11 @@ module Moped
               end
 
               def serialize_#{name}(buffer)
-                buffer << [#{name}].pack('q<')
+                buffer << [#{name}].pack('q<'.freeze)
               end
 
               def deserialize_#{name}(buffer)
-                self.#{name}, = buffer.read(8).unpack('q<')
+                self.#{name}, = buffer.read(8).unpack('q<'.freeze)
               end
             RUBY
           end
@@ -312,7 +312,7 @@ module Moped
           class_eval <<-EOS, __FILE__, __LINE__ + 1
             def serialize(buffer = "")
               start = buffer.bytesize
-              #{fields.map { |f| "serialize_#{f}(buffer)" }.join("\n")}
+              #{fields.map { |f| "serialize_#{f}(buffer)" }.join("\n".freeze)}
               self.length = buffer.bytesize - start
               buffer[start, 4] = serialize_length("")
               buffer
