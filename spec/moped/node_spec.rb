@@ -63,6 +63,36 @@ describe Moped::Node, replica_set: true do
     end
   end
 
+  describe '#down!' do
+    describe 'when connected' do
+      before do
+        node.connected?
+      end
+
+      describe 'shutdown' do
+        before do
+          node.down!
+        end
+
+        it 'clears out the connection pool' do
+          expect(node.instance_variable_get(:@pool)).to be_nil
+        end
+      end
+
+      describe 'shutdown from multiple threads' do
+        before do
+          # fake the behavior of @pool that holds its value until shutdown returns
+          allow(Moped::Connection::Manager).to receive(:shutdown).and_return(node.instance_variable_get(:@pool)).once
+          node.down!
+        end
+
+        it 'clears out the connection pool before returning' do
+          expect(node.instance_variable_get(:@pool)).to be_nil
+        end
+      end
+    end
+  end
+
   describe "#latency" do
 
     let(:node) do
@@ -111,12 +141,23 @@ describe Moped::Node, replica_set: true do
       end
 
       before do
-        node.should_receive(:command).with("admin", ismaster: 1).and_return(info)
+        node.should_receive(:command).at_least(:once).with("admin", ismaster: 1).and_return(info)
         node.refresh
       end
 
       it "auto discovers additional host nodes" do
         expect(node.peers.size).to eq(2)
+      end
+
+      context "when calling refresh for second time" do
+
+        before do
+          node.refresh
+        end
+
+        it "does not add new nodes" do
+          expect(node.peers.size).to eq(2)
+        end
       end
     end
 
@@ -215,6 +256,7 @@ describe Moped::Node, replica_set: true do
       before do
         node.connection do |conn|
           conn.stub(:connected?).and_return(true)
+          conn.stub(:alive?).and_return(false)
           conn.instance_variable_set(:@sock, nil)
         end
       end

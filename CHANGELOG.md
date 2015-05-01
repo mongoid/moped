@@ -1,5 +1,38 @@
 # Overview
 
+## 2.0.4
+
+### Resolved Issues
+
+* \#345
+  Writes fail with ConnectionPool::PoolShuttingDownError. (fedenusy, dblock)
+
+## 2.0.3
+
+### Resolved Issues
+
+* \#333, \#336
+  Disconnect even when IP address not resolved and fix shutdown pool for node. (durran)
+
+## 2.0.2
+
+### Resolved Issues
+
+* Dont include peers if node already in the list
+  There was a big memory leak, that was including all
+  nodes in the list in every refresh cycle. (Arthur Neves)
+
+## 2.0.1
+
+### Resolved Issues
+
+* \#288, \#278, \#252, \#247, \#275, \#290
+  Re-apply credentials when connection is lost with the server. (zarqman)
+
+* mongoid/mongoid\#3790 Allow Session pool_timeout option. (Niels Ganser)
+
+* \#297 Better retry on authentication. (Jonathan Hyman)
+
 ## 2.0.0
 
 ### API Changes (Backwards Incompatible)

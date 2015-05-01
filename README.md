@@ -1,4 +1,4 @@
-Moped [![Build Status](https://secure.travis-ci.org/mongoid/moped.png?branch=master)](http://travis-ci.org/mongoid/moped) [![Code Climate](https://codeclimate.com/github/mongoid/moped.png)](https://codeclimate.com/github/mongoid/moped) [![Coverage Status](https://coveralls.io/repos/mongoid/moped/badge.png?branch=master)](https://coveralls.io/r/mongoid/moped?branch=master)
+Moped [![Build Status](https://secure.travis-ci.org/mongoid/moped.svg?branch=master)](http://travis-ci.org/mongoid/moped) [![Code Climate](https://codeclimate.com/github/mongoid/moped.svg)](https://codeclimate.com/github/mongoid/moped) [![Coverage Status](https://coveralls.io/repos/mongoid/moped/badge.png?branch=master)](https://coveralls.io/r/mongoid/moped?branch=master)
 ========
 
 Moped is a MongoDB driver for Ruby, which exposes a simple, elegant, and fast
@@ -25,7 +25,7 @@ the Moped section: [mongoid.org](http://mongoid.org/en/moped/)
 License
 -------
 
-Copyright (c) 2011-2013 Bernerd Schaefer, Durran Jordan
+Copyright (c) 2011-2014 Bernerd Schaefer, Durran Jordan
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
