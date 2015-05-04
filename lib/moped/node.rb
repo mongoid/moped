@@ -150,7 +150,7 @@ module Moped
     #
     # @since 2.0.0
     def down!
-      Moped.logger.warn("MOPED [jontest] node is being marked as down, secondary is #{secondary?} primary is #{primary?}: #{self}")
+      Moped.logger.warn("MOPED [jontest] node is being marked as down, secondary is #{secondary?} primary is #{primary?}: #{self.inspect}")
       @down_at = Time.new
       @pool = nil
       @latency = nil
@@ -439,6 +439,7 @@ module Moped
             down!
           end
         rescue Timeout::Error
+          Moped.logger.warn("MOPED [jontest] got timeout error refresing #{self.inspect}")
           down!
         end
       end
