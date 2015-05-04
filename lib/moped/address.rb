@@ -48,7 +48,8 @@ module Moped
       return @resolved if @resolved
       start = Time.now
       begin
-        Timeout::timeout(@timeout) do
+        # TODO (Jon) - Remove this * 10 and see if it helps
+        Timeout::timeout(@timeout * 10) do
           Resolv.each_address(host) do |ip|
             if ip =~ Resolv::IPv4::Regex
               @ip ||= ip
