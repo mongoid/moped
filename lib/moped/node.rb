@@ -150,6 +150,7 @@ module Moped
     #
     # @since 2.0.0
     def down!
+      Moped.logger.warn("MOPED [jontest] node is being marked as down, secondary is #{secondary?} primary is #{primary?}: #{self}")
       @down_at = Time.new
       @pool = nil
       @latency = nil
@@ -549,6 +550,9 @@ module Moped
       @passive = settings["passive"]
       @primary = settings["ismaster"]
       @secondary = settings["secondary"]
+      if !@primary
+        Moped.logger.warn("MOPED [jontest] got not ismaster: #{settings.inspect}")
+      end
       discover(settings["hosts"]) if auto_discovering?
     end
 
