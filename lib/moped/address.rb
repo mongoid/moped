@@ -47,6 +47,7 @@ module Moped
     def resolve(node)
       return @resolved if @resolved
       start = Time.now
+      retries = 0
       begin
         # TODO (Jon) - Remove this * 10 and see if it helps
         Timeout::timeout(@timeout * 10) do
@@ -60,8 +61,13 @@ module Moped
         end
         @resolved = "#{ip}:#{port}"
       rescue Timeout::Error, Resolv::ResolvError, SocketError => e
-        Loggable.warn("  MOPED:", "Could not resolve IP for: #{original}, delta is #{Time.now - start}, error class is #{e.inspect}", "n/a")
-        node.down! and false
+        Loggable.warn("  MOPED:", "Could not resolve IP for: #{original}, delta is #{Time.now - start}, error class is #{e.inspect}, retries is #{retries}", "n/a")
+        if retries < 2
+          retries += 1
+          retry
+        else
+          node.down! and false
+        end
       end
     end
   end
