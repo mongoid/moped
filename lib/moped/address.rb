@@ -61,7 +61,12 @@ module Moped
         end
         @resolved = "#{ip}:#{port}"
       rescue Timeout::Error, Resolv::ResolvError, SocketError => e
-        Loggable.warn("  MOPED:", "Could not resolve IP for: #{original}, delta is #{Time.now - start}, error class is #{e.inspect}, retries is #{retries}", "n/a")
+        msg = ["  MOPED:", "Could not resolve IP for: #{original}, delta is #{Time.now - start}, error class is #{e.inspect}, retries is #{retries}. Node is #{node.inspect}", "n/a"]
+        if retries == 0
+          Loggable.info(*msg)
+        else
+          Loggable.warn(*msg)
+        end
         if retries < 2
           retries += 1
           retry
