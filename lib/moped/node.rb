@@ -189,6 +189,10 @@ module Moped
           yield(conn)
         end
       rescue Exception => e
+        Moped.logger.warn("MOPED [jontest] node #{self.inspect} caught error #{e.inspect}")
+        if e.kind_of?(ConnectionPool::PoolShuttingDownError)
+          @pool = nil
+        end
         Failover.get(e).execute(e, self, &block)
       ensure
         end_execution(:connection)
