@@ -118,6 +118,12 @@ module Moped
           yield(conn)
         end
       rescue Timeout::Error => e
+        if e.kind_of?(ConnectionPool::PoolShuttingDownError)
+          Moped.logger.warn("MOPED [jontest] in #connection and got a PoolShuttingDownError: #{self.inspect}")
+          @pool = nil
+          Connection::Manager.delete_pool(self)
+          raise Errors::PoolTimeout.new(e)
+        end
         raise connection_acquired ? e : Errors::PoolTimeout.new(e)
       end
     end
@@ -190,8 +196,9 @@ module Moped
         end
       rescue Exception => e
         if e.kind_of?(ConnectionPool::PoolShuttingDownError)
-          Moped.logger.warn("MOPED [jontest] node #{self.inspect} caught error #{e.inspect}")
+          Moped.logger.warn("MOPED [jontest] node #{self.inspect} caught error #{e.inspect}, going to clear out @pool")
           @pool = nil
+          Connection::Manager.delete_pool(self)
         else
           Moped.logger.info("MOPED [jontest] node #{self.inspect} caught error #{e.inspect}")
         end
@@ -211,7 +218,7 @@ module Moped
     #
     # @return [ nil ] nil.
     #
-    # @since 1.0.0
+    # @since 1.0.0s
     def ensure_primary
       execute(:ensure_primary) do
         yield(self)
