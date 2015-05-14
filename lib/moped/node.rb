@@ -117,7 +117,7 @@ module Moped
           connection_acquired = true
           yield(conn)
         end
-      rescue Timeout::Error => e
+      rescue Timeout::Error, ConnectionPool::PoolShuttingDownError => e
         if e.kind_of?(ConnectionPool::PoolShuttingDownError)
           Moped.logger.warn("MOPED [jontest] in #connection and got a PoolShuttingDownError: #{self.inspect}")
           @pool = nil
