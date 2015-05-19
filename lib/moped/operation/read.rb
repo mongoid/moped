@@ -47,7 +47,7 @@ module Moped
       def execute(node)
         node.process(operation) do |reply|
           if reply.unauthorized? && node.credentials.key?(@database)
-            Moped.logger.debug {"Received unauthorized reply for #{@database}, attempting login and retry"}
+            Moped.logger.warn {"[jontest] Received unauthorized reply for #{@database} on node #{node.inspect}, attempting login and retry"}
             node.connection do |conn|
               username, password = node.credentials[@database]
               if username && password
