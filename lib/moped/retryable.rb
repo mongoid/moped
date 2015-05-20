@@ -33,7 +33,7 @@ module Moped
           ! (e.message.include?("not master") || e.message.include?("Not primary"))
 
         if retries > 0
-          Loggable.warn("  MOPED:", "Retrying connection attempt #{retries} more time(s), nodes is #{cluster.nodes.inspect}, seeds are #{cluster.seeds.inspect}, cluster is #{cluster.inspect}. Error backtrace is #{e.backtrace}.", "n/a")
+          Loggable.info("  MOPED:", "Retrying connection attempt #{retries} more time(s), nodes is #{cluster.nodes.inspect}, seeds are #{cluster.seeds.inspect}, cluster is #{cluster.inspect}. Error backtrace is #{e.backtrace}.", "n/a")
           sleep(cluster.retry_interval)
           cluster.refresh
           with_retry(cluster, retries - 1, &block)
