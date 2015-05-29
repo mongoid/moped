@@ -240,6 +240,11 @@ module Moped
     # @since 2.0.0
     option(:timeout).allow(Optionable.any(Numeric))
 
+    # Setup validation of allowed timeout options. (Any numeric)
+    #
+    # @since 2.0.5
+    option(:keepalive).allow(Optionable.any(Fixnum), Optionable.any(Hash))   
+
     # Pass an object that responds to instrument as an instrumenter.
     #
     # @since 2.0.0

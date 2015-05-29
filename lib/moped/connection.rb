@@ -38,53 +38,7 @@ module Moped
       connected? ? @sock.alive? : false
     end
 
-
-
-    if [:SOL_SOCKET, :SO_KEEPALIVE, :SOL_TCP, :TCP_KEEPIDLE, :TCP_KEEPINTVL, :TCP_KEEPCNT].all?{|c| ::Socket.const_defined? c}
-      def set_tcp_keepalive(keepalive,sock)
-        case keepalive
-        when Hash
-          [:time, :intvl, :probes].each do |key|
-            unless  keepalive[key].is_a?(Fixnum)
-              raise "Expected the #{key.inspect} key in :tcp_keepalive to be a Fixnum"
-            end
-          end
-        when Fixnum
-          if keepalive >= 60
-            keepalive = {:time => keepalive - 20, :intvl => 10, :probes => 2}
-
-          elsif keepalive >= 30
-            keepalive = {:time => keepalive - 10, :intvl => 5, :probes => 2}
-
-          elsif keepalive >= 5
-            keepalive = {:time => keepalive - 2, :intvl => 2, :probes => 1}
-          end
-        end
-
-        sock.setsockopt(::Socket::SOL_SOCKET, ::Socket::SO_KEEPALIVE,  true)
-        sock.setsockopt(::Socket::SOL_TCP,    ::Socket::TCP_KEEPIDLE,  keepalive[:time])
-        sock.setsockopt(::Socket::SOL_TCP,    ::Socket::TCP_KEEPINTVL, keepalive[:intvl])
-        sock.setsockopt(::Socket::SOL_TCP,    ::Socket::TCP_KEEPCNT,   keepalive[:probes])
-        puts "Configured TCP Keepalive for Moped Connection to #{keepalive.inspect}"
-      end
-
-      def get_tcp_keepalive
-        {
-          :time   => @sock.getsockopt(::Socket::SOL_TCP, ::Socket::TCP_KEEPIDLE).int,
-          :intvl  => @sock.getsockopt(::Socket::SOL_TCP, ::Socket::TCP_KEEPINTVL).int,
-          :probes => @sock.getsockopt(::Socket::SOL_TCP, ::Socket::TCP_KEEPCNT).int,
-        }
-      end
-    else
-      def set_tcp_keepalive(keepalive, sock)
-        Rails.logger.debug "Did not configure TCP Keepalive for Moped Connection."
-      end
-
-      def get_tcp_keepalive
-        {
-        }
-      end
-    end
+    
 
     # Connect to the server defined by @host, @port without timeout @timeout.
     #
@@ -101,7 +55,7 @@ module Moped
       else
         Socket::TCP.connect(host, port, timeout)
       end
-      set_tcp_keepalive(5, @sock)
+      set_tcp_keepalive(options[:keepalive], @sock) if !!options[:keepalive]
     end
 
     # Is the connection connected?
@@ -252,6 +206,65 @@ module Moped
       end
       data
     end
+
+    # Set the tcp_keepalive
+    #
+    # @api private
+    #
+    # @example With a FixNum.
+    #   set_tcp_keepalive(60)
+    #
+    # @example With a Hash
+    #   set_tcp_keepalive({time: 60, intvl: 20, probes: 2})
+    #
+    # @return [ nil ] nil.
+    #
+    # @since 2.0.5
+    if [:SOL_SOCKET, :SO_KEEPALIVE, :SOL_TCP, :TCP_KEEPIDLE, :TCP_KEEPINTVL, :TCP_KEEPCNT].all?{|c| ::Socket.const_defined? c}
+      def set_tcp_keepalive(keepalive)
+        case keepalive
+        when Hash
+          [:time, :intvl, :probes].each do |key|
+            unless  keepalive[key].is_a?(Fixnum)
+              raise "Expected the #{key.inspect} key in :tcp_keepalive to be a Fixnum"
+            end
+          end
+        when Fixnum
+          if keepalive >= 60
+            keepalive = {:time => keepalive - 20, :intvl => 10, :probes => 2}
+
+          elsif keepalive >= 30
+            keepalive = {:time => keepalive - 10, :intvl => 5, :probes => 2}
+
+          elsif keepalive >= 5
+            keepalive = {:time => keepalive - 2, :intvl => 2, :probes => 1}
+          end
+        end
+
+        @sock.setsockopt(::Socket::SOL_SOCKET, ::Socket::SO_KEEPALIVE,  true)
+        @sock.setsockopt(::Socket::SOL_TCP,    ::Socket::TCP_KEEPIDLE,  keepalive[:time])
+        @sock.setsockopt(::Socket::SOL_TCP,    ::Socket::TCP_KEEPINTVL, keepalive[:intvl])
+        @sock.setsockopt(::Socket::SOL_TCP,    ::Socket::TCP_KEEPCNT,   keepalive[:probes])
+        puts "Configured TCP Keepalive for Moped Connection to #{keepalive.inspect}"
+      end
+
+      def get_tcp_keepalive
+        {
+          :time   => @sock.getsockopt(::Socket::SOL_TCP, ::Socket::TCP_KEEPIDLE).int,
+          :intvl  => @sock.getsockopt(::Socket::SOL_TCP, ::Socket::TCP_KEEPINTVL).int,
+          :probes => @sock.getsockopt(::Socket::SOL_TCP, ::Socket::TCP_KEEPCNT).int,
+        }
+      end
+    else
+      def set_tcp_keepalive(keepalive, sock)
+        puts "Did not configure TCP Keepalive for Moped Connection. Keepalive: #{keepalive}"
+      end
+
+      def get_tcp_keepalive
+        {
+        }
+      end
+    end    
 
     # Yields a connected socket to the calling back. It will attempt to reconnect
     # the socket if it is not connected.
