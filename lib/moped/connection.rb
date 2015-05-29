@@ -245,7 +245,7 @@ module Moped
         @sock.setsockopt(::Socket::SOL_TCP,    ::Socket::TCP_KEEPIDLE,  keepalive[:time])
         @sock.setsockopt(::Socket::SOL_TCP,    ::Socket::TCP_KEEPINTVL, keepalive[:intvl])
         @sock.setsockopt(::Socket::SOL_TCP,    ::Socket::TCP_KEEPCNT,   keepalive[:probes])
-        puts "Configured TCP Keepalive for Moped Connection to #{keepalive.inspect}"
+        Loggable.debug("  MOPED:", "Configured TCP keepalive for connection with #{keepalive.inspect}", "n/a") 
       end
 
       def get_tcp_keepalive
@@ -257,7 +257,7 @@ module Moped
       end
     else
       def set_tcp_keepalive(keepalive, sock)
-        puts "Did not configure TCP Keepalive for Moped Connection. Keepalive: #{keepalive}"
+        Loggable.debug("  MOPED:", "Did not configure TCP keepalive for connection as it is not supported on this platform.", "n/a") 
       end
 
       def get_tcp_keepalive
