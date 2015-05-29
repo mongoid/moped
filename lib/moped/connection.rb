@@ -1,6 +1,7 @@
 # encoding: utf-8
 require "moped/connection/manager"
 require "moped/connection/sockets"
+require "socket"
 
 module Moped
 
@@ -39,7 +40,7 @@ module Moped
 
 
 
-    if [:SOL_SOCKET, :SO_KEEPALIVE, :SOL_TCP, :TCP_KEEPIDLE, :TCP_KEEPINTVL, :TCP_KEEPCNT].all?{|c| Socket.const_defined? c}
+    if [:SOL_SOCKET, :SO_KEEPALIVE, :SOL_TCP, :TCP_KEEPIDLE, :TCP_KEEPINTVL, :TCP_KEEPCNT].all?{|c| ::Socket.const_defined? c}
       def set_tcp_keepalive(keepalive,sock)
         case keepalive
         when Hash
@@ -60,22 +61,23 @@ module Moped
           end
         end
 
-        sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_KEEPALIVE,  true)
-        sock.setsockopt(Socket::SOL_TCP,    Socket::TCP_KEEPIDLE,  keepalive[:time])
-        sock.setsockopt(Socket::SOL_TCP,    Socket::TCP_KEEPINTVL, keepalive[:intvl])
-        sock.setsockopt(Socket::SOL_TCP,    Socket::TCP_KEEPCNT,   keepalive[:probes])
-        Rails.logger.debug "Configured TCP Keepalive for Moped Connection to #{keepalive.inspect}"
+        sock.setsockopt(::Socket::SOL_SOCKET, ::Socket::SO_KEEPALIVE,  true)
+        sock.setsockopt(::Socket::SOL_TCP,    ::Socket::TCP_KEEPIDLE,  keepalive[:time])
+        sock.setsockopt(::Socket::SOL_TCP,    ::Socket::TCP_KEEPINTVL, keepalive[:intvl])
+        sock.setsockopt(::Socket::SOL_TCP,    ::Socket::TCP_KEEPCNT,   keepalive[:probes])
+        puts "Configured TCP Keepalive for Moped Connection to #{keepalive.inspect}"
       end
 
       def get_tcp_keepalive
         {
-          :time   => @sock.getsockopt(Socket::SOL_TCP, Socket::TCP_KEEPIDLE).int,
-          :intvl  => @sock.getsockopt(Socket::SOL_TCP, Socket::TCP_KEEPINTVL).int,
-          :probes => @sock.getsockopt(Socket::SOL_TCP, Socket::TCP_KEEPCNT).int,
+          :time   => @sock.getsockopt(::Socket::SOL_TCP, ::Socket::TCP_KEEPIDLE).int,
+          :intvl  => @sock.getsockopt(::Socket::SOL_TCP, ::Socket::TCP_KEEPINTVL).int,
+          :probes => @sock.getsockopt(::Socket::SOL_TCP, ::Socket::TCP_KEEPCNT).int,
         }
       end
     else
       def set_tcp_keepalive(keepalive, sock)
+        Rails.logger.debug "Did not configure TCP Keepalive for Moped Connection."
       end
 
       def get_tcp_keepalive
@@ -99,7 +101,7 @@ module Moped
       else
         Socket::TCP.connect(host, port, timeout)
       end
-      set_tcp_keepalive(60, @sock)
+      set_tcp_keepalive(5, @sock)
     end
 
     # Is the connection connected?
