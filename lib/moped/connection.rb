@@ -37,6 +37,53 @@ module Moped
       connected? ? @sock.alive? : false
     end
 
+
+
+    if [:SOL_SOCKET, :SO_KEEPALIVE, :SOL_TCP, :TCP_KEEPIDLE, :TCP_KEEPINTVL, :TCP_KEEPCNT].all?{|c| Socket.const_defined? c}
+      def set_tcp_keepalive(keepalive,sock)
+        case keepalive
+        when Hash
+          [:time, :intvl, :probes].each do |key|
+            unless  keepalive[key].is_a?(Fixnum)
+              raise "Expected the #{key.inspect} key in :tcp_keepalive to be a Fixnum"
+            end
+          end
+        when Fixnum
+          if keepalive >= 60
+            keepalive = {:time => keepalive - 20, :intvl => 10, :probes => 2}
+
+          elsif keepalive >= 30
+            keepalive = {:time => keepalive - 10, :intvl => 5, :probes => 2}
+
+          elsif keepalive >= 5
+            keepalive = {:time => keepalive - 2, :intvl => 2, :probes => 1}
+          end
+        end
+
+        sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_KEEPALIVE,  true)
+        sock.setsockopt(Socket::SOL_TCP,    Socket::TCP_KEEPIDLE,  keepalive[:time])
+        sock.setsockopt(Socket::SOL_TCP,    Socket::TCP_KEEPINTVL, keepalive[:intvl])
+        sock.setsockopt(Socket::SOL_TCP,    Socket::TCP_KEEPCNT,   keepalive[:probes])
+        Rails.logger.debug "Configured TCP Keepalive for Moped Connection to #{keepalive.inspect}"
+      end
+
+      def get_tcp_keepalive
+        {
+          :time   => @sock.getsockopt(Socket::SOL_TCP, Socket::TCP_KEEPIDLE).int,
+          :intvl  => @sock.getsockopt(Socket::SOL_TCP, Socket::TCP_KEEPINTVL).int,
+          :probes => @sock.getsockopt(Socket::SOL_TCP, Socket::TCP_KEEPCNT).int,
+        }
+      end
+    else
+      def set_tcp_keepalive(keepalive, sock)
+      end
+
+      def get_tcp_keepalive
+        {
+        }
+      end
+    end
+
     # Connect to the server defined by @host, @port without timeout @timeout.
     #
     # @example Open the connection
@@ -52,6 +99,7 @@ module Moped
       else
         Socket::TCP.connect(host, port, timeout)
       end
+      set_tcp_keepalive(60, @sock)
     end
 
     # Is the connection connected?
