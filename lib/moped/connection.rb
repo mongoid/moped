@@ -55,7 +55,7 @@ module Moped
       else
         Socket::TCP.connect(host, port, timeout)
       end
-      set_tcp_keepalive(options[:keepalive], @sock) if !!options[:keepalive]
+      set_tcp_keepalive(options[:keepalive]) if !!options[:keepalive]
     end
 
     # Is the connection connected?
@@ -256,7 +256,7 @@ module Moped
         }
       end
     else
-      def set_tcp_keepalive(keepalive, sock)
+      def set_tcp_keepalive(keepalive)
         Loggable.debug("  MOPED:", "Did not configure TCP keepalive for connection as it is not supported on this platform.", "n/a") 
       end
 
