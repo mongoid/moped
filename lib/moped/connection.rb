@@ -195,7 +195,7 @@ module Moped
     #                   configured for you. Supply a Hash with the :time, :intvl, and :probes
     #                   keys to set specific values
     #
-    # @return [ nil ] nil.
+    # @return The configured keepalive Hash or nil. 
     #
     # @since 1.0.0
     def configure_tcp_keepalive(keepalive)
