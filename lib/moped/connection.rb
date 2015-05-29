@@ -55,7 +55,7 @@ module Moped
       else
         Socket::TCP.connect(host, port, timeout)
       end
-      set_tcp_keepalive
+      enable_tcp_keepalive
     end
 
     # Is the connection connected?
@@ -248,7 +248,7 @@ module Moped
     end
 
     if [:SOL_SOCKET, :SO_KEEPALIVE, :SOL_TCP, :TCP_KEEPIDLE, :TCP_KEEPINTVL, :TCP_KEEPCNT].all?{|c| ::Socket.const_defined? c}
-      # Enable the tcp_keepalive
+      # Enable the tcp_keepalive if configured
       #
       # @api private
       #
