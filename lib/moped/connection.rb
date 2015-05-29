@@ -279,6 +279,7 @@ module Moped
       #
       # @since 2.0.5      
       def enable_tcp_keepalive
+        return unless @keepalive.is_a?(Hash)
         Loggable.debug("  MOPED:", "Did not configure TCP keepalive for connection as it is not supported on this platform.", "n/a") 
       end
     end    
