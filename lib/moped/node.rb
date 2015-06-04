@@ -455,6 +455,7 @@ module Moped
           elsif !messagable?
             # not primary or secondary so mark it as down, since it's probably
             # a recovering node withing the replica set
+            Moped.logger.warn("MOPED [jontest] got !messagable? for #{self.inspect}")
             down!
           end
         rescue Timeout::Error

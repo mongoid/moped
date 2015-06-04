@@ -32,6 +32,7 @@ module Moped
         rescue Errors::PoolTimeout => e
           raise Errors::ConnectionFailure.new e
         rescue Exception => e
+          Moped.logger.warn("MOPED [jontest] in retry, got #{e.inspect} #{e.backtrace}")
           node.down!
           raise(e)
         end
