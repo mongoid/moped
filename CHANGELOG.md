@@ -1,5 +1,14 @@
 # Overview
 
+## 2.0.5
+
+### Resolved Issues
+
+* \#351
+  Fixing retries with authentication. (Wandenberg Peixoto)
+
+* Bump BSON dependency to 3.0.4
+
 ## 2.0.4
 
 ### Resolved Issues
