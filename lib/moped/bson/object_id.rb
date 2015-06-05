@@ -244,7 +244,7 @@ module Moped
         #
         # @since 1.0.0
         def legal?(string)
-          /\A\h{24}\Z/ === string.to_s
+          string.to_s =~ /\A\h{24}\z/ ? true : false
         end
 
         # Create a new object id from some raw data.
