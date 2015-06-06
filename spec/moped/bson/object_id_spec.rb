@@ -175,6 +175,12 @@ describe Moped::BSON::ObjectId do
       end
     end
 
+    context "when the string ends with newline character" do
+      it "returns false" do
+        described_class.legal?("#{'a' * 24}\n").should be_false
+      end
+    end
+
     context "when the string is a valid object id" do
       it "returns true" do
         described_class.legal?("a" * 24).should be_true
