@@ -46,22 +46,28 @@ module Moped
       # @since 2.0.0
       def execute(node)
         node.process(operation) do |reply|
+          # Avoid LocalJumpError
+          ret = nil
           if reply.unauthorized? && node.credentials.key?(@database)
             Moped.logger.warn {"[jontest] Received unauthorized reply for #{@database} on node #{node.inspect}, attempting login and retry"}
             node.connection do |conn|
               username, password = node.credentials[@database]
               if username && password
                 conn.login(operation.database, username, password)
-                return execute(node)
+                ret = execute(node)
               end
             end
           end
 
-          if operation.failure?(reply)
-            raise operation.failure_exception(reply)
+          if ret.nil?
+            if operation.failure?(reply)
+              raise operation.failure_exception(reply)
+            end
+
+            ret = operation.results(reply)
           end
 
-          operation.results(reply)
+          ret
         end
       end
     end
