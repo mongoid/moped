@@ -1,5 +1,9 @@
 # Overview
 
+## 2.0.6
+
+* Relaxing BSON dependency to allow for 3.1.0 upgrade.
+
 ## 2.0.5
 
 ### Resolved Issues
