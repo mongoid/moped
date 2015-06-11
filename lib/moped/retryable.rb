@@ -29,12 +29,13 @@ module Moped
       begin
         block.call
       rescue Errors::ConnectionFailure, Errors::PotentialReconfiguration => e
-        raise e if e.is_a?(Errors::PotentialReconfiguration) &&
-          ! (e.message.include?("not master") || e.message.include?("Not primary"))
+        authentication_error = e.is_a?(Errors::PotentialReconfiguration) && e.message.match(/not (master|primary|authorized)/i)
+        raise e if e.is_a?(Errors::PotentialReconfiguration) && !authentication_error
 
         if retries > 0
           Loggable.warn("  MOPED:", "Retrying connection attempt #{retries} more time(s).", "n/a")
           sleep(cluster.retry_interval)
+          cluster.nodes.each { |node| node.flush_connection_credentials } if authentication_error
           cluster.refresh
           with_retry(cluster, retries - 1, &block)
         else

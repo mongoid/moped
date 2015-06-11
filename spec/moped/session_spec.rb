@@ -347,4 +347,24 @@ describe Moped::Session do
       nodes.last.should be_down
     end
   end
+
+  context "when connections on pool are busy" do
+    let(:session) do
+      Moped::Session.new([ "127.0.0.1:27017" ], database: "moped_test", pool_size: 1, pool_timeout: 0.2, max_retries: 30, retry_interval: 1)
+    end
+
+    it "should retry the operation" do
+      session[:test].find({ name: "test_counter" }).update({'$set' => {'cnt' => 1}}, {upsert: true})
+
+      results = []
+
+      300.times.map do |i|
+        Thread.new do
+          results.push session[:test].find({ name: "test_counter" }).first["cnt"]
+        end
+      end.each {|t| t.join }
+
+      expect(results.count).to eql(300)
+    end
+  end
 end

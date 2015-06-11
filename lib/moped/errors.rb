@@ -20,6 +20,9 @@ module Moped
     # Generic error class for exceptions related to connection failures.
     class ConnectionFailure < StandardError; end
 
+    # Generic error class for exceptions related to read timeout failures.
+    class OperationTimeout < StandardError; end
+
     # Raised when a database name is invalid.
     class InvalidDatabaseName < StandardError; end
 
