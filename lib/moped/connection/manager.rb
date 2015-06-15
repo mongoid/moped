@@ -58,7 +58,6 @@ module Moped
 
       def delete_pool(node)
         MUTEX.synchronize do
-          Moped.logger.warn("MOPED [jontest] deleting pool for #{node.address.resolved}. There may be stale connections left open not cleanly shutdown.")
           pools.delete(node.address.resolved)
         end
       end

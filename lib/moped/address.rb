@@ -49,8 +49,8 @@ module Moped
       start = Time.now
       retries = 0
       begin
-        # Jon: Make the timeout very large since Timeout::timeout plays very badly with multithreaded code and IMO should
-        # be removed entirely
+        # This timeout should be very large since Timeout::timeout plays very badly with multithreaded code
+        # TODO: Remove this Timeout entirely
         Timeout::timeout(@timeout * 10) do
           Resolv.each_address(host) do |ip|
             if ip =~ Resolv::IPv4::Regex

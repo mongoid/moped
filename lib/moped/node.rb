@@ -119,7 +119,6 @@ module Moped
         end
       rescue Timeout::Error, ConnectionPool::PoolShuttingDownError => e
         if e.kind_of?(ConnectionPool::PoolShuttingDownError)
-          Moped.logger.warn("MOPED [jontest] in #connection and got a PoolShuttingDownError: #{self.inspect}")
           @pool = nil
           Connection::Manager.delete_pool(self)
           raise Errors::PoolTimeout.new(e)
@@ -162,7 +161,6 @@ module Moped
     #
     # @since 2.0.0
     def down!
-      Moped.logger.warn("MOPED [jontest] node is being marked as down, secondary is #{secondary?} primary is #{primary?}: #{self.inspect}")
       @down_at = Time.new
       @pool = nil
       @latency = nil
@@ -196,11 +194,8 @@ module Moped
         end
       rescue Exception => e
         if e.kind_of?(ConnectionPool::PoolShuttingDownError)
-          Moped.logger.warn("MOPED [jontest] node #{self.inspect} caught error #{e.inspect}, going to clear out @pool")
           @pool = nil
           Connection::Manager.delete_pool(self)
-        else
-          Moped.logger.info("MOPED [jontest] node #{self.inspect} caught error #{e.inspect}")
         end
         Failover.get(e).execute(e, self, &block)
       ensure
@@ -455,11 +450,9 @@ module Moped
           elsif !messagable?
             # not primary or secondary so mark it as down, since it's probably
             # a recovering node withing the replica set
-            Moped.logger.warn("MOPED [jontest] got !messagable? for #{self.inspect}")
             down!
           end
         rescue Timeout::Error
-          Moped.logger.warn("MOPED [jontest] got timeout error refresing #{self.inspect}")
           down!
         end
       end
@@ -571,9 +564,6 @@ module Moped
       @passive = settings["passive"]
       @primary = settings["ismaster"]
       @secondary = settings["secondary"]
-      if !@primary
-        Moped.logger.warn("MOPED [jontest] got not ismaster: #{settings.inspect}")
-      end
       discover(settings["hosts"]) if auto_discovering?
     end
 

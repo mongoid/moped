@@ -49,7 +49,6 @@ module Moped
           # Avoid LocalJumpError
           ret = nil
           if reply.unauthorized? && node.credentials.key?(@database)
-            Moped.logger.warn {"[jontest] Received unauthorized reply for #{@database} on node #{node.inspect}, attempting login and retry"}
             node.connection do |conn|
               username, password = node.credentials[@database]
               if username && password

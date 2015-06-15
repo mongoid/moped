@@ -178,7 +178,6 @@ module Moped
           begin
             node.refresh
           rescue Errors::ConnectionFailure
-            Moped.logger.warn("MOPED [jontest] could not resolve for node #{node.inspect}")
           end
         end
         unless seen[node] || !node.address.resolved
@@ -194,7 +193,6 @@ module Moped
             refresh_peers(node, &refresh_node)
           rescue Errors::ConnectionFailure
             # We couldn't connect to the node.
-            Moped.logger.warn("MOPED [jontest] could not connect to node #{node.inspect}")
           end
         end
       end
