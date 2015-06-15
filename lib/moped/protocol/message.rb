@@ -1,6 +1,5 @@
 module Moped
   module Protocol
-
     # The base class for building all messages needed to implement the Mongo
     # Wire Protocol. It provides a minimal DSL for defining typed fields for
     # serialization and deserialization over the wire.
@@ -34,6 +33,9 @@ module Moped
     #   int32 :op_code
     #
     module Message
+      INT32_DECODE_STR       = 'l<'
+      INT64_DECODE_ARRAY_STR = 'q<*'
+      INT64_DECODE_STR       = 'q<'
 
       # Default implementation for a message is to do nothing when receiving
       # replies.
@@ -214,11 +216,11 @@ module Moped
             end
 
             def serialize_#{name}(buffer)
-              buffer << [#{name}_as_int].pack('l<')
+              buffer << [#{name}_as_int].pack(INT32_DECODE_STR)
             end
 
             def deserialize_#{name}(buffer)
-              bits, = buffer.read(4).unpack('l<')
+              bits, = buffer.read(4).unpack(INT32_DECODE_STR)
 
               self.#{name} = bits
             end
@@ -244,11 +246,11 @@ module Moped
             end
 
             def serialize_#{name}(buffer)
-              buffer << [#{name}].pack('l<')
+              buffer << [#{name}].pack(INT32_DECODE_STR)
             end
 
             def deserialize_#{name}(buffer)
-              self.#{name}, = buffer.read(4).unpack('l<')
+              self.#{name}, = buffer.read(4).unpack(INT32_DECODE_STR)
             end
           RUBY
 
@@ -280,7 +282,7 @@ module Moped
               end
 
               def serialize_#{name}(buffer)
-                buffer << #{name}.pack('q<*')
+                buffer << #{name}.pack(INT64_DECODE_ARRAY_STR)
               end
 
               def deserialize_#{name}(buffer)
@@ -294,11 +296,11 @@ module Moped
               end
 
               def serialize_#{name}(buffer)
-                buffer << [#{name}].pack('q<')
+                buffer << [#{name}].pack(INT64_DECODE_STR)
               end
 
               def deserialize_#{name}(buffer)
-                self.#{name}, = buffer.read(8).unpack('q<')
+                self.#{name}, = buffer.read(8).unpack(INT64_DECODE_STR)
               end
             RUBY
           end
