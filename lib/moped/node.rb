@@ -93,6 +93,9 @@ module Moped
         result = reply.documents.first
         if reply.command_failure?
           if reply.unauthorized? && auth.has_key?(database)
+            if logger = Moped.logger
+              logger.debug {"  MOPED Received unauthorized reply for command #{cmd} on #{database}: #{reply.documents[0].inspect}"}
+            end
             login(database, *auth[database])
             result = command(database, cmd, options)
           else
@@ -264,7 +267,28 @@ module Moped
     #
     # @since 1.0.0
     def insert(database, collection, documents, options = {})
-      process(Protocol::Insert.new(database, collection, documents, options))
+      operation = Protocol::Insert.new(database, collection, documents, options)
+
+      process(operation) do |reply|
+        if reply && reply.query_failed?
+          if reply.unauthorized? && auth.has_key?(database)
+            # If we got here, most likely this is the case of Moped
+            # authenticating successfully against the node originally, but the
+            # node has been reset or gone down and come back up. The most
+            # common case here is a rs.stepDown() which will reinitialize the
+            # connection. In this case we need to requthenticate and try again,
+            # otherwise we'll just raise the error to the user.
+            if logger = Moped.logger
+              logger.debug {"  MOPED Received unauthorized reply inserting #{collection} on #{database}: #{reply.documents[0].inspect}"}
+            end
+            login(database, *auth[database])
+            reply = insert(database, collection, selector, options)
+          else
+            raise Errors::QueryFailure.new(operation, reply.documents.first)
+          end
+        end
+        reply
+      end
     end
 
     # Kill all provided cursors on the node.
@@ -378,6 +402,9 @@ module Moped
             # common case here is a rs.stepDown() which will reinitialize the
             # connection. In this case we need to requthenticate and try again,
             # otherwise we'll just raise the error to the user.
+            if logger = Moped.logger
+              logger.debug {"  MOPED Received unauthorized reply querying #{collection} on #{database}: #{reply.documents[0].inspect}"}
+            end
             login(database, *auth[database])
             reply = query(database, collection, selector, options)
           else
@@ -473,7 +500,28 @@ module Moped
     #
     # @since 1.0.0
     def update(database, collection, selector, change, options = {})
-      process(Protocol::Update.new(database, collection, selector, change, options))
+      operation = Protocol::Update.new(database, collection, selector, change, options)
+
+      process(operation) do |reply|
+        if reply && reply.query_failed?
+          if reply.unauthorized? && auth.has_key?(database)
+            # If we got here, most likely this is the case of Moped
+            # authenticating successfully against the node originally, but the
+            # node has been reset or gone down and come back up. The most
+            # common case here is a rs.stepDown() which will reinitialize the
+            # connection. In this case we need to requthenticate and try again,
+            # otherwise we'll just raise the error to the user.
+            if logger = Moped.logger
+              logger.debug {"  MOPED Received unauthorized reply updating #{collection} on #{database}: #{reply.documents[0].inspect}"}
+            end
+            login(database, *auth[database])
+            reply = update(database, collection, selector, change, options)
+          else
+            raise Errors::QueryFailure.new(operation, reply.documents.first)
+          end
+        end
+        reply
+      end
     end
 
     # Get the node as a nice formatted string.
@@ -495,6 +543,10 @@ module Moped
     end
 
     def login(database, username, password)
+      if logger = Moped.logger
+        logger.debug {"  MOPED login for #{username} on #{database}"}
+      end
+
       getnonce = Protocol::Command.new(database, getnonce: 1)
       connection.write [getnonce]
       result = connection.read.documents.first
