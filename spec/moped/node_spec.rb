@@ -486,4 +486,47 @@ describe Moped::Node, replica_set: true do
       end
     end
   end
+
+  describe "#connection" do
+    let(:node) do
+      described_class.new("127.0.0.1:27017", pool_size: 1, pool_timeout: 0.1)
+    end
+
+    context "when take a long time to get a connection from pool" do
+      it "raise a Errors::PoolTimeout error" do
+        expect {
+
+          exception = nil
+          100.times.map do |i|
+            Thread.new do
+              begin
+                node.connection do |conn|
+                  conn.apply_credentials({})
+                  node.update("test", "test_collection", { name: "test_counter" }, {'$inc' => {'cnt' => 1}}, Moped::WriteConcern.get({ w: 1 }), flags: {safe: true, upsert: true})
+                end
+              rescue => e
+                exception = e if exception.nil?
+              end
+            end
+          end.each {|t| t.join }
+          raise exception unless exception.nil?
+
+        }.to raise_error(Moped::Errors::PoolTimeout)
+      end
+    end
+
+    context "when the timeout happens after get a connection from pool" do
+      it "raise a Timeout::Error" do
+        expect {
+          node.connection do |conn|
+            Timeout::timeout(0.01) do
+              conn.apply_credentials({})
+              node.update("test", "test_collection", { name: "test_counter" }, {'$inc' => {'cnt' => 1}}, Moped::WriteConcern.get({ w: 1 }), flags: {safe: true, upsert: true})
+              sleep(0.1) # just to simulate a long block which raise a timeout
+            end
+          end
+        }.to raise_error(Timeout::Error)
+      end
+    end
+  end
 end

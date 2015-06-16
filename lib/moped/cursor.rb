@@ -6,6 +6,7 @@ module Moped
   class Cursor
     include Readable
     include Enumerable
+    include Retryable
 
     # @attribute [r] get_more_op The get more message.
     # @attribute [r] kill_cursor_op The kill cursor message.
@@ -43,10 +44,12 @@ module Moped
     #
     # @since 1.0.0
     def get_more
-      reply = @node.get_more @database, @collection, @cursor_id, request_limit
-      @limit -= reply.count if limited?
-      @cursor_id = reply.cursor_id
-      reply.documents
+      with_retry(session.cluster) do
+        reply = @node.get_more @database, @collection, @cursor_id, request_limit
+        @limit -= reply.count if limited?
+        @cursor_id = reply.cursor_id
+        reply.documents
+      end
     end
 
     # Determine the request limit for the query

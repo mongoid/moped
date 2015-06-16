@@ -111,8 +111,19 @@ module Moped
     #
     # @since 2.0.0
     def connection
-      pool.with do |conn|
-        yield(conn)
+      connection_acquired = false
+      begin
+        pool.with do |conn|
+          connection_acquired = true
+          yield(conn)
+        end
+      rescue Timeout::Error, ConnectionPool::PoolShuttingDownError => e
+        if e.kind_of?(ConnectionPool::PoolShuttingDownError)
+          @pool = nil
+          Connection::Manager.delete_pool(self)
+          raise Errors::PoolTimeout.new(e)
+        end
+        raise connection_acquired ? e : Errors::PoolTimeout.new(e)
       end
     end
 
@@ -182,6 +193,10 @@ module Moped
           yield(conn)
         end
       rescue Exception => e
+        if e.kind_of?(ConnectionPool::PoolShuttingDownError)
+          @pool = nil
+          Connection::Manager.delete_pool(self)
+        end
         Failover.get(e).execute(e, self, &block)
       ensure
         end_execution(:connection)
@@ -198,7 +213,7 @@ module Moped
     #
     # @return [ nil ] nil.
     #
-    # @since 1.0.0
+    # @since 1.0.0s
     def ensure_primary
       execute(:ensure_primary) do
         yield(self)
@@ -585,14 +600,14 @@ module Moped
     def flush(ops = queue)
       operations, callbacks = ops.transpose
       logging(operations) do
-        replies = nil
         ensure_connected do |conn|
           conn.write(operations)
           replies = conn.receive_replies(operations)
+
+          replies.zip(callbacks).map do |reply, callback|
+            callback ? callback[reply] : reply
+          end.last
         end
-        replies.zip(callbacks).map do |reply, callback|
-          callback ? callback[reply] : reply
-        end.last
       end
     ensure
       ops.clear

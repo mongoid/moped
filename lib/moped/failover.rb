@@ -21,7 +21,8 @@ module Moped
       Errors::ConnectionFailure => Retry,
       Errors::CursorNotFound => Ignore,
       Errors::OperationFailure => Reconfigure,
-      Errors::QueryFailure => Reconfigure
+      Errors::QueryFailure => Reconfigure,
+      Errors::PoolTimeout => Retry
     }.freeze
 
     # Get the appropriate failover handler given the provided exception.

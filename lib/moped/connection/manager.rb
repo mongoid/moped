@@ -48,10 +48,17 @@ module Moped
       #
       # @since 2.0.3
       def shutdown(node)
+        pool = nil
         MUTEX.synchronize do
           pool = pools.delete(node.address.resolved)
-          pool.shutdown{ |conn| conn.disconnect } if pool
-          nil
+        end
+        pool.shutdown{ |conn| conn.disconnect } if pool
+        nil
+      end
+
+      def delete_pool(node)
+        MUTEX.synchronize do
+          pools.delete(node.address.resolved)
         end
       end
 

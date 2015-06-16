@@ -42,6 +42,10 @@ module Moped
       Moped.logger.debug([ prefix, payload, "runtime: #{runtime}" ].join(' '))
     end
 
+    def self.info(prefix, payload, runtime)
+      Moped.logger.info([ prefix, payload, "runtime: #{runtime}" ].join(' '))
+    end
+
     # Log the payload to warn.
     #
     # @example Log to warn.

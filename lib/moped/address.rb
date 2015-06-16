@@ -45,9 +45,13 @@ module Moped
     #
     # @since 2.0.0
     def resolve(node)
+      return @resolved if @resolved
+      start = Time.now
+      retries = 0
       begin
-        return @resolved if @resolved
-        Timeout::timeout(@timeout) do
+        # This timeout should be very large since Timeout::timeout plays very badly with multithreaded code
+        # TODO: Remove this Timeout entirely
+        Timeout::timeout(@timeout * 10) do
           Resolv.each_address(host) do |ip|
             if ip =~ Resolv::IPv4::Regex
               @ip ||= ip
@@ -57,9 +61,19 @@ module Moped
           raise Resolv::ResolvError unless @ip
         end
         @resolved = "#{ip}:#{port}"
-      rescue Timeout::Error, Resolv::ResolvError, SocketError
-        Loggable.warn("  MOPED:", "Could not resolve IP for: #{original}", "n/a")
-        node.down! and false
+      rescue Timeout::Error, Resolv::ResolvError, SocketError => e
+        msg = ["  MOPED:", "Could not resolve IP for: #{original}, delta is #{Time.now - start}, error class is #{e.inspect}, retries is #{retries}. Node is #{node.inspect}", "n/a"]
+        if retries == 0
+          Loggable.info(*msg)
+        else
+          Loggable.warn(*msg)
+        end
+        if retries < 2
+          retries += 1
+          retry
+        else
+          node.down! and false
+        end
       end
     end
   end
