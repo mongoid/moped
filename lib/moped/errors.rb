@@ -112,10 +112,10 @@ module Moped
     class PotentialReconfiguration < MongoError
 
       # Not master error codes.
-      NOT_MASTER = [ 13435, 13436, 10009, 15986 ]
+      NOT_MASTER = [ 13435, 13436, 10009, 15986, 83 ]
 
       # Error codes received around reconfiguration
-      CONNECTION_ERRORS_RECONFIGURATION = [ 15988, 10276, 11600, 9001, 13639, 10009, 11002 ]
+      CONNECTION_ERRORS_RECONFIGURATION = [ 15988, 10276, 11600, 9001, 13639, 10009, 11002, 7 ]
 
       # Replica set reconfigurations can be either in the form of an operation
       # error with code 13435, or with an error message stating the server is
@@ -126,7 +126,8 @@ module Moped
       end
 
       def connection_failure?
-        CONNECTION_ERRORS_RECONFIGURATION.include?(details["code"])
+        err = details["err"] || details["errmsg"] || details["$err"] || ""
+        CONNECTION_ERRORS_RECONFIGURATION.include?(details["code"]) || err.include?("could not get last error") || err.include?("connection attempt failed")
       end
 
       # Is the error due to a namespace not being found?

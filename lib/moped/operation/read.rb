@@ -46,10 +46,27 @@ module Moped
       # @since 2.0.0
       def execute(node)
         node.process(operation) do |reply|
-          if operation.failure?(reply)
-            raise operation.failure_exception(reply)
+          # Avoid LocalJumpError
+          ret = nil
+          if reply.unauthorized? && node.credentials.key?(@database)
+            node.connection do |conn|
+              username, password = node.credentials[@database]
+              if username && password
+                conn.login(operation.database, username, password)
+                ret = execute(node)
+              end
+            end
           end
-          operation.results(reply)
+
+          if ret.nil?
+            if operation.failure?(reply)
+              raise operation.failure_exception(reply)
+            end
+
+            ret = operation.results(reply)
+          end
+
+          ret
         end
       end
     end
