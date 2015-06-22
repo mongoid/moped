@@ -94,7 +94,7 @@ module Moped
         if reply.command_failure?
           if reply.unauthorized? && auth.has_key?(database)
             login(database, *auth[database])
-            result = command(database, cmd, options)
+            raise Errors::ReplicaSetReconfigured.new(operation, result)
           else
             raise Errors::OperationFailure.new(operation, result)
           end
@@ -372,14 +372,8 @@ module Moped
       process(operation) do |reply|
         if reply.query_failed?
           if reply.unauthorized? && auth.has_key?(database)
-            # If we got here, most likely this is the case of Moped
-            # authenticating successfully against the node originally, but the
-            # node has been reset or gone down and come back up. The most
-            # common case here is a rs.stepDown() which will reinitialize the
-            # connection. In this case we need to requthenticate and try again,
-            # otherwise we'll just raise the error to the user.
             login(database, *auth[database])
-            reply = query(database, collection, selector, options)
+            raise Errors::ReplicaSetReconfigured.new(operation, reply.documents.first)
           else
             raise Errors::QueryFailure.new(operation, reply.documents.first)
           end

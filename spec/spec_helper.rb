@@ -15,6 +15,10 @@ require "rspec"
 
 $:.unshift((Pathname(__FILE__).dirname.parent + "lib").to_s)
 
+require "benchmark"
+require "fileutils"
+require "tmpdir"
+require "tempfile"
 require "moped"
 require "support/examples"
 require "support/mongohq"
@@ -35,7 +39,29 @@ RSpec.configure do |config|
     return true if value == :auth && !Support::MongoHQ.auth_node_configured?
   end
 
+  config.after(:suite) do
+    stop_mongo_server(31100)
+    stop_mongo_server(31101)
+    stop_mongo_server(31102)
+  end
+
   unless Support::MongoHQ.replica_set_configured? || Support::MongoHQ.auth_node_configured?
     $stderr.puts Support::MongoHQ.message
   end
+end
+
+def start_mongo_server(port, extra_options=nil)
+  stop_mongo_server(port)
+  dbpath = File.join(Dir.tmpdir, port.to_s)
+  FileUtils.mkdir_p(dbpath)
+  `mongod --oplogSize 40 --noprealloc --smallfiles --port #{port} --dbpath #{dbpath} --logpath #{dbpath}/log --pidfilepath #{dbpath}/pid --fork #{extra_options}`
+
+  sleep 0.1 while `echo 'db.runCommand({ping:1}).ok' | mongo --quiet --port #{port}`.chomp != "1"
+end
+
+def stop_mongo_server(port)
+  dbpath = File.join(Dir.tmpdir, port.to_s)
+  pidfile = File.join(dbpath, "pid")
+  `kill #{File.read(pidfile).chomp}` if File.exists?(pidfile)
+  FileUtils.rm_rf(dbpath)
 end

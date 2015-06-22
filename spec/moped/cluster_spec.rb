@@ -398,7 +398,7 @@ describe Moped::Cluster, replica_set: true do
     end
 
     let(:node) do
-      stub
+      double
     end
 
     context "when a node has no peers" do
@@ -457,5 +457,201 @@ describe Moped::Cluster, "authentication", mongohq: :auth do
         session.command dbStats: 1
       end.should raise_exception(Moped::Errors::OperationFailure)
     end
+  end
+end
+
+describe Moped::Cluster, "after a reconfiguration" do
+  let(:options) do
+    {
+      max_retries: 30,
+      retry_interval: 1,
+      timeout: 5,
+      database: 'test_db',
+      consistency: :strong,
+      safe: {w: 'majority'}
+    }
+  end
+
+  let(:replica_set_name) { 'dev' }
+
+  let(:session) do
+    Moped::Session.new([ "127.0.0.1:31100", "127.0.0.1:31101", "127.0.0.1:31102" ], options)
+  end
+
+  def servers_status
+    auth = has_user_admin? ? "-u admin -p admin_pwd --authenticationDatabase admin" : ""
+    `echo 'rs.status().members[0].stateStr + "|" + rs.status().members[1].stateStr + "|" + rs.status().members[2].stateStr' | mongo --quiet --port 31100 #{auth} 2>/dev/null`.chomp.split("|")
+  end
+
+  def has_user_admin?
+    auth = with_authentication? ? "-u admin -p admin_pwd --authenticationDatabase admin" : ""
+    `echo 'db.getSisterDB("admin").getUser("admin").user' | mongo --quiet --port 31100 #{auth} 2>/dev/null`.chomp   == "admin"
+  end
+
+  def step_down_servers
+    step_down_file = File.join(Dir.tmpdir, with_authentication? ? "step_down_with_authentication.js" : "step_down_without_authentication.js")
+    unless File.exists?(step_down_file)
+      File.open(step_down_file, "w") do |file|
+        user_data = with_authentication? ? ", 'admin', 'admin_pwd'" : ""
+        file.puts %{
+          function stepDown(dbs) {
+            for (i in dbs) {
+              dbs[i].adminCommand({replSetFreeze:5});
+              try { dbs[i].adminCommand({replSetStepDown:5}); } catch(e) { print(e) };
+            }
+          };
+
+          var db1 = connect('localhost:31100/admin'#{user_data});
+          var db2 = connect('localhost:31101/admin'#{user_data});
+          var db3 = connect('localhost:31102/admin'#{user_data});
+
+          var dbs = [db1, db2, db3];
+          stepDown(dbs);
+
+          while (db1.adminCommand({ismaster:1}).ismaster || db2.adminCommand({ismaster:1}).ismaster || db2.adminCommand({ismaster:1}).ismaster) {
+            stepDown(dbs);
+          }
+        }
+      end
+    end
+    system "mongo --nodb #{step_down_file} 2>&1 > /dev/null"
+  end
+
+  shared_examples_for "recover the session" do
+    it "should execute commands normally before the stepDown" do
+      time = Benchmark.realtime do
+        session[:foo].find().remove_all()
+        session[:foo].find().to_a.count.should eql(0)
+        session[:foo].insert({ name: "bar 1" })
+        session[:foo].find().to_a.count.should eql(1)
+        expect {
+          session[:foo].insert({ name: "bar 1" })
+        }.to raise_exception
+      end
+      time.should be < 2
+    end
+
+    it "should recover and execute a find" do
+      session[:foo].find().remove_all()
+      session[:foo].insert({ name: "bar 1" })
+      step_down_servers
+      time = Benchmark.realtime do
+        session[:foo].find().to_a.count.should eql(1)
+      end
+      time.should be > 5
+      time.should be < 29
+    end
+
+    it "should recover and execute an insert" do
+      session[:foo].find().remove_all()
+      session[:foo].insert({ name: "bar 1" })
+      step_down_servers
+      time = Benchmark.realtime do
+        session[:foo].insert({ name: "bar 2" })
+        session[:foo].find().to_a.count.should eql(2)
+      end
+      time.should be > 5
+      time.should be < 29
+
+      session[:foo].insert({ name: "bar 3" })
+      session[:foo].find().to_a.count.should eql(3)
+    end
+
+    it "should recover and try an insert which hit a constraint" do
+      session[:foo].find().remove_all()
+      session[:foo].insert({ name: "bar 1" })
+      step_down_servers
+      time = Benchmark.realtime do
+        expect {
+          session[:foo].insert({ name: "bar 1" })
+        }.to raise_exception
+      end
+      time.should be > 5
+      time.should be < 29
+
+      session[:foo].find().to_a.count.should eql(1)
+
+      session[:foo].insert({ name: "bar 2" })
+      session[:foo].find().to_a.count.should eql(2)
+    end
+  end
+
+  describe "with authentication off" do
+    before do
+      unless servers_status.all?{|st| st == "PRIMARY" || st == "SECONDARY"} && !has_user_admin?
+        start_mongo_server(31100, "--replSet #{replica_set_name}")
+        start_mongo_server(31101, "--replSet #{replica_set_name}")
+        start_mongo_server(31102, "--replSet #{replica_set_name}")
+
+        `echo "rs.initiate({_id : '#{replica_set_name}', 'members' : [{_id:0, host:'localhost:31100'},{_id:1, host:'localhost:31101'},{_id:2, host:'localhost:31102'}]})"  | mongo --port 31100`
+        sleep 0.1 while !servers_status.all?{|st| st == "PRIMARY" || st == "SECONDARY"}
+
+        master = `echo 'db.isMaster().primary' | mongo --quiet --port 31100`.chomp
+
+        `echo "
+        use test_db;
+        db.foo.ensureIndex({name:1}, {unique:1});
+        " | mongo #{master}`
+      end
+    end
+
+    let(:with_authentication?) { false }
+
+    it_should_behave_like "recover the session"
+  end
+
+  describe "with authentication on" do
+    before do
+      unless servers_status.all?{|st| st == "PRIMARY" || st == "SECONDARY"} && has_user_admin?
+        keyfile = File.join(Dir.tmpdir, "31000", "keyfile")
+        FileUtils.mkdir_p(File.dirname(keyfile))
+        File.open(keyfile, "w") do |f| f.puts "SyrfEmAevWPEbgRZoZx9qZcZtJAAfd269da+kzi0H/7OuowGLxM3yGGUHhD379qP
+nw4X8TT2T6ecx6aqJgxG+biJYVOpNK3HHU9Dp5q6Jd0bWGHGGbgFHV32/z2FFiti
+EFLimW/vfn2DcJwTW29nQWhz2wN+xfMuwA6hVxFczlQlz5hIY0+a+bQChKw8wDZk
+rW1OjTQ//csqPbVA8fwB49ghLGp+o84VujhRxLJ+0sbs8dKoIgmVlX2kLeHGQSf0
+KmF9b8kAWRLwLneOR3ESovXpEoK0qpQb2ym6BNqP32JKyPA6Svb/smVONhjUI71f
+/zQ2ETX7ylpxIzw2SMv/zOWcVHBqIbdP9Llrxb3X0EsB6J8PeI8qLjpS94FyEddw
+ACMcAxbP+6BaLjXyJ2WsrEeqThAyUC3uF5YN/oQ9XiATqP7pDOTrmfn8LvryyzcB
+ByrLRTPOicBaG7y13ATcCbBdrYH3BE4EeLkTUZOg7VzvRnATvDpt0wOkSnbqXow8
+GQ6iMUgd2XvUCuknQLD6gWyoUyHiPADKrLsgnd3Qo9BPxYJ9VWSKB4phK3N7Bic+
+BwxlcpDFzGI285GR4IjcJbRRjjywHq5XHOxrJfN+QrZ/6wy6yu2+4NTPj+BPC5iX
+/dNllTEyn7V+pr6FiRv8rv8RcxJgf3nfn/Xz0t2zW2olcalEFxwKKmR20pZxPnSv
+Kr6sVHEzh0mtA21LoK5G8bztXsgFgWU7hh9z8UUo7KQQnDfyPb6k4xroeeQtWBNo
+TZF1pI5joLytNSEtT+BYA5wQSYm4WCbhG+j7ipcPIJw6Un4ZtAZs0aixDfVE0zo0
+w2FWrYH2dmmCMbz7cEXeqvQiHh9IU/hkTrKGY95STszGGFFjhtS2TbHAn2rRoFI0
+VwNxMJCC+9ZijTWBeGyQOuEupuI4C9IzA5Gz72048tpZ0qMJ9mOiH3lZFtNTg/5P
+28Td2xzaujtXjRnP3aZ9z2lKytlr
+"
+        end
+
+        File.chmod(0600, keyfile)
+
+        start_mongo_server(31100, "--replSet #{replica_set_name} --keyFile #{keyfile} --auth")
+        start_mongo_server(31101, "--replSet #{replica_set_name} --keyFile #{keyfile} --auth")
+        start_mongo_server(31102, "--replSet #{replica_set_name} --keyFile #{keyfile} --auth")
+
+        `echo "rs.initiate({_id : '#{replica_set_name}', 'members' : [{_id:0, host:'localhost:31100'},{_id:1, host:'localhost:31101'},{_id:2, host:'localhost:31102'}]})"  | mongo --port 31100`
+        sleep 0.1 while !servers_status.all?{|st| st == "PRIMARY" || st == "SECONDARY"}
+
+        master = `echo 'db.isMaster().primary' | mongo --quiet --port 31100`.chomp
+
+        `echo "
+        use admin;
+        db.addUser('admin', 'admin_pwd');
+        " | mongo #{master}`
+
+        `echo "
+        use test_db;
+        db.addUser('common', 'common_pwd');
+        db.foo.ensureIndex({name:1}, {unique:1});
+        " | mongo #{master} -u admin -p admin_pwd --authenticationDatabase admin`
+      end
+
+      session.login('common', 'common_pwd')
+    end
+
+    let(:with_authentication?) { true }
+
+    it_should_behave_like "recover the session"
   end
 end
