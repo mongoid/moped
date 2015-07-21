@@ -21,7 +21,7 @@ module Moped
           io << key.to_bson_cstring
           code_start = io.bytesize
           io << START_LENGTH
-          data = code.to_utf8_binary
+          data = code.to_utf8_binary_moped
           io << [data.bytesize+1].pack(INT32_PACK)
           io << data
           io << NULL_BYTE
@@ -30,7 +30,7 @@ module Moped
         else
           io << Types::CODE
           io << key.to_bson_cstring
-          data = code.to_utf8_binary
+          data = code.to_utf8_binary_moped
           io << [data.bytesize+1].pack(INT32_PACK)
           io << data
           io << NULL_BYTE

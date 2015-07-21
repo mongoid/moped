@@ -7,7 +7,7 @@ module Moped
         def __bson_dump__(io, key)
           io << Types::SYMBOL
           io << key.to_bson_cstring
-          data = to_utf8_binary
+          data = to_utf8_binary_moped
           io << [ data.bytesize + 1 ].pack(INT32_PACK)
           io << data
           io << NULL_BYTE
@@ -17,8 +17,8 @@ module Moped
           to_s.to_bson_cstring
         end
 
-        def to_utf8_binary
-          to_s.to_utf8_binary
+        def to_utf8_binary_moped
+          to_s.to_utf8_binary_moped
         end
 
         module ClassMethods

@@ -7,7 +7,7 @@ module Moped
         def __bson_dump__(io, key)
           io << Types::STRING
           io << key.to_bson_cstring
-          data = to_utf8_binary
+          data = to_utf8_binary_moped
           io << [ data.bytesize + 1 ].pack(INT32_PACK)
           io << data
           io << NULL_BYTE
@@ -18,10 +18,10 @@ module Moped
             raise EncodingError, "#{inspect} cannot be converted to a BSON " \
               "cstring because it contains a null byte"
           end
-          to_utf8_binary << NULL_BYTE
+          to_utf8_binary_moped << NULL_BYTE
         end
 
-        def to_utf8_binary
+        def to_utf8_binary_moped
           encode(Moped::BSON::UTF8_ENCODING).force_encoding(Moped::BSON::BINARY_ENCODING)
         rescue EncodingError
           data = dup.force_encoding(Moped::BSON::UTF8_ENCODING)
