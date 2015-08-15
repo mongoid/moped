@@ -1,5 +1,9 @@
 # Overview
 
+## 2.0.7
+
+* Improved Moped Failover (John Hyman)
+
 ## 2.0.6
 
 * Relaxing BSON dependency to allow for 3.1.0 upgrade.
