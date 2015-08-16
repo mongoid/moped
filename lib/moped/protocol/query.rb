@@ -31,7 +31,8 @@ module Moped
                     slave_ok:          2 ** 2,
                     no_cursor_timeout: 2 ** 4,
                     await_data:        2 ** 5,
-                    exhaust:           2 ** 6
+                    exhaust:           2 ** 6,
+                    partial:           2 ** 7
 
       # @!attribute full_collection_name
       #   @return [ String ] the namespaced collection name
