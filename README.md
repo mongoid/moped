@@ -20,7 +20,7 @@ Documentation
 -------------
 
 Please see the new Mongoid website for up-to-date documentation in
-the Moped section: [mongoid.org](http://mongoid.org/en/moped/)
+the Moped section: [mongoid.github.io](http://mongoid.github.io/en/moped/)
 
 License
 -------
