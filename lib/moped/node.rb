@@ -187,7 +187,11 @@ module Moped
 
       begin
         connection do |conn|
-          connect(conn) unless conn.alive?
+          if conn.alive?
+            @down_at = nil
+          else
+            connect(conn)
+          end
           conn.apply_credentials(@credentials)
           stack(:connection) << conn
           yield(conn)

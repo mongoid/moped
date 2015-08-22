@@ -309,6 +309,21 @@ describe Moped::Node, replica_set: true do
         end
       end
     end
+
+    context 'when node was down' do
+      before { node.down! }
+
+      context 'and good connection popped out of the pool' do
+        before { allow_any_instance_of(Moped::Connection).to receive(:alive?).and_return true }
+
+        it 'marks node as not down' do
+          node.ensure_connected do
+            node.command("admin", ping: 1)
+          end
+          expect(node).not_to be_down
+        end
+      end
+    end
   end
 
   describe "#initialize" do
