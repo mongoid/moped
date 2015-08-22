@@ -23,7 +23,7 @@ module Moped
 
       # @!attribute
       # The flags for the query. Supported flags are: +:tailable+, +:slave_ok+,
-      # +:no_cursor_timeout+, +:await_data+, +:exhaust+.
+      # +:no_cursor_timeout+, +:await_data+, +:exhaust+, +:partial+.
       #
       # @param  [ Array ] flags the flags for this message
       # @return [ Array ] the flags for this message
@@ -31,7 +31,8 @@ module Moped
                     slave_ok:          2 ** 2,
                     no_cursor_timeout: 2 ** 4,
                     await_data:        2 ** 5,
-                    exhaust:           2 ** 6
+                    exhaust:           2 ** 6,
+                    partial:           2 ** 7
 
       # @!attribute full_collection_name
       #   @return [ String ] the namespaced collection name
@@ -145,7 +146,7 @@ module Moped
       # @option options [ Integer ] :limit The number of documents to return.
       # @option options [ Hash ] :fields The limited fields to return.
       # @option options [ Array ] :flags The flags for querying. Supported flags
-      #   are: :tailable, :slave_ok, :no_cursor_timeout, :await_data, :exhaust.
+      #   are: :tailable, :slave_ok, :no_cursor_timeout, :await_data, :exhaust, :partial.
       #
       # @since 1.0.0
       def initialize(database, collection, selector, options = {})
