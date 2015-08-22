@@ -1,6 +1,7 @@
 # encoding: utf-8
 require "moped/connection/manager"
 require "moped/connection/sockets"
+require "socket"
 
 module Moped
   # This class contains behaviour of database socket connections.
@@ -38,6 +39,8 @@ module Moped
       connected? ? @sock.alive? : false
     end
 
+    
+
     # Connect to the server defined by @host, @port without timeout @timeout.
     #
     # @example Open the connection
@@ -53,6 +56,7 @@ module Moped
       else
         Socket::TCP.connect(host, port, timeout)
       end
+      enable_tcp_keepalive
     end
 
     # Is the connection connected?
@@ -101,6 +105,7 @@ module Moped
       @options = options
       @sock = nil
       @request_id = 0
+      configure_tcp_keepalive(@options[:keepalive])
     end
 
     # Read from the connection.
@@ -177,6 +182,45 @@ module Moped
 
     private
 
+
+    # Configure the TCP Keeplive if it is a FixNum. If it is hash 
+    # validate he settings are FixNums.
+    #
+    # @example With a FixNum
+    #   configure_tcp_keepalive(60)
+    #
+    # @example With a Hash
+    #   configure_tcp_keepalive({:time => 30, :intvl => 20, :probes => 2})    
+    #
+    # @param [ FixNum ] | [ Hash ] Supply a Fixnum to allow the specific settings to be 
+    #                   configured for you. Supply a Hash with the :time, :intvl, and :probes
+    #                   keys to set specific values
+    #
+    # @return The configured keepalive Hash or nil. 
+    #
+    # @since 1.0.0
+    def configure_tcp_keepalive(keepalive)
+      case keepalive
+      when Hash
+        [:time, :intvl, :probes].each do |key|
+          unless  keepalive[key].is_a?(Fixnum)
+            raise "Expected the #{key.inspect} key in :tcp_keepalive to be a Fixnum"
+          end
+        end
+      when Fixnum
+        if keepalive >= 60
+          keepalive = {:time => keepalive - 20, :intvl => 10, :probes => 2}
+
+        elsif keepalive >= 30
+          keepalive = {:time => keepalive - 10, :intvl => 5, :probes => 2}
+
+        elsif keepalive >= 5
+          keepalive = {:time => keepalive - 2, :intvl => 2, :probes => 1}
+        end
+      end  
+      @keepalive = keepalive    
+    end
+
     # Read data from the socket until we get back the number of bytes that we
     # are expecting.
     #
@@ -203,6 +247,43 @@ module Moped
       end
       data
     end
+
+    if [:SOL_SOCKET, :SO_KEEPALIVE, :SOL_TCP, :TCP_KEEPIDLE, :TCP_KEEPINTVL, :TCP_KEEPCNT].all?{|c| ::Socket.const_defined? c}
+      # Enable the tcp_keepalive if configured
+      #
+      # @api private
+      #
+      # @example
+      #   enable_tcp_keepalive
+      #
+      # @return [ nil ] nil.
+      #
+      # @since 2.0.5
+      def enable_tcp_keepalive
+        return unless @keepalive.is_a?(Hash)
+        @sock.setsockopt(::Socket::SOL_SOCKET, ::Socket::SO_KEEPALIVE,  true)
+        @sock.setsockopt(::Socket::SOL_TCP,    ::Socket::TCP_KEEPIDLE,  @keepalive[:time])
+        @sock.setsockopt(::Socket::SOL_TCP,    ::Socket::TCP_KEEPINTVL, @keepalive[:intvl])
+        @sock.setsockopt(::Socket::SOL_TCP,    ::Socket::TCP_KEEPCNT,   @keepalive[:probes])
+        Loggable.debug("  MOPED:", "Configured TCP keepalive for connection with #{@keepalive.inspect}", "n/a") 
+      end
+    else
+      # Skeleton method that doesn't enable the tcp_keepalive.
+      # It simply logs a message saying the feature isn't supported.
+      #
+      # @api private
+      #
+      # @example With a Hash
+      #   enable_tcp_keepalive
+      #
+      # @return [ nil ] nil.
+      #
+      # @since 2.0.5      
+      def enable_tcp_keepalive
+        return unless @keepalive.is_a?(Hash)
+        Loggable.debug("  MOPED:", "Did not configure TCP keepalive for connection as it is not supported on this platform.", "n/a") 
+      end
+    end    
 
     # Yields a connected socket to the calling back. It will attempt to reconnect
     # the socket if it is not connected.
