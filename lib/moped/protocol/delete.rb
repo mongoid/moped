@@ -85,9 +85,7 @@ module Moped
       end
 
       def log_inspect
-        type = "DELETE"
-
-        "%-12s database=%s collection=%s selector=%s flags=%s" % [type, database, collection, selector.inspect, flags.inspect]
+        Moped.log_format.delete(self)
       end
 
       private

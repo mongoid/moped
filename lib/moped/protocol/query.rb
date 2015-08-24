@@ -171,19 +171,7 @@ module Moped
       #
       # @since 1.0.0
       def log_inspect
-        type = "QUERY"
-        fields = []
-        fields << ["%-12s", type]
-        fields << ["database=%s", database]
-        fields << ["collection=%s", collection]
-        fields << ["selector=%s", selector.inspect]
-        fields << ["flags=%s", flags.inspect]
-        fields << ["limit=%s", limit.inspect]
-        fields << ["skip=%s", skip.inspect]
-        fields << ["batch_size=%s", batch_size.inspect]
-        fields << ["fields=%s", self.fields.inspect]
-        f, v = fields.transpose
-        f.join(" ") % v
+        Moped.log_format.query(self)
       end
 
       undef op_code

@@ -86,9 +86,7 @@ module Moped
       end
 
       def log_inspect
-        type = "INSERT"
-
-        "%-12s database=%s collection=%s documents=%s flags=%s" % [type, database, collection, documents.inspect, flags.inspect]
+        Moped.log_format.insert(self)
       end
 
       private

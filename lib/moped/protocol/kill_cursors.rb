@@ -55,9 +55,7 @@ module Moped
       end
 
       def log_inspect
-        type = "KILL_CURSORS"
-
-        "%-12s cursor_ids=%s" % [type, cursor_ids.inspect]
+        Moped.log_format.kill_cursors(self)
       end
     end
   end
