@@ -49,7 +49,7 @@ module Moped
     def connect
       credentials.clear
       @sock = if !!options[:ssl]
-        Socket::SSL.connect(host, port, timeout)
+        Socket::SSL.connect(host, port, timeout, options[:ssl])
       else
         Socket::TCP.connect(host, port, timeout)
       end

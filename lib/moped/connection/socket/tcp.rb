@@ -15,7 +15,7 @@ module Moped
         # @param [ Integer ] port The port.
         #
         # @since 1.2.0
-        def initialize(host, port)
+        def initialize(host, port, options)
           @host, @port = host, port
           handle_socket_errors { super }
         end
