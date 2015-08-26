@@ -694,6 +694,34 @@ describe Moped::Query do
           )
         end
       end
+
+      context "when fields are specified" do
+
+        before do
+          4.times do |n|
+            users.insert({ likes: n })
+          end
+        end
+
+        let(:explain) do
+          users.find.select(likes: 1, _id: 0).explain
+        end
+
+        let(:stats) do
+          Support::Stats.collect { explain }
+        end
+
+        let(:operation) do
+          stats[node_for_reads].grep(Moped::Protocol::Query).last
+        end
+
+        it "updates to a mongo advanced selector" do
+          operation.fields.should eq(
+            likes: 1,
+            _id:   0
+          )
+        end
+      end
     end
 
     describe "#each" do

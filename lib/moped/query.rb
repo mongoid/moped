@@ -113,7 +113,9 @@ module Moped
       explanation["$orderby"] = sort if sort
       explanation["$hint"] = hint if hint
       explanation["$maxScan"] = max_scan if max_scan
-      Query.new(collection, explanation).limit(-(operation.limit.abs)).each { |doc| return doc }
+      query = Query.new(collection, explanation)
+      query.select(operation.fields.dup) if operation.fields
+      query.limit(-(operation.limit.abs)).each { |doc| return doc }
     end
 
     # Get the first matching document.
