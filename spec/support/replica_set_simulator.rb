@@ -101,19 +101,20 @@ module Support
 
       attr_reader :port
       attr_reader :host
+      attr_accessor :tags
 
       def initialize(set, port)
         @set = set
         @primary = false
         @secondary = false
-
+        @tags = {"tag" => "test"}
         @host = "127.0.0.1"
         @port = port
         @hiccup_on_next_message = nil
       end
 
       def ==(other)
-        @host == other.host && @port == other.port
+        @host == other.host && @port == other.port && @tags == other.tags
       end
 
       def address
@@ -132,6 +133,7 @@ module Support
         {
           "ismaster" => @primary,
           "secondary" => @secondary,
+          "tags" => @primary ? nil : @tags,
           "hosts" => @set.nodes.map(&:address),
           "me" => address,
           "maxBsonObjectSize" => 16777216,

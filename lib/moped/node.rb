@@ -26,7 +26,7 @@ module Moped
     #   @return [ Hash ] The node options.
     # @!attribute refreshed_at
     #   @return [ Time ] The last time the node did a refresh.
-    attr_reader :address, :down_at, :latency, :options, :refreshed_at
+    attr_reader :address, :down_at, :latency, :options, :refreshed_at, :tags
 
     # @!attribute credentials
     #   @return [ Hash ] The credentials of the node.
@@ -266,6 +266,7 @@ module Moped
       @latency = nil
       @primary = nil
       @secondary = nil
+      @tags = nil
       @credentials = {}
       @instrumenter = options[:instrumenter] || Instrumentable::Log
       @address = Address.new(address, timeout)
@@ -526,7 +527,7 @@ module Moped
     #
     # @since 1.0.0
     def inspect
-      "<#{self.class.name} resolved_address=#{address.resolved.inspect}>"
+      "<#{self.class.name} resolved_address=#{address.resolved.inspect} tags=#{tags.inspect}>"
     end
 
     private
@@ -564,6 +565,7 @@ module Moped
       @passive = settings["passive"]
       @primary = settings["ismaster"]
       @secondary = settings["secondary"]
+      @tags = settings["tags"] ? settings["tags"].to_hash : {}
       discover(settings["hosts"]) if auto_discovering?
     end
 

@@ -250,6 +250,8 @@ module Moped
     # @since 1.5.0
     option(:auto_discover).allow(true, false)
 
+    option(:tags).allow(Optionable.any(Hash))
+
     # Initialize a new database session.
     #
     # @example Initialize a new session.
@@ -319,7 +321,7 @@ module Moped
     #
     # @since 2.0.0
     def read_preference
-      @read_preference ||= ReadPreference.get(options[:read] || :primary)
+      @read_preference ||= ReadPreference.get((options[:read] || :primary), options[:tags])
     end
 
     # Switch the session's current database.

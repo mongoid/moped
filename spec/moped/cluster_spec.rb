@@ -397,6 +397,118 @@ describe Moped::Cluster, replica_set: true do
     end
   end
 
+  context "with tagsets" do
+    let(:cluster) do
+      Moped::Cluster.new(seeds,{tags: {"tag" => "test"}})
+    end
+
+    it "reads tags from all nodes" do
+      cluster.nodes.map(&:tags).reject{|x| x.empty?}.size.should eq(@secondaries.size)
+      cluster.nodes.map(&:tags).reject{|x| x.empty?}.uniq.size.should eq(1)
+      cluster.nodes.select {|n| n.primary? }.map(&:tags).reject{|x| x.empty?}.size.should eq(0)
+      cluster.nodes.select {|n| n.secondary?}.map(&:tags)[0].should eq({"tag" => "test"})
+    end
+
+    context "when only one secondary is tagged" do
+      before do
+        @secondaries[0].tags = nil
+        @secondaries[0].restart
+        cluster.refresh
+      end
+
+      it "filters out untagged secondary" do
+        cluster.send(:available_secondary_nodes).size.should eq(@secondaries.size - 1)
+      end
+
+      describe "#with_primary" do
+        it "connects and yields the primary node" do
+          cluster.with_primary do |node|
+            node.address.original.should eq @primary.address
+          end
+        end
+      end
+
+      describe "#with_secondary" do
+        it "connects and yields a tagged secondary node" do
+          cluster.with_secondary do |node|
+            @secondaries.map(&:address).should include node.address.original
+            node.tags.has_key?("tag").should eq(true)
+            node.tags["tag"].should eq("test")
+          end
+        end
+      end
+    end
+
+    context "when a node is added to the set" do
+      context " and the new node is tagged" do
+        before do
+          @secondaries.each do |s|
+            s.tags = {"tag" => "test"}
+            s.restart
+          end
+          node = @replica_set.add_node
+          node.demote
+          node.restart
+          @secondaries.push(node)
+          cluster.refresh
+        end
+
+        it "includes the newly added tagged node in the available set" do
+          cluster.send(:available_secondary_nodes).size.should eq(@secondaries.size)
+        end
+      end
+
+      context" and the new node is untagged" do
+        before do
+          @secondaries.each do |s|
+            s.tags = {"tag" => "test"}
+            s.restart
+          end
+          node = @replica_set.add_node
+          node.demote
+          node.tags = nil
+          node.restart
+          @secondaries.push(node)
+          cluster.refresh
+        end
+
+        it "excludes the newly added untagged node from the available set" do
+          cluster.send(:available_secondary_nodes).size.should eq(@secondaries.size - 1)
+        end
+      end
+
+    end
+
+    context "when there are no tagged nodes" do
+      before do
+        @secondaries.each do |s|
+          s.tags = nil
+          s.restart
+        end
+        cluster.refresh
+      end
+
+      describe "#with_primary" do
+        it "connects and yields the primary node" do
+          cluster.with_primary do |node|
+            node.address.original == @primary.address
+          end
+        end
+      end
+
+      describe "#with_secondary" do
+        it "raises an error" do
+          expect {
+              cluster.with_secondary do |node|
+                node.command "admin", ping: 1
+              end
+            }.to raise_error(Moped::Errors::ConnectionFailure)
+        end
+      end
+    end
+  end
+
+
   describe "#refresh" do
 
     let(:cluster) do
@@ -411,8 +523,8 @@ describe Moped::Cluster, replica_set: true do
       end
 
       it "gets removed from the available nodes and configured nodes" do
-        cluster.nodes.size.should eq(2)
-        cluster.seeds.size.should eq(2)
+        cluster.nodes.size.should eq(@secondaries.size + 1)
+        cluster.seeds.size.should eq(@secondaries.size + 1)
       end
     end
   end
@@ -440,6 +552,7 @@ describe Moped::Cluster, replica_set: true do
     end
   end
 end
+
 
 describe Moped::Cluster, "authentication", mongohq: :auth do
 
