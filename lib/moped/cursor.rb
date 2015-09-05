@@ -12,7 +12,7 @@ module Moped
     # @attribute [r] kill_cursor_op The kill cursor message.
     # @attribute [r] query_op The query message.
     # @attribute [r] session The session.
-    attr_reader :get_more_op, :kill_cursor_op, :query_op, :session
+    attr_reader :get_more_op, :kill_cursor_op, :query_op, :session, :cache
 
     # Iterate over the results of the query.
     #
@@ -25,12 +25,12 @@ module Moped
     #
     # @since 1.0.0
     def each
-      documents = load_docs
-      documents.each { |doc| yield doc }
+      @cache ||= load_docs
+      yield @cache.shift while @cache.any?
       while more?
         return kill if limited? && @limit <= 0
-        documents = get_more
-        documents.each { |doc| yield doc }
+        @cache = get_more
+        yield @cache.shift while @cache.any?
       end
     end
 
