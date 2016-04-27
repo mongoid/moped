@@ -42,7 +42,7 @@ module Moped
       # @since 2.0.0
       def with_node(cluster, &block)
         with_retry(cluster) do
-          nearest = cluster.nodes.sort_by(&:latency).first
+          nearest = cluster.nodes.select(&:latency).sort_by(&:latency).first
           if nearest
             block.call(nearest)
           else
