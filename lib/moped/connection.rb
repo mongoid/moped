@@ -34,9 +34,10 @@ module Moped
     # @since 1.0.0
     def connect
       @sock = if !!options[:ssl]
-        Sockets::SSL.connect(host, port, timeout)
+        ssl_options = options.reject { |k, v| !k.to_s.start_with?('ssl') }
+        Sockets::SSL.connect(host, port, timeout, ssl_options)
       else
-        Sockets::TCP.connect(host, port, timeout)
+        Sockets::TCP.connect(host, port, timeout, {})
       end
     end
 
