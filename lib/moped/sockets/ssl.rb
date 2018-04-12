@@ -21,6 +21,7 @@ module Moped
       #
       # @since 1.2.0
       def initialize(host, port, options)
+        p options
         @context = create_context(options)
         @host, @port = host, port
         handle_socket_errors do
