@@ -25,8 +25,9 @@ module Moped
         @host, @port = host, port
         handle_socket_errors do
           @socket = TCPSocket.new(host, port)
-          super(socket)
+          super(socket, context)
           self.sync_close = true
+          self.hostname = host
           connect
           verify_certificate!
         end
