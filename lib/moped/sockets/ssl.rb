@@ -27,7 +27,7 @@ module Moped
           @socket = TCPSocket.new(host, port)
           super(socket)
           self.sync_close = true
-          connect(host, port)
+          connect
           verify_certificate!
         end
       end
