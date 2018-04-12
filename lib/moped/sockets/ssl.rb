@@ -21,14 +21,12 @@ module Moped
       #
       # @since 1.2.0
       def initialize(host, port, options)
-        p options
         @context = create_context(options)
         @host, @port = host, port
         handle_socket_errors do
           @socket = TCPSocket.new(host, port)
           super(socket, context)
           self.sync_close = true
-          self.hostname = host
           connect
           verify_certificate!
         end
