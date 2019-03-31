@@ -143,5 +143,33 @@ module Moped
 
     # Tag applied to unhandled exceptions on a node.
     module SocketError; end
+
+    class InsufficientIterationCount < StandardError
+
+      def initialize(msg)
+        super(msg)
+      end
+
+      def self.message(required_count, given_count)
+        "This auth mechanism requires an iteration count of #{required_count}, but the server only requested #{given_count}"
+      end
+    end
+
+    class MissingPassword < StandardError
+      def initialize(msg = nil)
+        super(msg || 'There are no password configured')
+      end
+    end
+
+    class InvalidNonce < StandardError
+      attr_reader :nonce
+      attr_reader :rnonce
+
+      def initialize(nonce, rnonce)
+        @nonce = nonce
+        @rnonce = rnonce
+        super("Expected server rnonce '#{rnonce}' to start with client nonce '#{nonce}'.")
+      end
+    end
   end
 end

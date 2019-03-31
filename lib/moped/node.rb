@@ -498,12 +498,28 @@ module Moped
       getnonce = Protocol::Command.new(database, getnonce: 1)
       connection.write [getnonce]
       result = connection.read.documents.first
-      raise Errors::OperationFailure.new(getnonce, result) unless result["ok"] == 1
-      authenticate = Protocol::Commands::Authenticate.new(database, username, password, result["nonce"])
-      connection.write [authenticate]
-      result = connection.read.documents.first
+      raise Errors::OperationFailure.new(getnonce, result) unless result[Protocol::OK] == 1
 
-      unless result["ok"] == 1
+      if options[:auth_mech] == :scram
+        authenticate = Protocol::Commands::ScramAuthenticate.new(database, username, password)
+
+        connection.write [authenticate.start(result)]
+        result = connection.read.documents.first
+
+        connection.write [authenticate.continue(result)]
+        result = connection.read.documents.first
+
+        until result[Protocol::DONE]
+          connection.write [authenticate.finalize(result)]
+          result = connection.read.documents.first
+        end
+      else
+        authenticate = Protocol::Commands::Authenticate.new(database, username, password, result[Protocol::NONCE])
+        connection.write [authenticate]
+        result = connection.read.documents.first
+      end
+
+      unless result[Protocol::OK] == 1
         # See if we had connectivity issues so we can retry
         e = Errors::PotentialReconfiguration.new(authenticate, result)
         if e.reconfiguring_replica_set?

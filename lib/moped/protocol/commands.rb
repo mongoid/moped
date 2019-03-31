@@ -9,3 +9,4 @@ module Moped
 end
 
 require "moped/protocol/commands/authenticate"
+require "moped/protocol/commands/scram_authenticate"
