@@ -3,6 +3,9 @@ module Moped #:nodoc:
   # The +Moped::Protocol+ namespace contains convenience classes for
   # building all of the possible messages defined in the Mongo Wire Protocol.
   module Protocol
+    DONE = 'done'.freeze
+    NONCE = 'nonce'.freeze
+    OK = 'ok'.freeze
   end
 end
 
